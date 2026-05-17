@@ -378,6 +378,11 @@ body{background:radial-gradient(1400px 900px at 50% -10%,rgba(245,197,66,.05),tr
     </div>
     <div id="connectorWarn" style="margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:9px;color:#f5c542;letter-spacing:.05em;line-height:1.4">CRITICAL PATHWAY DISCONNECTED · AWAITING CREDENTIAL PAYLOAD</div>
   </div>
+
+  <!-- v4.4.6 · COLLAPSED-STATE PILL · shown bottom-left when all 3 connectors armed (Mo: "give clear canvas look once done") -->
+  <div id="connectorPill" onclick="reopenConnectorPanel()" style="display:none;position:absolute;left:14px;bottom:14px;z-index:6;background:rgba(8,30,20,.92);border:1px solid #43e6a1;border-radius:22px;padding:8px 14px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:10px;color:#43e6a1;letter-spacing:.14em;box-shadow:0 6px 16px rgba(0,0,0,.55);align-items:center;gap:8px;transition:all .25s;backdrop-filter:blur(10px)" onmouseover="this.style.background='rgba(8,40,28,.98)'" onmouseout="this.style.background='rgba(8,30,20,.92)'">
+    <span style="font-size:13px">✓</span> <span>CONNECTORS SECURED</span>
+  </div>
 </div>
 
 <!-- Three.js · MIT · verified via cdnjs https://cdnjs.cloudflare.com/ajax/libs/three.js/0.158.0/three.min.js -->
@@ -1517,13 +1522,15 @@ function buildOfficeScene(agency){
     officeScene.add(ring);
 
     // TRACK A: floating HUD sprite · positioned ABOVE the agent's head (head is at y=1.46)
+    // v4.4.6 · canvas widened 256→448 + height 64→88 so longer pipeline roles fit
+    // (e.g. "Asset Synthesis Core" · "Lead Systems Director" · "Engine Automation Script")
     const labelCanvas = document.createElement('canvas');
-    labelCanvas.width = 256; labelCanvas.height = 64;
+    labelCanvas.width = 448; labelCanvas.height = 88;
     const lblTex = new THREE.CanvasTexture(labelCanvas);
     const spriteMat = new THREE.SpriteMaterial({map: lblTex, transparent: true, depthTest: false});
     const sprite = new THREE.Sprite(spriteMat);
-    sprite.scale.set(2.0, 0.5, 1);   // bigger so legible at any zoom
-    sprite.position.set(dx, 2.15, dz + 0.55);
+    sprite.scale.set(3.4, 0.67, 1);   // proportional bump · still legible at any zoom
+    sprite.position.set(dx, 2.20, dz + 0.55);
     sprite.renderOrder = 500;
     officeScene.add(sprite);
 
@@ -1804,24 +1811,38 @@ function renderAgentLabel(ag){
   const w = c.width, h = c.height;
   ctx.clearRect(0, 0, w, h);
   // Obsidian glass background
-  ctx.fillStyle = 'rgba(15, 23, 42, 0.86)';
+  ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
   ctx.fillRect(0, 0, w, h);
   // Border · color by state
   const border = ag.state === 'PROCESSING' ? '#ffffff' : '#00e4ff';
   ctx.strokeStyle = border;
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 2.5;
   ctx.strokeRect(1, 1, w-2, h-2);
-  // ID + role
-  ctx.font = 'bold 16px monospace';
+
+  // ID + role · auto-shrink font so longer pipeline names ("Engine Automation Script") fit
+  const idStr = `[${ag.id}] ${ag.name}`;
+  let fontSize = 22;
+  ctx.font = `bold ${fontSize}px monospace`;
+  while (ctx.measureText(idStr).width > w - 16 && fontSize > 11) {
+    fontSize -= 1;
+    ctx.font = `bold ${fontSize}px monospace`;
+  }
   ctx.fillStyle = '#ffffff';
-  ctx.fillText(`[${ag.id}] ${ag.name}`, 8, 24);
-  // Status
-  ctx.font = '12px monospace';
+  ctx.fillText(idStr, 10, 28);
+
+  // Status line
+  ctx.font = 'bold 14px monospace';
   ctx.fillStyle = ag.state === 'PROCESSING' ? '#ffffff' : '#43e6a1';
-  ctx.fillText(`STATUS: ${ag.state}`, 8, 44);
-  ctx.fillStyle = '#7e8bb0';
-  ctx.font = '10px monospace';
-  ctx.fillText((ag.currentTask || '').slice(0, 28), 8, 58);
+  ctx.fillText(`STATUS: ${ag.state}`, 10, 52);
+
+  // Current task · also auto-truncate-with-ellipsis on the wider canvas
+  ctx.fillStyle = '#9bb0d4';
+  ctx.font = '12px monospace';
+  let task = (ag.currentTask || '');
+  while (ctx.measureText(task).width > w - 16 && task.length > 4) task = task.slice(0, -1);
+  if (task.length < (ag.currentTask || '').length) task = task.slice(0, -1) + '…';
+  ctx.fillText(task, 10, 76);
+
   ag.lblTex.needsUpdate = true;
 }
 
@@ -1956,6 +1977,11 @@ function exitOffice(){
   document.getElementById('dropzoneSend').disabled = true;
   document.getElementById('dropzoneSend').style.opacity = '0.5';
   document.getElementById('dropzoneStatus').textContent = '';
+  // v4.4.6 · reset connector pill so the next agency starts fresh (panel restores via updateConnectorWarn)
+  const pill = document.getElementById('connectorPill');
+  if (pill) pill.style.display = 'none';
+  const panel = document.getElementById('connectorPanel');
+  if (panel) { panel.style.display = 'block'; panel.style.opacity = '1'; panel.style.transform = 'translateY(0) scale(1)'; }
 }
 
 // ============ DATA DROPZONE · HTML5 drag-drop · POST to /api/agency_file_intake.php ============
@@ -2061,15 +2087,49 @@ function getConnectorState(){
 }
 function updateConnectorWarn(){
   const w = document.getElementById('connectorWarn');
+  const panel = document.getElementById('connectorPanel');
+  const pill = document.getElementById('connectorPill');
   if(!w) return;
   const st = getConnectorState();
   if (st.allArmed) {
     w.innerHTML = '✓ ALL PATHWAYS SECURED · DELIVERABLES MAY FLOW';
     w.style.color = '#43e6a1';
+    // v4.4.6 · auto-collapse into pill after a brief "you did it" moment · clean canvas (Mo 2026-05-17)
+    if (panel && panel.style.display !== 'none') {
+      setTimeout(() => {
+        if (!getConnectorState().allArmed) return;   // user may have un-armed before timeout · skip
+        panel.style.transition = 'opacity .45s ease-out, transform .45s ease-out';
+        panel.style.opacity = '0';
+        panel.style.transform = 'translateY(24px) scale(.96)';
+        setTimeout(() => {
+          panel.style.display = 'none';
+          if (pill) pill.style.display = 'inline-flex';
+        }, 460);
+      }, 1100);
+    }
   } else {
     w.innerHTML = `CRITICAL PATHWAY DISCONNECTED · AWAITING CREDENTIAL PAYLOAD (${st.armed}/${st.total} armed)`;
     w.style.color = '#f5c542';
+    // Restore panel · hide pill
+    if (panel) {
+      panel.style.display = 'block';
+      panel.style.opacity = '1';
+      panel.style.transform = 'translateY(0) scale(1)';
+    }
+    if (pill) pill.style.display = 'none';
   }
+}
+
+// v4.4.6 · re-open the connector panel from the collapsed pill (Mo: "good feature · but should leave once done")
+function reopenConnectorPanel(){
+  const panel = document.getElementById('connectorPanel');
+  const pill = document.getElementById('connectorPill');
+  if (panel) {
+    panel.style.display = 'block';
+    panel.style.opacity = '1';
+    panel.style.transform = 'translateY(0) scale(1)';
+  }
+  if (pill) pill.style.display = 'none';
 }
 function flashConnectorWarn(){
   // Sharp amber pulse above the agent's HUD sprite when user tries to send with empty connectors
