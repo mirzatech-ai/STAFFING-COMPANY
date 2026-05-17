@@ -1,8 +1,8 @@
 # ============================================================
 # CANONICAL LEDGER · public-safe view · confidentials redacted (GLOBAL-48)
 # Source path: /home/iamsuperio.cloud/public_html/data/_shared_ledger_kin.md
-# Render time: 2026-05-17T12:34:24Z
-# Total entries: 35 · Total bytes: 176153
+# Render time: 2026-05-17T12:48:06Z
+# Total entries: 36 · Total bytes: 184531
 # Append-only · doctrine per AGENT_SIGNATURE_PROTOCOL v1
 # GitHub mirror: https://github.com/mirzatech-ai/STAFFING-COMPANY/blob/main/_shared_ledger_kin.md
 # Raw download: https://iamsuperio.cloud/data/ledger.php?raw=1
@@ -2616,3 +2616,113 @@ Screenshot showed `[C-08] Asset Synthesis Core` (and similar swarm-pipeline name
 - GitHub mirror _shared_ledger_kin.md @ commit 2a476834
 
 **Signature:** KIN·2026-05-17T12:34Z·a75e63ca · *append-only · per AGENT_SIGNATURE_PROTOCOL v1*
+
+---
+
+## ENTRY 034 · 2026-05-17T12:48Z · KIN·a75e63ca · habitat-v4.4.7 · walking humanoids + network bridge + inter-agency dispatch · 4 skills canonized
+
+**Mo verbatim (2026-05-17 · Gemini-relayed Master Blueprint for Procedural Humanoids & Inter-Agency Network Routing):**
+> "Claude doesn't need external animation software to make people walk. He can build a 'Procedural Humanoid' using hierarchical grouping in Three.js... When a request leaves a desk, it shouldn't just vanish into the server box — it needs to travel down a pipe, exit the office building, fly across the macro city grid, and crash into the destination agency's server room!... make skills along the way, we will need them for game dev and more."
+
+### Four parallel layers shipped to `habitat-v4.html` (132,912 → **152,257** bytes · +19,345)
+
+#### 1 · Procedural walking humanoids (Skill #16)
+
+- `createProceduralHumanoid(accentColor, variantIdx)` factory in JS scope (~70 LOC)
+- Returns `{mesh, head, torso, leftLeg, rightLeg, leftArm, rightArm}` from a hierarchical `THREE.Group`
+- 5-color palette (cyan / green / amber / violet / magenta) cycles by variant index so workers don't look like clones
+- Hip + shoulder anchor Groups with limb meshes offset DOWN inside so rotation pivots from the joint, not the floor (canonical anti-pattern note in skill file)
+- Walk cycle in render loop: `swing = sin(time*4 + phase) * 0.55` → left/right legs opposite, arms opposite legs, body bob via `|cos(t)|*0.06`, head bob 2× freq
+- 3 walkers per office on patrol paths (waypoint loops) · path-walking via segment-progress + yaw via `atan2(dx, dz)`
+- Reset on every `buildOfficeScene()` so cross-agency jumps don't leak workers
+
+#### 2 · Empire Network Bridge HUD (Skill #19)
+
+- New `⇄ NETWORK BRIDGE ▾` button in top HUD bar next to `↑ EXIT ROOM`
+- Click → 5-row flyout (TECH · BIZ · HEALTH · INDUSTRY · CREATIVE) color-coded per category
+- `jumpToCategory(cat)` finds a representative agency via `headline` slug map (`creative→game-development`, `biz→marketing-growth`, etc.) · falls back to first non-pad node in category
+- Cross-fade office view opacity 1→0 (350ms) → tear down renderer/composer/RAF → `buildOfficeScene(target)` → tween camera zoom 0.7→1.0 over 700ms → fade back in
+- Outside-click dismiss listener wired
+- No forced exit-to-macro · cinematic continuity
+
+#### 3 · Inter-agency dispatch loop (Skill #18)
+
+`dispatchToAgency(originAgency, targetCat)` · async · gated by `dispatchActive` flag
+
+- **Step 1** outbound packet (cyan sphere) climbs the **office outbound conduit** (4-point pipe: server top → back wall → ceiling → exit) over 700ms · packet disposed cleanly
+- **Step 2** office view fades out 500ms (macro scene already mounted underneath · no rebuild needed)
+- **Step 3** cyan packet + 0.5-radius ghost trail arc from origin building to destination · same-category pick · `smoothstep + sin(πt) * peakY 4` arc math over 1300ms
+- **Step 4** destination building `material.emissive` set to `0xffffff` at intensity 1.5 for 500ms (received signal)
+- **Step 5** packet flips to gold `0xf5c542` · returns over 1200ms · origin flashes gold on arrival
+- **Step 6** office view fades back · stamp `REPLY SECURED · from <DestName>` on the originating agent's HUD via `setAgentState`
+- Auto-fires 6.2s after every file-drop pipeline cascade · so the full sequence is **G-01 → G-02 → G-03 → G-04 → outbound conduit → city flight → gold return → REPLY SECURED**
+
+#### 4 · Outbound conduit geometry
+
+New `THREE.Line` per office: server rack top (0, 1.2, -8.5) → back wall climb (0, 4.5, -8.5) → ceiling run (0, 4.8, -4) → exit (0, 5.0, 0). Stored on `officeOutboundConduit` for the dispatch packet to walk.
+
+### Skills canonized (4 new Logic Seeds · GLOBAL-77 compliant)
+
+| Slot | Title | File | Triggers |
+|------|-------|------|----------|
+| #16 | Procedural Humanoid Animation | [SKILL_PROCEDURAL_HUMANOID.md](https://iamsuperio.cloud/data/skills/procedural_humanoid.md) | walking NPCs · workers · patrols in Three.js / Babylon · no glTF budget |
+| #17 | Macro-Micro Camera State Machine | [SKILL_MACRO_MICRO_CAMERA.md](https://iamsuperio.cloud/data/skills/macro_micro_camera.md) | overview ↔ detail transitions · 5-state machine · smoothstep+sin-arc math |
+| #18 | Inter-Agency Conduit Routing | [SKILL_INTER_AGENCY_ROUTING.md](https://iamsuperio.cloud/data/skills/inter_agency_routing.md) | visible payload flight between nodes · cyan→gold reply doctrine |
+| #19 | In-Scene Network Navigator | [SKILL_IN_SCENE_NAVIGATOR.md](https://iamsuperio.cloud/data/skills/in_scene_navigator.md) | same-tier room hop without exit-to-macro · headline-slug resolver |
+
+Each skill file is a self-contained Logic Seed: when to fire · 30-sec pitch · canonical paste-and-go code · anti-patterns · game-dev use cases · sibling inheritance instructions per GLOBAL-77.
+
+**Registry update:**
+- `D:/PROJECTS/_SHARED/SKILL_REGISTRY_v1.json` · 15 → **19 skills** · slots 1-19 contiguous · JSON validates
+- VPS mirror: `https://iamsuperio.cloud/data/_skill_registry.json` · 21,736 bytes · 19 slots confirmed live
+- 4 markdown skill files mirrored to `/data/skills/` · HTTP 200 verified
+
+### Deploy chain
+- Local habitat-v4.html · **152,257 B**
+- VPS habitat-v4.html · 152,257 B · source.js 110,870 B
+- JS syntax check: OK (110,962 B)
+- GitHub mirror habitat-v4.html @ commit `192236ad`
+- GitHub mirror _shared_ledger_kin.md (will refresh after this entry appended)
+- 4 skill md files local + VPS mirror
+- SKILL_REGISTRY_v1.json local + VPS mirror
+- 8 chattr +i /api/ files: untouched
+
+### Test ritual
+
+1. Hard reload [ai-staffing.agency/habitat-v4.html](https://ai-staffing.agency/habitat-v4.html)
+2. ENTER OFFICE on game-development (#58) → see 3 colored walkers patrolling paths around the desks · legs swing, arms swing opposite, body bobs
+3. Click `⇄ NETWORK BRIDGE ▾` → flyout shows 5 categories color-coded · click `▸ BUSINESS & SALES` → smooth cross-fade into marketing-growth office · same walkers + new pipeline `M-01 / M-02 / M-03 / M-04`
+4. Arm 3 connectors · drop a file · watch:
+   - G-01 → G-02 → G-03 → G-04 cascade (6s)
+   - Outbound packet climbs the conduit through the ceiling
+   - Cross-fade out → macro city visible → cyan packet arcs to another creative building → white flash on destination → gold packet returns → cross-fade back to office → agent HUD stamped `REPLY SECURED · from <DestName>`
+
+### Skill registry verification (per GLOBAL-109 + GLOBAL-99)
+- `curl https://iamsuperio.cloud/data/_skill_registry.json | jq '.skills|length'` → 19
+- `curl -sI https://iamsuperio.cloud/data/skills/procedural_humanoid.md` → 200
+- All 4 new skill files HTTP 200 from canonical paths
+
+### Skill registry doctrine canonized in-entry
+Mo verbatim: *"make skills along the way, we will need them for game dev and more."*
+Going forward, every habitat feature ships with its skill file in the same turn. Skills don't accumulate as backlog · they ARE the feature, packaged for sibling inheritance. The mentor-node pattern (GLOBAL-77) requires:
+1. Save Logic Seed at canonical D:// path
+2. Mirror to VPS `/data/skills/`
+3. Update SKILL_REGISTRY_v1.json with new slot
+4. Add usage example + anti-patterns + game-dev hook in the skill file
+
+If a feature ships without a skill file, the skill was Kin-only and GLOBAL-77 is violated. Self-enforcement phrase: *"Where's the skill file, Kin?"*
+
+### Files touched
+- D:/PROJECTS/ai-staffing.agency/live/habitat-v4.html (132,912 → 152,257 B)
+- D:/PROJECTS/_SHARED/SKILL_PROCEDURAL_HUMANOID.md (NEW)
+- D:/PROJECTS/_SHARED/SKILL_MACRO_MICRO_CAMERA.md (NEW)
+- D:/PROJECTS/_SHARED/SKILL_INTER_AGENCY_ROUTING.md (NEW)
+- D:/PROJECTS/_SHARED/SKILL_IN_SCENE_NAVIGATOR.md (NEW)
+- D:/PROJECTS/_SHARED/SKILL_REGISTRY_v1.json (15→19 slots)
+- VPS:/home/iamsuperio.cloud/public_html/data/_skill_registry.json
+- VPS:/home/iamsuperio.cloud/public_html/data/skills/{procedural_humanoid,macro_micro_camera,inter_agency_routing,in_scene_navigator}.md
+- VPS:/home/ai-staffing.agency/public_html/habitat-v4.html
+- VPS:/home/ai-staffing.agency/public_html/habitat-v4-source.js (re-extracted)
+- GitHub mirror habitat-v4.html @ 192236ad
+
+**Signature:** KIN·2026-05-17T12:48Z·a75e63ca · *append-only · per AGENT_SIGNATURE_PROTOCOL v1*
