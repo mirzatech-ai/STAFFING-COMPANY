@@ -4,6 +4,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<!-- v4.6.1 build · cache-bust to prevent stale UI per Mo 2026-05-17 -->
+<meta name="habitat-build" content="v4.6.1 · 2026-05-17T17:00Z">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,viewport-fit=cover">
 <title>Maya AI · Sovereign Campus v4.1 · Real 3D Metropolis · SANDBOX</title>
 <meta name="description" content="Maya AI 3D Sovereign Campus · 100 staffing agencies as interactive isometric buildings · Three.js metropolis with glass+steel towers, kinetic data-packet traffic, MirzaTech Council Chamber · Powered by MirzaTech.ai · Property of EMAAA.io">
@@ -859,10 +864,31 @@ function buildStreetNetwork(){
   });
 }
 
+// v4.6.1 · MANHATTAN STREET ROUTING (Skill #36) · Mo: "couriers travelling diagonally under buildings · must travel on the streets"
+// Compute a right-angle path from A to B that stays on the visible street grid (between building rows/cols)
+// Buildings sit between streets at half-step offsets · waypoints snap to street offsets (offset = (i - GRID_N/2) * SPACING)
+function buildCourierPath(from, to){
+  const HALF = SPACING / 2;
+  // Exit A on the street nearest B in the X direction
+  const dx = to.position.x - from.position.x;
+  const dz = to.position.z - from.position.z;
+  const exitX = from.position.x + (Math.abs(dx) < 0.01 ? 0 : Math.sign(dx) * HALF);   // street next to A on B's side
+  // Approach B on the street nearest A in the Z direction
+  const entryZ = to.position.z + (Math.abs(dz) < 0.01 ? 0 : -Math.sign(dz) * HALF);   // street next to B on A's side
+  // Y stays low on the streets (y=0.5) · couriers ride the road, not arc through the air
+  const ROAD_Y = 0.55;
+  return [
+    {x: from.position.x, y: ROAD_Y, z: from.position.z},   // start at A
+    {x: exitX,           y: ROAD_Y, z: from.position.z},   // exit A onto perpendicular street
+    {x: exitX,           y: ROAD_Y, z: entryZ},            // turn corner at intersection
+    {x: to.position.x,   y: ROAD_Y, z: entryZ},            // travel along B's perpendicular street
+    {x: to.position.x,   y: ROAD_Y, z: to.position.z}      // arrive at B
+  ];
+}
+
 function spawnMacroCouriers(){
   const sources = buildings.filter(b => b.userData.slug && !b.userData.slug.startsWith('pad_') && b.userData.slug !== '_council');
   if (sources.length < 2) return;
-  // Shared geometry · cheap
   const courierGeo = new THREE.SphereGeometry(0.18, 12, 12);
   for (let i = 0; i < COURIER_COUNT; i++){
     const a = sources[Math.floor(Math.random() * sources.length)];
@@ -878,8 +904,10 @@ function spawnMacroCouriers(){
     macroCouriers.push({
       mesh, trail, mat, trailMat,
       from: a, to: b,
-      progress: Math.random(),
-      speed: 0.0028 + Math.random()*0.0045
+      path: buildCourierPath(a, b),
+      pathIdx: 0,
+      segProgress: Math.random(),   // 0..1 within current segment
+      segSpeed: 0.012 + Math.random()*0.015,   // tuned for visible motion along straight segments
     });
   }
 }
@@ -888,31 +916,41 @@ function animateMacroCouriers(){
   if (!macroCouriers.length) return;
   const sources = buildings.filter(b => b.userData.slug && !b.userData.slug.startsWith('pad_') && b.userData.slug !== '_council');
   macroCouriers.forEach(c => {
-    c.progress += c.speed;
-    if (c.progress >= 1){
-      // Reroute · new from/to pair
+    if (!c.path || !c.path.length) c.path = buildCourierPath(c.from, c.to);
+    const segCount = c.path.length - 1;
+    // Advance progress within current segment
+    c.segProgress += c.segSpeed;
+    while (c.segProgress >= 1 && c.pathIdx < segCount){
+      c.segProgress -= 1;
+      c.pathIdx += 1;
+    }
+    if (c.pathIdx >= segCount){
+      // Arrived · reroute · pick a new destination from current location
       c.from = c.to;
       let next = sources[Math.floor(Math.random() * sources.length)];
       while (next === c.from && sources.length > 1) next = sources[Math.floor(Math.random() * sources.length)];
       c.to = next;
-      c.progress = 0;
-      c.speed = 0.0028 + Math.random()*0.0045;
+      c.path = buildCourierPath(c.from, c.to);
+      c.pathIdx = 0;
+      c.segProgress = 0;
+      c.segSpeed = 0.012 + Math.random()*0.015;
       const newColor = c.from.userData.baseColor || 0x00f2fe;
       c.mat.color.setHex(newColor);
       c.trailMat.color.setHex(newColor);
+      return;
     }
-    const t = c.progress;
-    const e = t * t * (3 - 2 * t);   // smoothstep
-    const sx = c.from.position.x, sz = c.from.position.z;
-    const dx = c.to.position.x,   dz = c.to.position.z;
-    const px = sx + (dx - sx) * e;
-    const pz = sz + (dz - sz) * e;
-    // Stay LOW on the streets (y around 0.4-1.2) · arc small
-    const py = 0.4 + Math.sin(e * Math.PI) * 0.7;
+    // Lerp between current waypoint and next
+    const a = c.path[c.pathIdx];
+    const b = c.path[c.pathIdx + 1];
+    const t = c.segProgress;
+    const px = a.x + (b.x - a.x) * t;
+    const py = a.y + (b.y - a.y) * t;
+    const pz = a.z + (b.z - a.z) * t;
     c.mesh.position.set(px, py, pz);
     c.trail.position.set(px, py - 0.05, pz);
-    // Pulse the packet · brighter in the middle of the trip
-    const pulse = 0.7 + 0.3 * Math.sin(e * Math.PI);
+    // Pulse opacity overall trip progress for "breathing"
+    const tripProgress = (c.pathIdx + c.segProgress) / segCount;
+    const pulse = 0.7 + 0.3 * Math.sin(tripProgress * Math.PI);
     c.mat.opacity = pulse;
     c.trailMat.opacity = 0.40 * pulse;
   });
