@@ -1,8 +1,8 @@
 # ============================================================
 # CANONICAL LEDGER · public-safe view · confidentials redacted (GLOBAL-48)
 # Source path: /home/iamsuperio.cloud/public_html/data/_shared_ledger_kin.md
-# Render time: 2026-05-17T16:19:11Z
-# Total entries: 45 · Total bytes: 245916
+# Render time: 2026-05-17T23:16:14Z
+# Total entries: 46 · Total bytes: 252396
 # Append-only · doctrine per AGENT_SIGNATURE_PROTOCOL v1
 # GitHub mirror: https://github.com/mirzatech-ai/STAFFING-COMPANY/blob/main/_shared_ledger_kin.md
 # Raw download: https://iamsuperio.cloud/data/ledger.php?raw=1
@@ -3661,3 +3661,99 @@ Zero Maya configs · per GLOBAL-112 / S18.
 - GitHub habitat-v4.html @ fb475468
 
 **Signature:** KIN·2026-05-17T16:05Z·a75e63ca · *append-only · per AGENT_SIGNATURE_PROTOCOL v1 · GLOBAL-111 + GLOBAL-112 receipts*
+
+---
+
+## ENTRY 042 · 2026-05-17T16:35Z · KIN·a75e63ca · habitat-v4.6.0 · ALL 4 IN PARALLEL · Skills #32-35
+
+**Mo verbatim (2026-05-17):**
+> "do all in parallel, please / do all in parallel, please"
+
+Shipped four decisions from PROJECT_BRIEF.md §4 in one pass.
+
+### D-01 · RobotExpressive.glb cyber-walker (Skill #32)
+
+- `GLTFLoader` added from three.js r0.146 examples/js CDN (same bundle as UnrealBloomPass)
+- Pre-loads `https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb` on script init
+- Caches `gltf.scene` + 13 named clips: `Dance · Death · Idle · Jump · No · Punch · Running · Sitting · Standing · ThumbsUp · Walking · Wave · Yes`
+- New helpers: `preloadCyberRobot()` · `createCyberRobot(variantIdx, anim, scale)` · `setCyberRobotAnim(robot, name)`
+- Deep clone per NPC (`scene.clone(true)` preserves skeleton)
+- Cyber tint material override (high metalness 0.75 · clearcoat 0.85 · emissive intensity 0.40) replaces RobotExpressive's default colors with the v4.5.3 cyber-bot palette
+- AnimationMixer per NPC · driven by ONE shared `THREE.Clock` · `mixer.update(delta)` in render loop
+- Crossfade for smooth transitions: `mixer.clipAction(clip).reset().fadeIn(0.25).play()`
+- **Fallback path:** if GLB load fails (CDN down / network error), break-routine uses procedural humanoid (Skill #16 v3 cyber palette)
+- Wired into desk-break routine: when agent stands up, prefer GLB robot · Walking clip while moving · Idle while dwelling
+
+### D-02 · Street network + 12 inter-building couriers (Skill #33)
+
+- `buildStreetNetwork()` lays cyan neon strips between every row/col of the 10×10 building grid (X-axis + Z-axis lanes · ~21 strips · 0.18m wide · 30% opacity)
+- `spawnMacroCouriers()` spawns 12 courier packets · each picks random origin + destination building pair
+- `animateMacroCouriers()` advances progress via smoothstep · arc height 0.7m · sin-pulse opacity (breathing along trip) · reroutes on completion to a NEW destination pair · color shifts to new origin's accent
+- Constantly running · the macro city now reads as alive · always something moving between buildings
+
+### D-03 · Mouse-wheel zoom-into-office (Skill #34)
+
+- Wheel handler extended: `camera.zoom` clamp bumped 3.0 → 4.5 (more headroom to feel the zoom)
+- When `camera.zoom > 3.6` AND `hoveredBuilding` is a valid agency (not pad, not council) → trigger `enterOffice(slug)` directly
+- Reset `camera.zoom = 1` on entry so exitOffice() lands at default macro view
+- No more required ENTER OFFICE button click · scroll-to-zoom-in IS the entry
+
+### D-04 · Capability Assessment chip (Skill #35)
+
+- New `#chipCapability` chip in the office HUD top bar (after the phone chip)
+- Computes capability state when `buildOfficeScene(agency)` runs:
+  - ✓ **BESPOKE** (green) if `PIPELINE_BY_SLUG[slug]` exists OR slug matches /game|video|marketing|finance/
+  - ⚠ **CATEGORY DEFAULT** (gold) otherwise · tooltip: "Parliament audit queued per GLOBAL-113"
+- Tooltip provides full context · users know what BESPOKE vs CATEGORY DEFAULT means
+- Hidden on `exitOffice()` so the macro view stays clean
+
+### Skill registry → 35 slots (1-35 contiguous · validates)
+
+| Slot | Title |
+|------|-------|
+| **#32** | [Rigged Character Pipeline · glTF + AnimationMixer](https://iamsuperio.cloud/data/skills/rigged_character_pipeline.md) |
+| **#33** | [Street Network + Inter-Building Couriers](https://iamsuperio.cloud/data/skills/street_network_couriers.md) |
+| **#34** | [Mouse-Wheel Zoom-Into-Entry](https://iamsuperio.cloud/data/skills/wheel_zoom_entry.md) |
+| **#35** | [Capability Assessment HUD Chip · GLOBAL-113 mini-doctrine](https://iamsuperio.cloud/data/skills/capability_assessment.md) |
+
+Each Logic Seed: trigger · 30-sec pitch · canonical paste-and-go code · anti-patterns · 5-6 game-dev use cases · sibling inheritance.
+
+### Maya.ai untouched
+Zero Maya configs · per GLOBAL-112 / S18.
+
+### Deploy chain
+- Local habitat-v4.html · 194,510 → **206,929** B (+12.4 KB)
+- VPS habitat-v4.html · 206,929 B · source.js 161,890 B
+- JS syntax via `new Function(src)` → OK (161,991 B)
+- Feature grep: GLTFLoader×6 · preloadCyberRobot×2 · createCyberRobot×2 · setCyberRobotAnim×3 · officeClock×2 · buildStreetNetwork×2 · spawnMacroCouriers×2 · animateMacroCouriers×2 · chipCapability×3
+- GitHub habitat-v4.html @ commit `7f9928e1`
+- 8 chattr +i /api/ files · untouched
+
+### Test ritual
+
+1. Hard reload [ai-staffing.agency/habitat-v4.html](https://ai-staffing.agency/habitat-v4.html)
+2. **Macro scene** — observe 12 cyan/green/gold/violet/magenta couriers flowing between buildings · streets visible as neon strips on the ground
+3. **Hover a building** → scroll WHEEL into it · past ~80% zoom max it auto-enters that office (no click needed)
+4. **In office** — top bar shows new ✓ CAPABILITY BESPOKE or ⚠ CAPABILITY CATEGORY DEFAULT chip per agency
+5. **Wait 6-15s** — a desk agent stands up · if GLB loaded, you see the RIGGED cyber-tinted RobotExpressive walking with proper Walking animation · arrives at prop · poses Idle · walks back
+6. **If GLB didn't load** (CDN blocked / slow): you see the procedural humanoid fallback · still cyber-tinted · still works
+
+### Open decisions remaining in PROJECT_BRIEF.md
+- **D-05** Stripe checkout + plan B for unpaid drops
+- **D-06** Maya brain integration for per-agent dispatch (under GLOBAL-112 bound)
+- **D-07** Bespoke pipelines for 90 remaining category-default agencies (the big Parliament-audit)
+
+### Files touched
+- D:/PROJECTS/ai-staffing.agency/live/habitat-v4.html (194,510 → 206,929 B)
+- D:/PROJECTS/_SHARED/SKILL_REGISTRY_v1.json (31 → 35 slots)
+- D:/PROJECTS/_SHARED/SKILL_RIGGED_CHARACTER_PIPELINE.md (NEW · #32)
+- D:/PROJECTS/_SHARED/SKILL_STREET_NETWORK_COURIERS.md (NEW · #33)
+- D:/PROJECTS/_SHARED/SKILL_WHEEL_ZOOM_ENTRY.md (NEW · #34)
+- D:/PROJECTS/_SHARED/SKILL_CAPABILITY_ASSESSMENT.md (NEW · #35)
+- VPS:/home/iamsuperio.cloud/public_html/data/_skill_registry.json
+- VPS:/home/iamsuperio.cloud/public_html/data/skills/{rigged_character_pipeline,street_network_couriers,wheel_zoom_entry,capability_assessment}.md
+- VPS:/home/ai-staffing.agency/public_html/habitat-v4.html
+- VPS:/home/ai-staffing.agency/public_html/habitat-v4-source.js
+- GitHub habitat-v4.html @ 7f9928e1
+
+**Signature:** KIN·2026-05-17T16:35Z·a75e63ca · *append-only · per AGENT_SIGNATURE_PROTOCOL v1 · GLOBAL-111 + GLOBAL-112 + GLOBAL-113 receipts*
