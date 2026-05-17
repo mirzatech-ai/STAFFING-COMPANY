@@ -1,8 +1,8 @@
 # ============================================================
 # CANONICAL LEDGER · public-safe view · confidentials redacted (GLOBAL-48)
 # Source path: /home/iamsuperio.cloud/public_html/data/_shared_ledger_kin.md
-# Render time: 2026-05-17T15:25:42Z
-# Total entries: 44 · Total bytes: 239627
+# Render time: 2026-05-17T16:19:11Z
+# Total entries: 45 · Total bytes: 245916
 # Append-only · doctrine per AGENT_SIGNATURE_PROTOCOL v1
 # GitHub mirror: https://github.com/mirzatech-ai/STAFFING-COMPANY/blob/main/_shared_ledger_kin.md
 # Raw download: https://iamsuperio.cloud/data/ledger.php?raw=1
@@ -3555,3 +3555,109 @@ Zero Maya configs edited · per GLOBAL-112 / S18. The Parliament-attempt was a H
 - GitHub habitat-v4.html @ e5445b5d
 
 **Signature:** KIN·2026-05-17T15:35Z·a75e63ca · *append-only · per AGENT_SIGNATURE_PROTOCOL v1 · GLOBAL-111 + GLOBAL-112 + GLOBAL-113 receipts*
+
+---
+
+## ENTRY 041 · 2026-05-17T16:05Z · KIN·a75e63ca · habitat-v4.5.4 · HOVER-ONLY LABELS · clean canvas · floor pads · Skill #31
+
+**Mo verbatim (2026-05-17):**
+> "Just make the prop stand out. And when a user hovers over the prop... it shouldn't have a name tag hovering all the time because the user face gets cluttered. I'd rather just see the clean office. And if a user hovers over an agent, that is the time to display text. Right now, it's just a bunch of text instead of clean user interface. I want to experience clean office. When I click on that agent, or if I hover over an agent that's moving, he needs to display above him the action that he's doing. But it shouldn't be always visible."
+>
+> "You got my green light. Continue working, bro."
+
+### Four parallel changes to `habitat-v4.html` (188,904 → **194,510** B · +5.5 KB)
+
+#### A · Labels HIDDEN by default · hover or click to reveal
+
+- All agent labels start at `opacity: 0` with `transition: opacity .18s ease-out`
+- All prop labels (water cooler · conference · coffee · printer · whiteboard) start `opacity: 0`
+- `updateAgentLabelPositions()` now SKIPS projection unless entity is `hovered` OR `selected` (click-locked)
+- Click-to-lock still works: clicking an agent loads dossier + keeps label visible until different click
+
+#### B · Hover detection (Skill #31 · Visual Hierarchy via Hover Reveal)
+
+- New `mousemove` raycaster on the office canvas · throttled to every 3rd event (~20-60 raycasts/sec)
+- Hit-tests:
+  - Seated agent torsos + heads
+  - Walking break-routine humanoid torsos + heads
+  - Prop group meshes (water cooler · conference · coffee · printer · whiteboard · plant)
+- On hit: clears ALL hover flags · sets the hovered entity's flag · `cursor: pointer`
+- On `mouseleave`: clears everything
+
+#### C · Stronger prop presence (compensates for hidden labels · Skill #31 visual replacements)
+
+Every prop now has a **floor pad + halo ring** at the base in the prop's accent color · users SEE the props as zones without needing text:
+
+| Prop | Pad color | Notes |
+|---|---|---|
+| 💧 Water cooler | `#60c4ff` light cyan | Tap glow doubled (0.07→0.10 radius · 0.8→0.95 opacity) · added bottle top accent ring |
+| 📋 Conference | `#00f2fe` cyan | BIGGER 2.4/2.6m oval pad scaled 1.5× · matches table footprint · double halo ring |
+| ☕ Coffee bar | `#ff8a4c` orange | Standard pad + halo |
+| 🖨 Printer | `#43e6a1` green | Standard pad + halo |
+| 📐 Whiteboard | `#00d4ff` cyan | Standard pad + halo |
+
+Each pad: cylinder disc (0.04m tall · radius 0.95-1.05 · 35% opacity) + a halo ring outside it at 75% opacity. Reads as "this is a station" without any text.
+
+#### D · Cyber-bot polish (seated agents)
+
+- Floor projection **data-pad** under each agent (matches the prop pads · 0.42-0.48 radius · 30% opacity)
+- Pad halo ring at 85% opacity for the strong base-presence look
+- **Hover brighten** · when an agent is hovered, emissive intensity bumps +0.6 (visual cue without text)
+- Existing chest emblem · cyber visor · helmet + antenna · wireframe edges retained
+
+### Skill #31 canonized
+
+[Visual Hierarchy via Hover Reveal](https://iamsuperio.cloud/data/skills/hover_reveal_hierarchy.md) · 7 KB Logic Seed:
+- 30-sec pitch · throttle math (every 3rd mousemove)
+- Canonical hover system code (CSS + render loop + raycaster + mouseleave)
+- Visual replacements table (what to add when you take labels away)
+- 6 game-dev use cases (superio.fun civilians · Tom-Clancy planning · 4X cities · RPG NPCs · MMO tags · TopForge demos)
+- Sibling inheritance
+
+### Skill registry health
+- Local + VPS · 30 → **31 slots** · 1-31 contiguous · JSON validates
+- 16 Logic Seed `.md` files mirrored under `/data/skills/`
+
+### Maya.ai untouched
+Zero Maya configs · per GLOBAL-112 / S18.
+
+### Deploy chain
+- Local habitat-v4.html · 188,904 → **194,510** B (+5.5 KB)
+- VPS habitat-v4.html · 194,510 B · source.js 150,090 B
+- JS syntax via `new Function(src)` → OK (150,191 B)
+- GitHub habitat-v4.html @ commit `fb475468`
+- 8 chattr +i /api/ files · untouched
+
+### Test ritual
+
+1. Hard reload [ai-staffing.agency/habitat-v4.html](https://ai-staffing.agency/habitat-v4.html)
+2. ENTER OFFICE on any agency
+3. **Default view should be CLEAN** — no `[X-01] | Role Name | IDLE` labels above agents · no `WATER COOLER`/`COFFEE BAR` labels above props
+4. **What you SHOULD see** for visual identification:
+   - Glowing floor pads under each prop (light cyan for water · cyan for conference · orange for coffee · green for printer · cyan for whiteboard)
+   - Glowing data-pad under each agent (matches office accent color)
+   - Halo rings around each base
+   - The cyber-bot bodies themselves (chest emblem · visor · helmet · antenna · wireframe edges)
+5. **Hover over an agent** → label fades in: `[T-01] | Systems Architect | IDLE` · agent body brightens emissive · cursor changes to pointer
+6. **Hover over a prop** → label fades in: `💧 WATER COOLER`
+7. **Mouse OFF** → label fades out · clean again
+8. **Click an agent** → dossier panel loads · label stays visible (selected-locked) until different click
+9. **Wait 6-15s** → agent stands up · hover over the walking humanoid · same label-on-hover behavior
+
+### v4.6 still queued
+- RobotExpressive.glb integration (Skill #29 path) · still queued for proper Parliament invocation on D-01 per project brief
+- Streets between macro buildings + couriers · queued (D-02)
+- Direct mouse-wheel zoom into office without click · queued (D-03)
+- Capability Assessment HUD chip · queued (D-04)
+
+### Files touched
+- D:/PROJECTS/ai-staffing.agency/live/habitat-v4.html (188,904 → 194,510 B)
+- D:/PROJECTS/_SHARED/SKILL_REGISTRY_v1.json (30 → 31 slots)
+- D:/PROJECTS/_SHARED/SKILL_HOVER_REVEAL_HIERARCHY.md (NEW · Skill #31)
+- VPS:/home/iamsuperio.cloud/public_html/data/_skill_registry.json
+- VPS:/home/iamsuperio.cloud/public_html/data/skills/hover_reveal_hierarchy.md
+- VPS:/home/ai-staffing.agency/public_html/habitat-v4.html
+- VPS:/home/ai-staffing.agency/public_html/habitat-v4-source.js (re-extracted)
+- GitHub habitat-v4.html @ fb475468
+
+**Signature:** KIN·2026-05-17T16:05Z·a75e63ca · *append-only · per AGENT_SIGNATURE_PROTOCOL v1 · GLOBAL-111 + GLOBAL-112 receipts*
