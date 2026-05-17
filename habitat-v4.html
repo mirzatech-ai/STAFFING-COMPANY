@@ -1644,16 +1644,19 @@ function buildOfficeScene(agency){
     ring.rotation.x = -Math.PI/2;
     officeScene.add(ring);
 
-    // TRACK A: floating HUD sprite · positioned ABOVE the agent's head (head is at y=1.46)
-    // v4.4.6 · canvas widened 256→448 + height 64→88 so longer pipeline roles fit
-    // (e.g. "Asset Synthesis Core" · "Lead Systems Director" · "Engine Automation Script")
+    // TRACK A: floating HUD sprite · v4.4.9 fix · adjacent-agent overlap was clipping labels
+    // (Mo screenshots showed "[T-01] Systems Architect" colliding into "[T-02] Engine Scripting Node")
+    // Solution: SHRINK label width 3.4→2.2 · stagger Y by column so col 0+2 sit higher than col 1+3
+    // Canvas stays generous (320×96) for the 3-line layout (ID · ROLE · STATUS)
     const labelCanvas = document.createElement('canvas');
-    labelCanvas.width = 448; labelCanvas.height = 88;
+    labelCanvas.width = 320; labelCanvas.height = 96;
     const lblTex = new THREE.CanvasTexture(labelCanvas);
     const spriteMat = new THREE.SpriteMaterial({map: lblTex, transparent: true, depthTest: false});
     const sprite = new THREE.Sprite(spriteMat);
-    sprite.scale.set(3.4, 0.67, 1);   // proportional bump · still legible at any zoom
-    sprite.position.set(dx, 2.20, dz + 0.55);
+    sprite.scale.set(2.2, 0.66, 1);   // 35% narrower so col-neighbors don't overlap
+    // Y-stagger by column to prevent same-row labels from colliding when seen from camera angle
+    const labelY = 2.20 + ((col % 2) * 0.55);
+    sprite.position.set(dx, labelY, dz + 0.55);
     sprite.renderOrder = 500;
     officeScene.add(sprite);
 
@@ -1664,7 +1667,14 @@ function buildOfficeScene(agency){
       state: 'IDLE', currentTask: 'standing by',
       core: agentCore, innerCore, monitor, ring, sprite, labelCanvas, lblTex,
       bodyGroup, head, glowShell, beacon, sideMonitor,
-      dx, dz, phase: Math.random()*Math.PI*2, baseY: 0.95
+      dx, dz, phase: Math.random()*Math.PI*2, baseY: 0.95,
+      // v4.4.9 · DESK-BREAK ROUTINE state (Gemini blueprint v4.5: sit → stand → walk → dwell → return → sit)
+      breakState: 'seated',        // seated | walking_to | dwelling | walking_back
+      breakNextAt: Date.now() + 18000 + Math.random()*30000,   // first break in 18-48s
+      breakTarget: null,
+      breakWorker: null,            // temporary humanoid mesh while away from desk
+      breakDwellEnd: 0,
+      variantIdx: i   // for the temporary humanoid color combo
     };
     officeAgents.push(agentObj);
     renderAgentLabel(agentObj);   // initial paint
@@ -1711,68 +1721,181 @@ function buildOfficeScene(agency){
   officeWalkers = [];
   officeProps = [];
 
-  function addProp(kind, x, z, color){
-    const propGroup = new THREE.Group();
-    propGroup.position.set(x, 0, z);
-    if (kind === 'waterCooler') {
-      // Bottle (blue tinted) on top of a base
-      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.20, 0.22, 0.45, 12), new THREE.MeshPhysicalMaterial({color:0xe8e8ee, metalness:0.4, roughness:0.4}));
-      base.position.y = 0.22; base.castShadow = true; propGroup.add(base);
-      const bottle = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.18, 0.42, 12), new THREE.MeshPhysicalMaterial({color:0x80d4ff, metalness:0.2, roughness:0.1, transparent:true, opacity:0.55, transmission:0.6}));
-      bottle.position.y = 0.66; bottle.castShadow = true; propGroup.add(bottle);
-      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.10, 0.06, 10), new THREE.MeshStandardMaterial({color:0x202838}));
-      cap.position.y = 0.90; propGroup.add(cap);
-      // Dispenser tap glow
-      const tap = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), new THREE.MeshBasicMaterial({color:0x00d4ff, transparent:true, opacity:0.9}));
-      tap.position.set(0, 0.32, 0.22); propGroup.add(tap);
-    } else if (kind === 'conferenceTable') {
-      // Long oval table + 4 chairs
-      const top = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.85, 0.06, 24), new THREE.MeshPhysicalMaterial({color:0x141c30, metalness:0.5, roughness:0.35, clearcoat:0.5}));
-      top.scale.set(1.6, 1, 1); top.position.y = 0.72; top.castShadow = top.receiveShadow = true; propGroup.add(top);
-      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.10, 0.7, 10), new THREE.MeshStandardMaterial({color:0x0a0e18, metalness:0.7}));
-      post.position.y = 0.35; propGroup.add(post);
-      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.50, 0.05, 16), new THREE.MeshStandardMaterial({color:0x0a0e18, metalness:0.7}));
-      base.position.y = 0.025; propGroup.add(base);
-      // Holographic plan glow above the table (the "meeting visualization")
-      const planGlow = new THREE.Mesh(new THREE.RingGeometry(0.50, 0.65, 24), new THREE.MeshBasicMaterial({color:0x00f2fe, transparent:true, opacity:0.4, side:THREE.DoubleSide}));
-      planGlow.position.y = 0.78; planGlow.rotation.x = -Math.PI/2; propGroup.add(planGlow);
-    } else if (kind === 'coffeeStation') {
-      // Counter + machine
-      const counter = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.05, 0.50), new THREE.MeshPhysicalMaterial({color:0x1a2030, metalness:0.5, roughness:0.4}));
-      counter.position.y = 0.75; counter.castShadow = true; propGroup.add(counter);
-      const counterLegs = [-0.40, 0.40].map(lx => {
-        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.75, 0.40), new THREE.MeshStandardMaterial({color:0x0a0e18, metalness:0.8}));
-        leg.position.set(lx, 0.375, 0);
-        return leg;
-      });
-      counterLegs.forEach(l => propGroup.add(l));
-      const machine = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.42, 0.30), new THREE.MeshPhysicalMaterial({color:0x2a1a1a, metalness:0.5, roughness:0.4, emissive:0x6a3020, emissiveIntensity:0.25}));
-      machine.position.set(0, 1.00, 0); machine.castShadow = true; propGroup.add(machine);
-      const machineLight = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 8), new THREE.MeshBasicMaterial({color:0xff5b00, transparent:true, opacity:0.9}));
-      machineLight.position.set(0.10, 1.10, 0.16); propGroup.add(machineLight);
-    } else if (kind === 'printer') {
-      const box = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.45, 0.55), new THREE.MeshPhysicalMaterial({color:0xc0c5d0, metalness:0.3, roughness:0.55}));
-      box.position.y = 0.225; box.castShadow = true; propGroup.add(box);
-      const tray = new THREE.Mesh(new THREE.BoxGeometry(0.50, 0.04, 0.30), new THREE.MeshStandardMaterial({color:0xffffff}));
-      tray.position.y = 0.48; tray.position.z = 0.10; propGroup.add(tray);
-      const led = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 8), new THREE.MeshBasicMaterial({color:0x43e6a1}));
-      led.position.set(0.20, 0.32, 0.28); propGroup.add(led);
-    } else if (kind === 'plant') {
-      const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.14, 0.25, 12), new THREE.MeshStandardMaterial({color:0x5a3a20}));
-      pot.position.y = 0.125; propGroup.add(pot);
-      const foliage = new THREE.Mesh(new THREE.SphereGeometry(0.32, 12, 10), new THREE.MeshStandardMaterial({color:0x2a8a3a, roughness:0.8}));
-      foliage.position.y = 0.55; propGroup.add(foliage);
-    }
-    officeScene.add(propGroup);
-    return {group: propGroup, kind, x, z, dwellMs: kind === 'conferenceTable' ? 6500 : (kind === 'coffeeStation' ? 4500 : (kind === 'printer' ? 3000 : 3500)), name: kind === 'waterCooler' ? '💧 water cooler' : kind === 'conferenceTable' ? '📋 conference' : kind === 'coffeeStation' ? '☕ coffee' : kind === 'printer' ? '🖨 printer' : '🌿 plant'};
+  // v4.4.9 · Helper that adds a labeled floating sprite above each prop so users read them as REAL OBJECTS, not boxes
+  function addPropLabel(propGroup, text, color){
+    const c = document.createElement('canvas'); c.width = 256; c.height = 56;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = 'rgba(11,17,32,.85)'; ctx.fillRect(0, 0, c.width, c.height);
+    ctx.strokeStyle = color || '#00d4ff'; ctx.lineWidth = 2; ctx.strokeRect(1, 1, c.width-2, c.height-2);
+    ctx.font = 'bold 22px "Space Grotesk", sans-serif'; ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(text, c.width/2, c.height/2);
+    const tex = new THREE.CanvasTexture(c);
+    const mat = new THREE.SpriteMaterial({map: tex, transparent: true, depthTest: false});
+    const sprite = new THREE.Sprite(mat);
+    sprite.scale.set(1.6, 0.35, 1);
+    sprite.renderOrder = 600;
+    propGroup.add(sprite);
+    return sprite;
   }
 
-  // Place props around the room perimeter (avoid the desks + server rack)
-  officeProps.push(addProp('waterCooler',     -8,  5));
-  officeProps.push(addProp('conferenceTable',  0,  6));
-  officeProps.push(addProp('coffeeStation',    8,  5));
-  officeProps.push(addProp('printer',          7, -2));
-  officeProps.push(addProp('plant',           -8, -2));
+  function addProp(kind, x, z, yaw){
+    const propGroup = new THREE.Group();
+    propGroup.position.set(x, 0, z);
+    if (yaw) propGroup.rotation.y = yaw;
+    if (kind === 'waterCooler') {
+      // v4.4.9 · BIGGER + clearly water-cooler-shaped (Mo: "the water cooler · small box usually · no visible")
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.30, 0.34, 0.65, 14), new THREE.MeshPhysicalMaterial({color:0xe8e8ee, metalness:0.4, roughness:0.4}));
+      base.position.y = 0.325; base.castShadow = true; propGroup.add(base);
+      // Cup tray below the dispenser
+      const tray = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.04, 14), new THREE.MeshStandardMaterial({color:0x202838, metalness:0.6}));
+      tray.position.y = 0.50; propGroup.add(tray);
+      // Big blue water bottle (inverted)
+      const bottle = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.30, 0.70, 14), new THREE.MeshPhysicalMaterial({color:0x60c4ff, metalness:0.1, roughness:0.1, transparent:true, opacity:0.45, transmission:0.7, thickness:0.4}));
+      bottle.position.y = 1.10; bottle.castShadow = true; propGroup.add(bottle);
+      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.08, 12), new THREE.MeshStandardMaterial({color:0x202838}));
+      cap.position.y = 1.50; propGroup.add(cap);
+      // Glowing tap
+      const tap = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.10, 8), new THREE.MeshBasicMaterial({color:0x00d4ff}));
+      tap.position.set(0, 0.65, 0.30); tap.rotation.x = Math.PI/2; propGroup.add(tap);
+      const tapGlow = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 10), new THREE.MeshBasicMaterial({color:0x00d4ff, transparent:true, opacity:0.8}));
+      tapGlow.position.set(0, 0.65, 0.38); propGroup.add(tapGlow);
+      // Label sprite
+      const lbl = addPropLabel(propGroup, '💧 WATER COOLER', '#60c4ff');
+      lbl.position.set(0, 2.15, 0);
+    } else if (kind === 'conferenceTable') {
+      // v4.4.9 · BIGGER + 6 REAL CHAIRS around it + holographic floor pad (Mo: "no tables in the conference room")
+      // Long oval table 4.0 × 1.8
+      const top = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.4, 0.08, 28), new THREE.MeshPhysicalMaterial({color:0x141c30, metalness:0.5, roughness:0.3, clearcoat:0.6}));
+      top.scale.set(1.7, 1, 1); top.position.y = 0.82; top.castShadow = top.receiveShadow = true; propGroup.add(top);
+      // Trapezoid post
+      const post = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.78, 0.6), new THREE.MeshStandardMaterial({color:0x0a0e18, metalness:0.7}));
+      post.position.y = 0.39; propGroup.add(post);
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.95, 0.06, 16), new THREE.MeshStandardMaterial({color:0x0a0e18, metalness:0.7}));
+      base.position.y = 0.03; propGroup.add(base);
+      // 6 chairs around the oval
+      const chairPositions = [
+        [-1.9,  1.0,  0],   // left back
+        [-1.9, -1.0,  0],   // left front
+        [ 0.0,  1.3,  0],   // top back
+        [ 0.0, -1.3,  0],   // top front
+        [ 1.9,  1.0,  Math.PI],   // right back
+        [ 1.9, -1.0,  Math.PI],   // right front
+      ];
+      chairPositions.forEach(([cx, cz, cyaw]) => {
+        const chairGroup = new THREE.Group();
+        chairGroup.position.set(cx, 0, cz);
+        chairGroup.rotation.y = cyaw;
+        // Seat
+        const seat = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.06, 0.45), new THREE.MeshPhysicalMaterial({color:0x202838, metalness:0.4, roughness:0.45}));
+        seat.position.y = 0.45; seat.castShadow = true; chairGroup.add(seat);
+        // Backrest
+        const back = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.55, 0.05), new THREE.MeshPhysicalMaterial({color:0x202838, metalness:0.4, roughness:0.45}));
+        back.position.set(0, 0.73, 0.22); back.castShadow = true; chairGroup.add(back);
+        // Stem
+        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.42, 8), new THREE.MeshStandardMaterial({color:0x0a0e18, metalness:0.8}));
+        stem.position.y = 0.21; chairGroup.add(stem);
+        // Base (5-star)
+        const cbase = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.30, 0.05, 5), new THREE.MeshStandardMaterial({color:0x0a0e18, metalness:0.7}));
+        cbase.position.y = 0.025; chairGroup.add(cbase);
+        propGroup.add(chairGroup);
+      });
+      // Holographic plan glow on top of table (the "meeting visualization")
+      const planTop = new THREE.Mesh(new THREE.RingGeometry(0.7, 1.0, 28), new THREE.MeshBasicMaterial({color:0x00f2fe, transparent:true, opacity:0.45, side:THREE.DoubleSide}));
+      planTop.position.y = 0.88; planTop.rotation.x = -Math.PI/2; propGroup.add(planTop);
+      const planTop2 = new THREE.Mesh(new THREE.RingGeometry(0.4, 0.55, 24), new THREE.MeshBasicMaterial({color:0x00f2fe, transparent:true, opacity:0.55, side:THREE.DoubleSide}));
+      planTop2.position.y = 1.05; planTop2.rotation.x = -Math.PI/2; propGroup.add(planTop2);
+      // Label sprite (high above the table)
+      const lbl = addPropLabel(propGroup, '📋 CONFERENCE ROOM', '#00f2fe');
+      lbl.position.set(0, 2.50, 0);
+    } else if (kind === 'coffeeStation') {
+      // v4.4.9 · BIGGER counter + branded espresso machine + cup row + label
+      const counter = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.06, 0.70), new THREE.MeshPhysicalMaterial({color:0x1a2030, metalness:0.5, roughness:0.35, clearcoat:0.4}));
+      counter.position.y = 0.85; counter.castShadow = counter.receiveShadow = true; propGroup.add(counter);
+      // Counter front panel
+      const front = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.85, 0.06), new THREE.MeshPhysicalMaterial({color:0x141c30, metalness:0.5, roughness:0.4}));
+      front.position.set(0, 0.425, -0.32); propGroup.add(front);
+      // Counter side panels
+      [-0.80, 0.80].forEach(lx => {
+        const side = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.85, 0.7), new THREE.MeshPhysicalMaterial({color:0x141c30, metalness:0.5}));
+        side.position.set(lx, 0.425, 0); propGroup.add(side);
+      });
+      // Espresso machine
+      const machine = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.55, 0.42), new THREE.MeshPhysicalMaterial({color:0x2a1a18, metalness:0.55, roughness:0.35, emissive:0x6a3020, emissiveIntensity:0.3}));
+      machine.position.set(-0.30, 1.155, 0); machine.castShadow = true; propGroup.add(machine);
+      // Steam wand
+      const wand = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.25, 8), new THREE.MeshStandardMaterial({color:0x808088, metalness:0.9}));
+      wand.position.set(-0.05, 1.18, 0.20); wand.rotation.x = Math.PI/4; propGroup.add(wand);
+      // Ready light
+      const machineLight = new THREE.Mesh(new THREE.SphereGeometry(0.04, 10, 10), new THREE.MeshBasicMaterial({color:0xff5b00}));
+      machineLight.position.set(-0.20, 1.32, 0.22); propGroup.add(machineLight);
+      // Cup row
+      [0.10, 0.30, 0.50].forEach(cx => {
+        const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.04, 0.10, 10), new THREE.MeshStandardMaterial({color:0xffffff}));
+        cup.position.set(cx, 0.94, 0.15); propGroup.add(cup);
+      });
+      const lbl = addPropLabel(propGroup, '☕ COFFEE BAR', '#ff8a4c');
+      lbl.position.set(0, 1.95, 0);
+    } else if (kind === 'printer') {
+      // v4.4.9 · BIGGER + paper stack visible + clearly a printer
+      const box = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.65, 0.75), new THREE.MeshPhysicalMaterial({color:0xc0c5d0, metalness:0.3, roughness:0.5}));
+      box.position.y = 0.325; box.castShadow = true; propGroup.add(box);
+      const top = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.05, 0.75), new THREE.MeshPhysicalMaterial({color:0x1a2030, metalness:0.6}));
+      top.position.y = 0.675; propGroup.add(top);
+      // Paper tray with visible paper stack
+      const tray = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.04, 0.20), new THREE.MeshStandardMaterial({color:0x101820}));
+      tray.position.set(0, 0.55, 0.40); propGroup.add(tray);
+      const paper = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.06, 0.15), new THREE.MeshStandardMaterial({color:0xffffff, emissive:0xffffff, emissiveIntensity:0.05}));
+      paper.position.set(0, 0.60, 0.42); propGroup.add(paper);
+      // Display screen (cyan)
+      const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.30, 0.12), new THREE.MeshBasicMaterial({color:0x00d4ff, transparent:true, opacity:0.85}));
+      screen.position.set(0, 0.50, 0.376); propGroup.add(screen);
+      // Ready LED
+      const led = new THREE.Mesh(new THREE.SphereGeometry(0.04, 10, 10), new THREE.MeshBasicMaterial({color:0x43e6a1}));
+      led.position.set(0.30, 0.45, 0.376); propGroup.add(led);
+      const lbl = addPropLabel(propGroup, '🖨 PRINTER', '#43e6a1');
+      lbl.position.set(0, 1.45, 0);
+    } else if (kind === 'plant') {
+      // BIGGER plant · pot + tall foliage clusters
+      const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.22, 0.40, 14), new THREE.MeshStandardMaterial({color:0x5a3a20, roughness:0.85}));
+      pot.position.y = 0.20; pot.castShadow = true; propGroup.add(pot);
+      // 3 stacked foliage spheres for a tall plant
+      const f1 = new THREE.Mesh(new THREE.SphereGeometry(0.40, 14, 10), new THREE.MeshStandardMaterial({color:0x2a8a3a, roughness:0.85}));
+      f1.position.y = 0.65; propGroup.add(f1);
+      const f2 = new THREE.Mesh(new THREE.SphereGeometry(0.32, 14, 10), new THREE.MeshStandardMaterial({color:0x35a04a, roughness:0.85}));
+      f2.position.set(0.12, 0.95, 0); propGroup.add(f2);
+      const f3 = new THREE.Mesh(new THREE.SphereGeometry(0.28, 14, 10), new THREE.MeshStandardMaterial({color:0x2a8a3a, roughness:0.85}));
+      f3.position.set(-0.10, 1.10, 0.05); propGroup.add(f3);
+    } else if (kind === 'whiteboard') {
+      // v4.4.9 NEW · whiteboard with marker tray + sketch glow
+      const board = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.95, 0.04), new THREE.MeshPhysicalMaterial({color:0xfafaff, metalness:0.05, roughness:0.4}));
+      board.position.y = 1.20; board.castShadow = true; propGroup.add(board);
+      const frame = new THREE.Mesh(new THREE.BoxGeometry(1.7, 1.05, 0.05), new THREE.MeshStandardMaterial({color:0x202838, metalness:0.6}));
+      frame.position.y = 1.20; frame.position.z = -0.02; propGroup.add(frame);
+      // Marker tray
+      const trayM = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.05, 0.10), new THREE.MeshStandardMaterial({color:0x101820}));
+      trayM.position.set(0, 0.70, 0.05); propGroup.add(trayM);
+      // Sketch lines (emissive cyan)
+      const sketch1 = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 0.04), new THREE.MeshBasicMaterial({color:0x00d4ff, transparent:true, opacity:0.7}));
+      sketch1.position.set(-0.20, 1.40, 0.025); propGroup.add(sketch1);
+      const sketch2 = new THREE.Mesh(new THREE.PlaneGeometry(0.45, 0.04), new THREE.MeshBasicMaterial({color:0xf5c542, transparent:true, opacity:0.7}));
+      sketch2.position.set(0.30, 1.20, 0.025); propGroup.add(sketch2);
+      const lbl = addPropLabel(propGroup, '📐 WHITEBOARD', '#00d4ff');
+      lbl.position.set(0, 2.05, 0);
+    }
+    officeScene.add(propGroup);
+    const dwellMap = {waterCooler:3500, conferenceTable:6500, coffeeStation:4500, printer:3000, plant:1500, whiteboard:5000};
+    const nameMap = {waterCooler:'💧 water cooler', conferenceTable:'📋 conference', coffeeStation:'☕ coffee', printer:'🖨 printer', plant:'🌿 plant', whiteboard:'📐 whiteboard'};
+    return {group: propGroup, kind, x, z, dwellMs: dwellMap[kind] || 3500, name: nameMap[kind] || kind};
+  }
+
+  // v4.4.9 · place props CLEARLY visible in the room · away from walls so the camera sees them
+  officeProps.push(addProp('waterCooler',     -6.5,  4.5));
+  officeProps.push(addProp('conferenceTable',  0.0,  5.5));   // center · the heart of the room
+  officeProps.push(addProp('coffeeStation',    6.5,  4.5, Math.PI));
+  officeProps.push(addProp('printer',          7.5, -1.5, -Math.PI/2));
+  officeProps.push(addProp('whiteboard',      -7.5, -1.5, Math.PI/2));
+  officeProps.push(addProp('plant',           -8.0,  6.0));
 
   // Helper to spawn a worker at a starting position with the purposeful state machine
   function spawnWorker(startX, startZ, variantIdx){
@@ -1855,6 +1978,91 @@ function buildOfficeScene(agency){
         const beaconPulse = ag.state === 'PROCESSING' ? 7 : 2.2;
         ag.beacon.material.opacity = 0.45 + 0.5 * Math.abs(Math.sin(oT * beaconPulse + ag.phase));
         ag.beacon.scale.setScalar(1 + 0.15 * Math.sin(oT * beaconPulse + ag.phase));
+      }
+
+      // v4.4.9 · DESK-BREAK ROUTINE (Skill #22) · the SEATED agents periodically stand up, walk to a prop, return, sit
+      // Gemini blueprint v4.5 directive: sit → stand → walk → dwell → return → sit · bulletproof endless loop
+      const now = Date.now();
+      if (ag.breakState === 'seated') {
+        if (now >= ag.breakNextAt && officeProps.length > 0 && ag.state !== 'PROCESSING') {
+          // Limit how many agents can be away at once (max 2) so desks aren't all empty
+          const awayCount = officeAgents.filter(a => a.breakState !== 'seated').length;
+          if (awayCount < 2) {
+            // Pick a prop, hide seated body, spawn a humanoid walker at the desk
+            const prop = officeProps[Math.floor(Math.random() * officeProps.length)];
+            ag.breakTarget = prop;
+            if (ag.bodyGroup) ag.bodyGroup.visible = false;   // agent leaves the seat
+            // Build temporary humanoid at the chair position
+            const worker = createProceduralHumanoid(0x00d4ff, ag.variantIdx);
+            worker.mesh.position.set(ag.dx, 0, ag.dz + 0.55);
+            officeScene.add(worker.mesh);
+            ag.breakWorker = worker;
+            ag.breakState = 'walking_to';
+            ag.currentTask = '→ ' + prop.name;
+            renderAgentLabel(ag);
+          }
+        }
+      } else if (ag.breakState === 'walking_to' && ag.breakWorker) {
+        const w = ag.breakWorker;
+        const tx = ag.breakTarget.x, tz = ag.breakTarget.z;
+        const dx = tx - w.mesh.position.x, dz = tz - w.mesh.position.z;
+        const dist = Math.sqrt(dx*dx + dz*dz);
+        if (dist < 0.40) {
+          ag.breakState = 'dwelling';
+          ag.breakDwellEnd = now + ag.breakTarget.dwellMs;
+          ag.currentTask = '⌂ ' + ag.breakTarget.name;
+          renderAgentLabel(ag);
+          // Park limbs at rest
+          w.leftLeg.rotation.x = 0; w.rightLeg.rotation.x = 0;
+          w.leftArm.rotation.x = 0; w.rightArm.rotation.x = 0;
+        } else {
+          const nx = dx / dist, nz = dz / dist;
+          w.mesh.position.x += nx * 0.045;
+          w.mesh.position.z += nz * 0.045;
+          w.mesh.rotation.y = Math.atan2(nx, nz);
+          const tt = oT * 4.5 + ag.phase;
+          const swing = Math.sin(tt) * 0.55;
+          w.leftLeg.rotation.x = swing; w.rightLeg.rotation.x = -swing;
+          w.leftArm.rotation.x = -swing*0.7; w.rightArm.rotation.x = swing*0.7;
+          w.mesh.position.y = Math.abs(Math.cos(tt)) * 0.06;
+        }
+      } else if (ag.breakState === 'dwelling' && ag.breakWorker) {
+        const w = ag.breakWorker;
+        w.mesh.position.y = Math.sin(oT * 1.3 + ag.phase) * 0.012;
+        w.leftArm.rotation.x = Math.sin(oT * 0.6 + ag.phase) * 0.10;
+        if (now >= ag.breakDwellEnd) {
+          ag.breakState = 'walking_back';
+          ag.currentTask = '↺ back to desk';
+          renderAgentLabel(ag);
+        }
+      } else if (ag.breakState === 'walking_back' && ag.breakWorker) {
+        const w = ag.breakWorker;
+        const tx = ag.dx, tz = ag.dz + 0.55;
+        const dx = tx - w.mesh.position.x, dz = tz - w.mesh.position.z;
+        const dist = Math.sqrt(dx*dx + dz*dz);
+        if (dist < 0.30) {
+          // Sit back down · despawn worker, show bodyGroup
+          officeScene.remove(w.mesh);
+          // Dispose materials/geometries on the walker meshes to prevent GPU leak
+          w.mesh.traverse(o => { if(o.geometry) o.geometry.dispose(); if(o.material){ Array.isArray(o.material)?o.material.forEach(m=>m.dispose()):o.material.dispose(); }});
+          ag.breakWorker = null;
+          if (ag.bodyGroup) ag.bodyGroup.visible = true;
+          ag.breakState = 'seated';
+          ag.breakNextAt = now + 25000 + Math.random()*40000;   // next break in 25-65s
+          ag.breakTarget = null;
+          ag.currentTask = 'standing by';
+          renderAgentLabel(ag);
+        } else {
+          const nx = dx / dist, nz = dz / dist;
+          w.mesh.position.x += nx * 0.045;
+          w.mesh.position.z += nz * 0.045;
+          w.mesh.rotation.y = Math.atan2(nx, nz);
+          const tt = oT * 4.5 + ag.phase;
+          const swing = Math.sin(tt) * 0.55;
+          w.leftLeg.rotation.x = swing; w.rightLeg.rotation.x = -swing;
+          w.leftArm.rotation.x = -swing*0.7; w.rightArm.rotation.x = swing*0.7;
+          w.mesh.position.y = Math.abs(Math.cos(tt)) * 0.06;
+        }
       }
     });
     // Server LED flicker
@@ -2108,42 +2316,53 @@ let officeCamRadius = 18, officeCamAngle = {y: Math.PI/4, x: Math.PI/4.2}, offic
 
 // TRACK A · canvas-texture HUD sprite painter (per Gemini round-6)
 function renderAgentLabel(ag){
+  // v4.4.9 · 3-line layout with auto-shrink per line + slim left accent bar
+  // Top line: bold ID badge (always fits 320px canvas)
+  // Middle: role name auto-shrunk to fit
+  // Bottom: STATUS + activity short
   const c = ag.labelCanvas;
   const ctx = c.getContext('2d');
   const w = c.width, h = c.height;
   ctx.clearRect(0, 0, w, h);
   // Obsidian glass background
-  ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+  ctx.fillStyle = 'rgba(11, 17, 32, 0.94)';
   ctx.fillRect(0, 0, w, h);
-  // Border · color by state
+  // Border · color by state · accent bar on the left
   const border = ag.state === 'PROCESSING' ? '#ffffff' : '#00e4ff';
   ctx.strokeStyle = border;
-  ctx.lineWidth = 2.5;
+  ctx.lineWidth = 2;
   ctx.strokeRect(1, 1, w-2, h-2);
+  ctx.fillStyle = border;
+  ctx.fillRect(0, 0, 6, h);  // left accent stripe
 
-  // ID + role · auto-shrink font so longer pipeline names ("Engine Automation Script") fit
-  const idStr = `[${ag.id}] ${ag.name}`;
-  let fontSize = 22;
-  ctx.font = `bold ${fontSize}px monospace`;
-  while (ctx.measureText(idStr).width > w - 16 && fontSize > 11) {
-    fontSize -= 1;
-    ctx.font = `bold ${fontSize}px monospace`;
-  }
+  // LINE 1 · ID badge · bold · always one-line
+  ctx.font = 'bold 22px "JetBrains Mono", monospace';
   ctx.fillStyle = '#ffffff';
-  ctx.fillText(idStr, 10, 28);
+  ctx.fillText(`[${ag.id}]`, 14, 28);
 
-  // Status line
-  ctx.font = 'bold 14px monospace';
-  ctx.fillStyle = ag.state === 'PROCESSING' ? '#ffffff' : '#43e6a1';
-  ctx.fillText(`STATUS: ${ag.state}`, 10, 52);
+  // LINE 2 · role name · auto-shrink to fit on its own line (no overflow into next agent)
+  let roleSize = 17;
+  ctx.font = `bold ${roleSize}px "Space Grotesk", sans-serif`;
+  while (ctx.measureText(ag.name).width > w - 18 && roleSize > 10) {
+    roleSize -= 1;
+    ctx.font = `bold ${roleSize}px "Space Grotesk", sans-serif`;
+  }
+  ctx.fillStyle = '#e0eaff';
+  ctx.fillText(ag.name, 14, 56);
 
-  // Current task · also auto-truncate-with-ellipsis on the wider canvas
-  ctx.fillStyle = '#9bb0d4';
-  ctx.font = '12px monospace';
+  // LINE 3 · STATUS pill + activity
+  ctx.font = 'bold 11px "JetBrains Mono", monospace';
+  const statusColor = ag.state === 'PROCESSING' ? '#ffffff' : '#43e6a1';
+  ctx.fillStyle = statusColor;
+  ctx.fillText(ag.state, 14, 78);
+  // Task text · auto-truncate with ellipsis
   let task = (ag.currentTask || '');
-  while (ctx.measureText(task).width > w - 16 && task.length > 4) task = task.slice(0, -1);
+  ctx.font = '11px "JetBrains Mono", monospace';
+  ctx.fillStyle = '#9bb0d4';
+  const taskX = 14 + ctx.measureText(ag.state + '  ').width + 10;
+  while (ctx.measureText(task).width > (w - taskX - 8) && task.length > 4) task = task.slice(0, -1);
   if (task.length < (ag.currentTask || '').length) task = task.slice(0, -1) + '…';
-  ctx.fillText(task, 10, 76);
+  ctx.fillText(task, taskX, 78);
 
   ag.lblTex.needsUpdate = true;
 }
