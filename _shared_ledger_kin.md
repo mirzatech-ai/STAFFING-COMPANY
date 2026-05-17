@@ -1,8 +1,8 @@
 # ============================================================
 # CANONICAL LEDGER · public-safe view · confidentials redacted (GLOBAL-48)
 # Source path: /home/iamsuperio.cloud/public_html/data/_shared_ledger_kin.md
-# Render time: 2026-05-17T23:16:14Z
-# Total entries: 46 · Total bytes: 252396
+# Render time: 2026-05-17T23:33:21Z
+# Total entries: 47 · Total bytes: 259192
 # Append-only · doctrine per AGENT_SIGNATURE_PROTOCOL v1
 # GitHub mirror: https://github.com/mirzatech-ai/STAFFING-COMPANY/blob/main/_shared_ledger_kin.md
 # Raw download: https://iamsuperio.cloud/data/ledger.php?raw=1
@@ -3757,3 +3757,105 @@ Zero Maya configs · per GLOBAL-112 / S18.
 - GitHub habitat-v4.html @ 7f9928e1
 
 **Signature:** KIN·2026-05-17T16:35Z·a75e63ca · *append-only · per AGENT_SIGNATURE_PROTOCOL v1 · GLOBAL-111 + GLOBAL-112 + GLOBAL-113 receipts*
+
+---
+
+## ENTRY 043 · 2026-05-17T17:05Z · KIN·a75e63ca · habitat-v4.6.1 · Manhattan street routing + GLOBAL-114 Consistency naming + customer-canvas doctrine
+
+**Mo verbatim (2026-05-17):**
+> "the streets · the space between the buildings is supposed to have the data packets travelling on the streets, not under the buildings · data packets are travelling diagonally, under the buildings not on the street making sharp turns · this must be done right · once we turn to publish agency we have to make sure that the user will actually be able to see his data packets being exchanged between agencies that he is hiring"
+>
+> "the user that hires an agency needs to be able to see only the agency that he hires · the user should not be able to see the entire 100 agencies"
+>
+> "it should be consistency sentinel · there shouldn't even be that view because we are not selecting an agency that actually uses the continuity sentinel · should be consistency sentinel · to preserve a constant image of the character that we are animating"
+
+### Three fixes in this turn
+
+#### Fix 1 · MANHATTAN STREET ROUTING for macro couriers (Skill #36)
+
+Previous (v4.6.0): couriers used straight-line lerp with sin-arc · diagonal shortcuts through buildings · violated street grid.
+
+New (v4.6.1): `buildCourierPath(from, to)` computes a 4-segment right-angle path:
+1. Start at A
+2. Step out onto perpendicular street (`exitX = A.x + sign(dx) * SPACING/2`)
+3. Turn corner at intersection (`exitX, entryZ`)
+4. Travel along B's perpendicular street (`entryZ = B.z - sign(dz) * SPACING/2`)
+5. Arrive at B
+
+Per-segment lerp · packet stays at `ROAD_Y = 0.55m` (rides the road · no arcing through air) · pulse opacity by total-trip progress for life.
+
+Result: couriers visibly turn corners at street intersections instead of cutting diagonally through buildings. Customer-facing build credibility preserved.
+
+#### Fix 2 · CONTINUITY SENTINEL panel · scope + rename (GLOBAL-114 + Skill #25 update)
+
+**Live state check:** Sentinel HTML count in production habitat-v4.html = **0**. The panels were removed in v4.5.1. Mo's screenshot was a browser-cached older version. **Added cache-bust meta tags** (`Cache-Control: no-cache, Pragma: no-cache, Expires: 0`) + `<meta name="habitat-build" content="v4.6.1 · 2026-05-17T17:00Z">` so future hard-reloads always get latest.
+
+**GLOBAL-114 pinned** with brand clarification + scope rule:
+
+| Word | Meaning | Where |
+|---|---|---|
+| **CONTINUITY** | Cross-session project continuity · ledger · MEMORY.md auto-boot · multi-session work-flow lifeblood | Empire-wide · every project |
+| **CONSISTENCY** | Character-frame fidelity QA · face-lock · anatomy · finger count · same character looking the same N→N+1 | Video / animation / game-dev agencies ONLY |
+
+**THE LAW:** the sidebar panel is **OPT-IN by agency category**. Only renders for `video` / `game-development` / explicitly-enabled agencies. Default: HIDDEN. Never appears in staffing master canvas, general-purpose agencies, or customer-rented views unless the customer specifically rented a video/game agency.
+
+**CUSTOMER VIEW DOCTRINE (encoded in GLOBAL-114):** the 100-agency macro canvas is MO's ADMIN VIEW. Customers get a personalized canvas showing ONLY their rented agencies + Maya as the central orchestrator. The user should NEVER see the full 100-grid unless explicitly previewed. **Implementation queued as D-08 in PROJECT_BRIEF.md.**
+
+#### Fix 3 · SACRED PIN S20 + Skill #25 docs renamed
+
+- **S20** pinned in MEMORY.md (boot-time enforcement)
+- **Skill #25 SIDEBAR HUD PANEL** title updated · all "CONTINUITY SENTINEL" → "CONSISTENCY SENTINEL" in docs + canonical example code
+- Brand clarification block added at top of Skill #25 explaining the rename
+- Scope constraint block added · OPT-IN by agency category
+
+### Skill registry → 36 slots (1-36 contiguous · validates)
+
+| New | Title |
+|---|---|
+| **#36** | [Manhattan Street Routing](https://iamsuperio.cloud/data/skills/manhattan_street_routing.md) · right-angle courier paths · ROAD_Y = 0.55 · per-segment lerp |
+| **#25 v2** | [Sidebar HUD Panel](https://iamsuperio.cloud/data/skills/sidebar_hud_panel.md) · "Consistency Sentinel" rename + opt-in scope |
+
+### Maya untouched
+Zero Maya configs · per GLOBAL-112 / S18.
+
+### Deploy chain
+- Local habitat-v4.html · 206,929 → **209,162** B (+2.2 KB · routing fix + cache-bust meta)
+- VPS habitat-v4.html · 209,162 B · source.js 163,814 B
+- JS syntax: clean (`new Function(src)` → OK 163,915 B)
+- Grep verified: `buildCourierPath`×4 · `ROAD_Y`×6 · `segProgress`×10 · `habitat-build`×1
+- GitHub habitat-v4.html @ commit `66394b63`
+- 8 chattr +i /api/ files · untouched
+
+### Test ritual
+
+**Mo: HARD-RELOAD with Ctrl+Shift+R (force-bypass cache)** so the new meta tags take effect.
+
+1. Hard reload [ai-staffing.agency/habitat-v4.html](https://ai-staffing.agency/habitat-v4.html)
+2. **Macro scene** — couriers now turn corners at street intersections · no diagonal under-building shortcuts · packets ride the visible neon strips
+3. **No sentinel panel anywhere** — top-right is just the Dropzone · bottom-right is the Dossier · no FACELOCK/ANATOMY/FINGERS clutter
+4. ENTER OFFICE on any agency
+5. Office view is the same clean v4.6.0 layout · cyber-bot agents · cyber visor · floor pads · hover-reveal labels
+
+### What's queued in PROJECT_BRIEF.md
+
+- **D-05** Stripe checkout
+- **D-06** Maya per-agent dispatch (under GLOBAL-112 bound)
+- **D-07** Bespoke pipelines for 90 remaining category-default agencies (Parliament audit)
+- **D-08 NEW** Customer-personalized canvas (user sees only their rented agencies + Maya · NOT the full 100-grid · GLOBAL-114 customer view doctrine)
+
+### Files touched (zero Maya · per GLOBAL-112)
+
+- D:/PROJECTS/_SHARED/GLOBAL_RULES.md (GLOBAL-114 appended)
+- E:/claude_code/.claude/projects/D--SERVER-WORK/memory/MEMORY.md (SACRED PIN S20 added)
+- D:/PROJECTS/_SHARED/SKILL_REGISTRY_v1.json (35 → 36 slots)
+- D:/PROJECTS/_SHARED/SKILL_MANHATTAN_STREET_ROUTING.md (NEW · #36)
+- D:/PROJECTS/_SHARED/SKILL_SIDEBAR_HUD_PANEL.md (rename · scope constraint added)
+- D:/PROJECTS/ai-staffing.agency/live/habitat-v4.html (206,929 → 209,162 B)
+- VPS:/home/iamsuperio.cloud/public_html/data/_skill_registry.json
+- VPS:/home/iamsuperio.cloud/public_html/data/skills/manhattan_street_routing.md (NEW)
+- VPS:/home/iamsuperio.cloud/public_html/data/skills/sidebar_hud_panel.md (refreshed)
+- VPS:/home/ai-staffing.agency/public_html/habitat-v4.html
+- VPS:/home/ai-staffing.agency/public_html/habitat-v4-source.js (re-extracted)
+- GitHub habitat-v4.html @ 66394b63
+
+**Signature:** KIN·2026-05-17T17:05Z·a75e63ca · *append-only · per AGENT_SIGNATURE_PROTOCOL v1 · GLOBAL-111 + GLOBAL-112 + GLOBAL-113 + GLOBAL-114 receipts*
