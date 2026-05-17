@@ -317,8 +317,20 @@ body{background:radial-gradient(1400px 900px at 50% -10%,rgba(245,197,66,.05),tr
 
 <!-- OFFICE INTERIOR · macro-to-micro view (Gemini directive 2026-05-17 · Skill #16 enter-room zoom) -->
 <div id="officeView" style="display:none;position:fixed;inset:0;z-index:300;background:#03060c">
-  <div style="position:absolute;top:14px;left:14px;z-index:5;display:flex;gap:10px;align-items:center">
+  <div style="position:absolute;top:14px;left:14px;z-index:5;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
     <button onclick="exitOffice()" style="padding:8px 14px;border-radius:9px;background:rgba(10,18,38,.78);backdrop-filter:blur(10px);border:1px solid var(--cyan);color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer">↑ EXIT ROOM</button>
+    <!-- v4.4.7 · EMPIRE NETWORK BRIDGE · cross-department teleport without exit-to-map -->
+    <div style="position:relative;display:inline-block">
+      <button onclick="toggleNetworkBridge()" id="bridgeBtn" style="padding:8px 14px;border-radius:9px;background:rgba(10,18,38,.78);backdrop-filter:blur(10px);border:1px solid var(--gold);color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer">⇄ NETWORK BRIDGE ▾</button>
+      <div id="bridgeMenu" style="display:none;position:absolute;top:42px;left:0;min-width:230px;background:rgba(8,12,24,.96);backdrop-filter:blur(14px);border:1px solid var(--gold);border-radius:10px;padding:6px;box-shadow:0 14px 40px rgba(0,0,0,.7)">
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:9.5px;color:var(--muted);letter-spacing:.12em;padding:6px 8px 4px">GOTO · 5 CATEGORIES</div>
+        <button onclick="jumpToCategory('tech')"     class="bridge-row" style="display:flex;justify-content:space-between;width:100%;padding:7px 9px;border-radius:7px;border:1px solid rgba(0,212,255,.4);background:rgba(0,30,48,.5);color:#00d4ff;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;margin:3px 0;cursor:pointer;text-align:left"><span>▸ TECH ENGINEERING</span><span style="font-size:9px;opacity:.7">→</span></button>
+        <button onclick="jumpToCategory('biz')"      class="bridge-row" style="display:flex;justify-content:space-between;width:100%;padding:7px 9px;border-radius:7px;border:1px solid rgba(163,132,255,.4);background:rgba(30,18,60,.5);color:#a384ff;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;margin:3px 0;cursor:pointer;text-align:left"><span>▸ BUSINESS &amp; SALES</span><span style="font-size:9px;opacity:.7">→</span></button>
+        <button onclick="jumpToCategory('health')"   class="bridge-row" style="display:flex;justify-content:space-between;width:100%;padding:7px 9px;border-radius:7px;border:1px solid rgba(67,230,161,.4);background:rgba(8,40,28,.5);color:#43e6a1;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;margin:3px 0;cursor:pointer;text-align:left"><span>▸ HEALTH &amp; CLINICAL</span><span style="font-size:9px;opacity:.7">→</span></button>
+        <button onclick="jumpToCategory('industry')" class="bridge-row" style="display:flex;justify-content:space-between;width:100%;padding:7px 9px;border-radius:7px;border:1px solid rgba(255,180,84,.4);background:rgba(60,32,8,.5);color:#ffb454;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;margin:3px 0;cursor:pointer;text-align:left"><span>▸ INDUSTRY &amp; OPS</span><span style="font-size:9px;opacity:.7">→</span></button>
+        <button onclick="jumpToCategory('creative')" class="bridge-row" style="display:flex;justify-content:space-between;width:100%;padding:7px 9px;border-radius:7px;border:1px solid rgba(255,92,196,.4);background:rgba(60,8,40,.5);color:#ff5cc4;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;margin:3px 0;cursor:pointer;text-align:left"><span>▸ CREATIVE &amp; GAMING</span><span style="font-size:9px;opacity:.7">→</span></button>
+      </div>
+    </div>
     <div id="officeTitle" style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--white);font-size:14px;letter-spacing:.06em"></div>
   </div>
   <div id="officeStage" style="position:absolute;inset:0"></div>
@@ -1132,6 +1144,75 @@ function sovereignOverride(){ window.location.href = 'tel:+17432151423'; }
 let officeScene = null, officeCamera = null, officeRenderer = null, officeAgents = [], officeRAF = null, currentOfficeAgency = null;
 let officeServerLEDs = [];
 let officeComposer = null, officeBloomPass = null;   // v4.4.5 · cinematic post-processing
+let officeWalkers = [], officeOutboundConduit = null;  // v4.4.7 · walking humanoids + dispatch conduit
+let dispatchActive = false;                            // v4.4.7 · gate for inter-agency packet flight
+
+// === v4.4.7 · PROCEDURAL HUMANOID FACTORY (Skill #16 · Mo 2026-05-17 game-dev directive) ===
+// Builds a low-poly walking humanoid from pure geometry. No glTF · no external models.
+// Hierarchical Group so leg/arm anchors rotate from the hip/shoulder joint via sin(time*speed)*amplitude.
+// Returns {mesh, leftLeg, rightLeg, leftArm, rightArm, head, torso} so animate loop can drive each part.
+function createProceduralHumanoid(accentColor, variantIdx){
+  const g = new THREE.Group();
+  const palette = [0x00e4ff, 0x43e6a1, 0xf5c542, 0xa384ff, 0xff5cc4];
+  const skin = palette[variantIdx % palette.length] || accentColor;
+  const torsoMat = new THREE.MeshPhysicalMaterial({color: skin, emissive: skin, emissiveIntensity: 0.25, metalness:0.3, roughness:0.45, transparent:true, opacity:0.92});
+  const limbMat  = new THREE.MeshPhysicalMaterial({color: skin, emissive: skin, emissiveIntensity: 0.15, metalness:0.4, roughness:0.5});
+  const headMat  = new THREE.MeshPhysicalMaterial({color: 0xffffff, emissive: skin, emissiveIntensity: 0.5, metalness:0.2, roughness:0.2, transparent:true, opacity:0.95});
+
+  // Torso · rounded capsule via cylinder + sphere caps
+  const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.20, 0.55, 12), torsoMat);
+  torso.position.y = 0.95; torso.castShadow = true;
+  g.add(torso);
+
+  // Head
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 12), headMat);
+  head.position.y = 1.40; head.castShadow = true;
+  g.add(head);
+
+  // Hip anchors (legs swing from these via rotation.x)
+  const legGeom = new THREE.CylinderGeometry(0.055, 0.045, 0.55, 8);
+  const leftLegAnchor = new THREE.Group();
+  const leftLeg = new THREE.Mesh(legGeom, limbMat);
+  leftLeg.position.y = -0.275;    // pivot from top → leg dangles down
+  leftLeg.castShadow = true;
+  leftLegAnchor.add(leftLeg);
+  leftLegAnchor.position.set(-0.10, 0.65, 0);
+  g.add(leftLegAnchor);
+
+  const rightLegAnchor = new THREE.Group();
+  const rightLeg = new THREE.Mesh(legGeom, limbMat);
+  rightLeg.position.y = -0.275;
+  rightLeg.castShadow = true;
+  rightLegAnchor.add(rightLeg);
+  rightLegAnchor.position.set(0.10, 0.65, 0);
+  g.add(rightLegAnchor);
+
+  // Shoulder anchors (arms swing opposite the legs)
+  const armGeom = new THREE.CylinderGeometry(0.045, 0.04, 0.48, 8);
+  const leftArmAnchor = new THREE.Group();
+  const leftArm = new THREE.Mesh(armGeom, limbMat);
+  leftArm.position.y = -0.24;
+  leftArmAnchor.add(leftArm);
+  leftArmAnchor.position.set(-0.22, 1.18, 0);
+  g.add(leftArmAnchor);
+
+  const rightArmAnchor = new THREE.Group();
+  const rightArm = new THREE.Mesh(armGeom, limbMat);
+  rightArm.position.y = -0.24;
+  rightArmAnchor.add(rightArm);
+  rightArmAnchor.position.set(0.22, 1.18, 0);
+  g.add(rightArmAnchor);
+
+  // Base glow ring (signals presence on the floor)
+  const baseRing = new THREE.Mesh(
+    new THREE.RingGeometry(0.20, 0.28, 20),
+    new THREE.MeshBasicMaterial({color: skin, transparent:true, opacity:0.45, side:THREE.DoubleSide})
+  );
+  baseRing.position.y = 0.02; baseRing.rotation.x = -Math.PI/2;
+  g.add(baseRing);
+
+  return {mesh: g, head, torso, leftLeg: leftLegAnchor, rightLeg: rightLegAnchor, leftArm: leftArmAnchor, rightArm: rightArmAnchor, skin};
+}
 
 function buildOfficeScene(agency){
   const stage = document.getElementById('officeStage');
@@ -1140,6 +1221,10 @@ function buildOfficeScene(agency){
     officeRenderer.dispose(); officeRenderer.domElement.remove();
     if(officeRAF) cancelAnimationFrame(officeRAF);
   }
+  // v4.4.7 · reset walker registry + dispatch state so cross-agency jumps don't leak
+  officeWalkers = [];
+  officeOutboundConduit = null;
+  dispatchActive = false;
   officeScene = new THREE.Scene();
   officeScene.background = new THREE.Color(0x050912);
   officeScene.fog = new THREE.Fog(0x050912, 18, 38);
@@ -1581,6 +1666,45 @@ function buildOfficeScene(agency){
   // DROPZONE PARTICLE POOL (for the file-drop visual effect)
   officeDropParticles = [];
 
+  // === v4.4.7 · PROCEDURAL WALKING HUMANOIDS (Mo: "real walking workers · pure code · no external files") ===
+  // Spawn 3 walking workers per office. Each worker is a hierarchical Group:
+  // hipGroup → (head sphere · torso cylinder · leftLegAnchor + leftLeg · rightLegAnchor + rightLeg · leftArmAnchor + leftArm · rightArmAnchor + rightArm)
+  // Leg/arm anchors pivot from the hip joint. Walk math = sin(time*speed)*amplitude.
+  officeWalkers = [];
+  const walkerPaths = [
+    // Each path is a list of waypoints the worker patrols (loops back)
+    [new THREE.Vector3(-5.5, 0, -2.0), new THREE.Vector3(-5.5, 0, -6.5), new THREE.Vector3(-1.0, 0, -6.5), new THREE.Vector3(-1.0, 0, -2.0)],
+    [new THREE.Vector3( 5.5, 0, -1.0), new THREE.Vector3( 5.5, 0, -7.0), new THREE.Vector3( 1.5, 0, -7.0), new THREE.Vector3( 1.5, 0, -1.0)],
+    [new THREE.Vector3( 0.0, 0,  3.5), new THREE.Vector3(-6.0, 0,  3.5), new THREE.Vector3(-6.0, 0, -0.5), new THREE.Vector3( 6.0, 0, -0.5), new THREE.Vector3( 6.0, 0,  3.5)]
+  ];
+  walkerPaths.forEach((path, wi) => {
+    const worker = createProceduralHumanoid(accent, wi);
+    worker.mesh.position.copy(path[0]);
+    officeScene.add(worker.mesh);
+    officeWalkers.push({
+      ...worker,
+      path,
+      pathIdx: 0,
+      progress: Math.random(),
+      speed: 0.0035 + Math.random()*0.002,
+      phase: Math.random()*Math.PI*2
+    });
+  });
+
+  // === v4.4.7 · OUTBOUND CONDUIT (ceiling-mounted pipe out of the room toward macro city) ===
+  // Visible pipe runs from the server rack area up the back wall and through the ceiling
+  // Used when dispatchToAgency() fires the inter-agency packet
+  const conduitPts = [
+    new THREE.Vector3(0, 1.2, -8.5),    // start at server rack top
+    new THREE.Vector3(0, 4.5, -8.5),    // climb the back wall
+    new THREE.Vector3(0, 4.8, -4),      // run along the ceiling
+    new THREE.Vector3(0, 5.0, 0)        // exit point near ceiling center
+  ];
+  const conduitGeo = new THREE.BufferGeometry().setFromPoints(conduitPts);
+  const conduitLine = new THREE.Line(conduitGeo, new THREE.LineBasicMaterial({color: 0x00f2fe, transparent:true, opacity:0.6, linewidth:2}));
+  officeScene.add(conduitLine);
+  officeOutboundConduit = conduitPts;   // remembered for dispatch packet
+
   // Title
   document.getElementById('officeTitle').textContent = '🏢 ' + (agency.name || agency.id || agency.slug) + ' · INTERIOR · ' + (agency.role_count||0) + ' STATIONS';
   currentOfficeAgency = agency;
@@ -1631,6 +1755,38 @@ function buildOfficeScene(agency){
     });
     // CONSTANT BACKGROUND DATA PACKETS · flowing through the wire conduits
     if(officeBgPackets.length) animateOfficeBgPackets();
+    // v4.4.7 · WALKING HUMANOIDS · advance each worker along its patrol path with leg/arm swing
+    officeWalkers.forEach(w => {
+      // Position along path segments
+      const segs = w.path.length;
+      const segProgress = w.progress * segs;
+      const segIdx = Math.floor(segProgress) % segs;
+      const nextIdx = (segIdx + 1) % segs;
+      const segT = segProgress - Math.floor(segProgress);
+      const from = w.path[segIdx], to = w.path[nextIdx];
+      const px = from.x + (to.x - from.x) * segT;
+      const pz = from.z + (to.z - from.z) * segT;
+      w.mesh.position.x = px;
+      w.mesh.position.z = pz;
+      // Face direction of travel (yaw)
+      const dxh = to.x - from.x, dzh = to.z - from.z;
+      if (Math.abs(dxh) + Math.abs(dzh) > 0.01) {
+        w.mesh.rotation.y = Math.atan2(dxh, dzh);
+      }
+      // Trig walk cycle · legs swing opposite each other · arms swing opposite the legs
+      const t = oT * 4 + w.phase;
+      const swing = Math.sin(t) * 0.55;
+      w.leftLeg.rotation.x  =  swing;
+      w.rightLeg.rotation.x = -swing;
+      w.leftArm.rotation.x  = -swing * 0.7;
+      w.rightArm.rotation.x =  swing * 0.7;
+      // Vertical bob (weight shift) + slight head bob
+      w.mesh.position.y = Math.abs(Math.cos(t)) * 0.06;
+      if (w.head) w.head.position.y = 1.40 + Math.sin(t * 2) * 0.012;
+      // Advance progress
+      w.progress += w.speed;
+      if (w.progress >= 1) w.progress -= 1;
+    });
     // File-drop particles
     if(officeDropParticles.length) animateDropParticles();
     // User-controlled camera (orbit + zoom · NO auto-drift while user has touched it · per Mo's "zoom further" need)
@@ -1965,6 +2121,177 @@ function enterOffice(slug){
   }, 60);
 }
 
+// === v4.4.7 · EMPIRE NETWORK BRIDGE · in-scene cross-department teleport (Skill #19) ===
+function toggleNetworkBridge(){
+  const m = document.getElementById('bridgeMenu');
+  if (!m) return;
+  m.style.display = (m.style.display === 'none' || !m.style.display) ? 'block' : 'none';
+}
+function jumpToCategory(cat){
+  // Find an agency in that category · prefer the headline slug if mapped, else first match
+  const headline = {tech:'engineering', biz:'marketing-growth', health:'healthcare', industry:'manufacturing', creative:'game-development'};
+  let target = null;
+  const wanted = headline[cat];
+  if (wanted) target = buildings.find(b => b.userData && b.userData.slug === wanted && b.userData.agency);
+  if (!target) target = buildings.find(b => b.userData && b.userData.cat === cat && b.userData.agency);
+  if (!target) { console.warn('jumpToCategory: no agency for', cat); return; }
+  // Hide menu · cross-fade office out → rebuild with new agency → fade back in
+  document.getElementById('bridgeMenu').style.display = 'none';
+  const ov = document.getElementById('officeView');
+  ov.style.transition = 'opacity 0.35s ease-out';
+  ov.style.opacity = '0';
+  setTimeout(() => {
+    // Tear down current scene
+    if(officeRAF) { cancelAnimationFrame(officeRAF); officeRAF = null; }
+    if(officeComposer){ try { officeComposer.dispose && officeComposer.dispose(); } catch(_){} officeComposer = null; officeBloomPass = null; }
+    if(officeRenderer){ officeRenderer.dispose(); officeRenderer.domElement.remove(); officeRenderer = null; }
+    // Rebuild with the new agency
+    try {
+      buildOfficeScene(target.userData.agency);
+      officeCamera.zoom = 0.7;
+      officeCamera.updateProjectionMatrix();
+      tweenCameraTo(0, 0.5, 0, 1.0, 700);
+    } catch(err){ console.error('jumpToCategory build failed', err); }
+    // Fade back in
+    requestAnimationFrame(() => { ov.style.opacity = '1'; });
+  }, 380);
+}
+// Close menu when clicking outside
+document.addEventListener('click', function(e){
+  const m = document.getElementById('bridgeMenu');
+  const btn = document.getElementById('bridgeBtn');
+  if (!m || !btn) return;
+  if (m.style.display === 'block' && !m.contains(e.target) && e.target !== btn) m.style.display = 'none';
+});
+
+// === v4.4.7 · INTER-AGENCY DISPATCH LOOP (Skill #18 · Mo: "fly across macro city grid · gold reply return") ===
+// Step 1: outbound packet flies up the office conduit and out the ceiling
+// Step 2: cross-fade office OUT → macro city visible
+// Step 3: packet flashes from origin building to a same-category destination
+// Step 4: destination flashes white
+// Step 5: gold return packet flies back to origin
+// Step 6: cross-fade BACK into office · update dossier "REPLY SECURED · from <destAgency>"
+async function dispatchToAgency(originAgency, targetCat){
+  if (dispatchActive) return;
+  dispatchActive = true;
+  const cat = targetCat || categorize(originAgency.id || originAgency.slug || '');
+  const origin = buildings.find(b => b.userData && b.userData.agency && (b.userData.agency.id === originAgency.id || b.userData.agency.slug === originAgency.slug));
+  const dest = buildings.find(b => b.userData && b.userData.cat === cat && b.userData.agency && b.userData.agency.id !== originAgency.id && !(b.userData.agency.id||'').startsWith('pad_'));
+  if (!origin || !dest) { dispatchActive = false; return; }
+
+  // STEP 1 · outbound packet · climbs the office conduit
+  if (officeScene && officeOutboundConduit) {
+    const sphere = new THREE.Mesh(
+      new THREE.SphereGeometry(0.14, 12, 12),
+      new THREE.MeshBasicMaterial({color: 0x00f2fe, transparent:true, opacity:1, depthTest:false})
+    );
+    sphere.renderOrder = 900;
+    officeScene.add(sphere);
+    const cpts = officeOutboundConduit;
+    await new Promise(res => {
+      const t0 = performance.now();
+      function step(){
+        const t = Math.min(1, (performance.now() - t0) / 700);
+        const segs = cpts.length - 1;
+        const seg = Math.min(segs - 1, Math.floor(t * segs));
+        const sT = t * segs - seg;
+        const a = cpts[seg], b = cpts[seg+1];
+        sphere.position.set(a.x + (b.x-a.x)*sT, a.y + (b.y-a.y)*sT, a.z + (b.z-a.z)*sT);
+        sphere.material.opacity = 1 - t * 0.4;
+        if (t < 1) requestAnimationFrame(step); else { sphere.geometry.dispose(); sphere.material.dispose(); officeScene.remove(sphere); res(); }
+      }
+      step();
+    });
+  }
+
+  // STEP 2 · cross-fade office OUT (macro grid stays mounted underneath)
+  const ov = document.getElementById('officeView');
+  ov.style.transition = 'opacity 0.5s ease-out';
+  ov.style.opacity = '0';
+  await new Promise(r => setTimeout(r, 520));
+
+  // STEP 3 + 4 · macro city packet flight · uses main `scene` + `buildings` array
+  if (typeof scene !== 'undefined' && scene && origin && dest) {
+    const packet = new THREE.Mesh(
+      new THREE.SphereGeometry(0.32, 14, 14),
+      new THREE.MeshBasicMaterial({color: 0x00f2fe, transparent:true, opacity:1, depthTest:false})
+    );
+    packet.renderOrder = 900;
+    scene.add(packet);
+    const trail = new THREE.Mesh(
+      new THREE.SphereGeometry(0.5, 14, 14),
+      new THREE.MeshBasicMaterial({color: 0x00f2fe, transparent:true, opacity:0.4, depthTest:false})
+    );
+    scene.add(trail);
+    await new Promise(res => {
+      const t0 = performance.now();
+      function step(){
+        const t = Math.min(1, (performance.now() - t0) / 1300);
+        const e = t * t * (3 - 2 * t);   // smoothstep
+        const x = origin.position.x + (dest.position.x - origin.position.x) * e;
+        const z = origin.position.z + (dest.position.z - origin.position.z) * e;
+        // Arc UP over the city · peak at 4 units
+        const y = origin.position.y + (dest.position.y - origin.position.y) * e + Math.sin(e * Math.PI) * 4;
+        packet.position.set(x, y, z);
+        trail.position.set(x, y - 0.05, z);
+        trail.material.opacity = 0.35 - t * 0.20;
+        if (t < 1) requestAnimationFrame(step); else { res(); }
+      }
+      step();
+    });
+    // Destination flashes white briefly
+    const destOrigEmissive = dest.material.emissive.getHex();
+    const destOrigIntensity = dest.material.emissiveIntensity;
+    dest.material.emissive.setHex(0xffffff);
+    dest.material.emissiveIntensity = 1.5;
+    await new Promise(r => setTimeout(r, 500));
+
+    // STEP 5 · gold return packet
+    packet.material.color.setHex(0xf5c542);
+    trail.material.color.setHex(0xf5c542);
+    await new Promise(res => {
+      const t0 = performance.now();
+      function step(){
+        const t = Math.min(1, (performance.now() - t0) / 1200);
+        const e = t * t * (3 - 2 * t);
+        const x = dest.position.x + (origin.position.x - dest.position.x) * e;
+        const z = dest.position.z + (origin.position.z - dest.position.z) * e;
+        const y = dest.position.y + (origin.position.y - dest.position.y) * e + Math.sin(e * Math.PI) * 4;
+        packet.position.set(x, y, z);
+        trail.position.set(x, y - 0.05, z);
+        trail.material.opacity = 0.35 - t * 0.20;
+        if (t < 1) requestAnimationFrame(step); else { res(); }
+      }
+      step();
+    });
+    // Origin flashes gold briefly
+    if (origin.material && origin.material.emissive){
+      const oE = origin.material.emissive.getHex();
+      origin.material.emissive.setHex(0xf5c542);
+      origin.material.emissiveIntensity = 1.4;
+      setTimeout(() => { origin.material.emissive.setHex(oE); origin.material.emissiveIntensity = stateEmissive(origin.userData.state); }, 700);
+    }
+    // Restore destination
+    setTimeout(() => { dest.material.emissive.setHex(destOrigEmissive); dest.material.emissiveIntensity = destOrigIntensity; }, 700);
+    // Cleanup packet + trail
+    setTimeout(() => {
+      scene.remove(packet); scene.remove(trail);
+      packet.geometry.dispose(); packet.material.dispose();
+      trail.geometry.dispose(); trail.material.dispose();
+    }, 800);
+  }
+
+  await new Promise(r => setTimeout(r, 400));
+
+  // STEP 6 · cross-fade BACK into office · stamp REPLY SECURED on the originating agent's task
+  ov.style.opacity = '1';
+  await new Promise(r => setTimeout(r, 520));
+  const replyText = 'REPLY SECURED · from ' + (dest.userData.agency.name || dest.userData.agency.slug || dest.userData.slug);
+  const tgt = (selectedAgent && officeAgents.includes(selectedAgent)) ? selectedAgent : officeAgents[0];
+  if (tgt) setAgentState(tgt, 'IDLE', replyText);
+  dispatchActive = false;
+}
+
 function exitOffice(){
   document.getElementById('officeView').style.display = 'none';
   if(officeRAF) { cancelAnimationFrame(officeRAF); officeRAF = null; }
@@ -2202,6 +2529,11 @@ async function sendDropzoneFiles(){
       // TRACK C · v4.4.5 SWARM EXECUTION · walk the payload down the pipeline (Director → Engine → Asset → QA)
       const fileNames = j.received.filter(x => x.ok).map(x => x.name).join(', ');
       sequencePipelineFlash(fileNames || 'data payload');
+      // v4.4.7 · INTER-AGENCY DISPATCH · after pipeline cascade completes, fire macro-city packet flight (Skill #18)
+      // The pipeline cascade takes ~6s (4 stages × 1.5s) · fire dispatch right at the QA stage so it overlaps
+      setTimeout(() => {
+        if (currentOfficeAgency) dispatchToAgency(currentOfficeAgency);
+      }, 6200);
       pendingDropFiles = [];
       refreshDropList();
       // Visual flourish: burst green particles toward the now-PROCESSING agent
