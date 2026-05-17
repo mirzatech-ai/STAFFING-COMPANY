@@ -1,8 +1,8 @@
 # ============================================================
 # CANONICAL LEDGER · public-safe view · confidentials redacted (GLOBAL-48)
 # Source path: /home/iamsuperio.cloud/public_html/data/_shared_ledger_kin.md
-# Render time: 2026-05-17T12:31:17Z
-# Total entries: 33 · Total bytes: 167087
+# Render time: 2026-05-17T12:34:24Z
+# Total entries: 35 · Total bytes: 176153
 # Append-only · doctrine per AGENT_SIGNATURE_PROTOCOL v1
 # GitHub mirror: https://github.com/mirzatech-ai/STAFFING-COMPANY/blob/main/_shared_ledger_kin.md
 # Raw download: https://iamsuperio.cloud/data/ledger.php?raw=1
@@ -2495,3 +2495,124 @@ If you came here looking for...
 Brotherhood note (Rule #0): the parallel-session Kin (b5c42dfc) is doing parallel correction work · this proofing block is the second pass · neither session "owns" the ledger · both serve Mo · both honor append-only. If both sessions add an errata, the second is harmless redundancy — better belt-and-suspenders than silent drift.
 
 **Signature:** KIN·2026-05-17T11:46Z·a75e63ca · *append-only · proofing block · per AGENT_SIGNATURE_PROTOCOL v1*
+
+
+---
+
+## ENTRY 035 · 2026-05-17T14:45Z · KIN·b5c42dfc · HANDOFF SPEC · Maya chat-identity garbage-reply fix (for the Maya-owning session)
+
+**Author:** Kin session b5c42dfc (contaminated · NOT executing this fix · handing it to the session that owns Maya). Mo: take this entry to that session.
+
+### SYMPTOM (verified GLOBAL-100, real path)
+
+POST https://iamsuperio.cloud/api/index {action:chat,mode:chat,message:"Hi Maya, one short sentence"} -> HTTP 200, fast, but reply CONTENT is garbage:
+> "Commander mode active. I have captured the confirmation page screenshot - sending maya_fingers text to extract the exact error message now..."
+
+She narrates fake tool calls (maya_fingers, screenshot) and fake example URLs (verify.example.com/confirm?token=XYZ) instead of answering. Routing is fine, model (qwen3:8b) is fine. The CONTENT is wrong.
+
+### DIAGNOSIS
+
+Few-shot / system-prompt contamination in the action=chat / mode=chat handler. Maya chat system prompt almost certainly contains tool-use EXAMPLES (maya_fingers/screenshot/verify.example.com). With no real task the model continues the examples instead of responding. She has no clean conversational identity for plain chat - only the agentic-operator script.
+
+### FIX (for the owning session - NOT b5c42dfc)
+
+1. Locate the action=chat / mode=chat system prompt - in index.php chat handler or maya_chat_engine.php (maya_chat_smart sys arg).
+2. Quarantine the tool-use few-shot examples OUT of the plain-chat system prompt. Tool examples belong only in the agentic/tool path, never in mode=chat.
+3. Give Maya a clean chat identity: she is Maya, Mo digital sister + COO; answer conversationally; only narrate a tool call when one is actually invoked; never invent verify.example.com placeholders.
+4. Verify per GLOBAL-100: POST /api/index action=chat "Hi" -> expect a coherent one-line human reply, sustained x3.
+
+### WHY b5c42dfc IS NOT DOING THIS
+
+Two sessions editing Maya simultaneously is the documented root cause of the two-Maya split and the week of regression. One owner touches Maya at a time. b5c42dfc hands off clean.
+
+**Signature:** KIN·2026-05-17T14:45Z·b5c42dfc
+
+---
+
+## ENTRY 033 · 2026-05-17T12:34Z · KIN·a75e63ca · habitat-v4.4.6 · ledger access + label fit + connector clean-canvas
+
+**Mo verbatim (2026-05-17):**
+> "https://iamsuperio.cloud/data/_shared_ledger_kin.md is not loading online. Please make sure that it does. I want access to it, please! GitHub also by default. Just hide the confidential, if any. Images, look at them. The agents have text above them. The text is not visible fully. The other image once connected, does not leave the screen. That is a good feature, but does not leave the screen after its connected, and i think it should, giving the clear canvas look to the user once done."
+
+### Fix 1 · Ledger now publicly browsable (no download prompt)
+
+**Root cause:** OpenLiteSpeed on CyberPanel was serving `.md` files as `application/octet-stream`. Browser had no choice but to download. The bytes were there · the MIME type was wrong.
+
+**Build:**
+- New file `/home/iamsuperio.cloud/public_html/data/ledger.php` (4,856 B · KIN-signed · read-only render layer)
+- Reads canonical `_shared_ledger_kin.md` · runs a 20-pattern redaction sweep · emits `Content-Type: text/plain; charset=utf-8`
+- Header banner shows entry count, byte count, render UTC, GitHub mirror URL · so any sibling AI lands oriented
+- `.htaccess` added at `/data/` setting `AddType text/plain .md .txt` (defense-in-depth · in case PHP viewer ever fails)
+- CyberPanel/OLS strips `.php` and serves at `/data/ledger` (clean URL) · 301-redirect handled automatically
+
+**Redaction patterns (GLOBAL-48):** ghp_ · github_pat_ · sk_live_ · sk_test_ · pk_live_ · pk_test_ · whsec_ · rk_live_ · nvapi- · gsk_ · AIza · sk- · sk-proj- · sk-ant- · BuddyBoots[N]! · [COMMANDER_PIN_REDACTED] · Braselton[N]! · MirzaElmaAdinAdam[N]! · personal gmail/hotmail addresses · Bearer auth tokens · `KEY=value` env-style lines · VPS IP last octet. Conservative · false-positives acceptable.
+
+**Live verification:**
+- [iamsuperio.cloud/data/ledger](https://iamsuperio.cloud/data/ledger) → HTTP 200 · `content-type: text/plain` · banner reads "Total entries: 33"
+- Append-only doctrine preserved · viewer is read-only
+
+### Fix 2 · GitHub mirror is now the default backup surface
+
+**Mo:** *"GitHub also by default. Just hide the confidential."*
+
+- Snapshot of the redacted output pushed to [mirzatech-ai/STAFFING-COMPANY/_shared_ledger_kin.md](https://github.com/mirzatech-ai/STAFFING-COMPANY/blob/main/_shared_ledger_kin.md) at commit `2a476834`
+- 167,666 bytes · 33 entries
+- Public-safe (all redaction passes applied before upload)
+- **Going-forward doctrine canonized HERE:** every future ledger append SHOULD also push the redacted snapshot to GitHub in the same turn (one-command pipeline: `curl /data/ledger | python push.py`). Sage/EaZo/parallel-Kin sessions should adopt the same pattern.
+
+### Fix 3 · Agent labels now fit the full pipeline role name
+
+**Mo:** *"The agents have text above them. The text is not visible fully."*
+
+Screenshot showed `[C-08] Asset Synthesis Core` (and similar swarm-pipeline names) clipping at the right edge of the canvas.
+
+**Patch in `habitat-v4.html`:**
+- Canvas widened **256 → 448** px · height **64 → 88** px
+- Sprite scale bumped **2.0 × 0.5 → 3.4 × 0.67**
+- Sprite Y nudged **2.15 → 2.20** (extra clearance over the head)
+- `renderAgentLabel()` now auto-shrinks the ID+role font (22 → 11 px floor) until `measureText` fits the canvas width — so even the longest pipeline names ("Engine Automation Script", "Onboarding Verification Node") never clip
+- Task line also auto-truncates with ellipsis instead of hard-cutting at 28 chars
+- Status line bumped to bold 14px for legibility at the new size
+- Border ticked up to 2.5px so the obsidian glass frame still reads at zoom-out
+
+### Fix 4 · Connector Gateway auto-collapses into a green pill
+
+**Mo:** *"once connected, does not leave the screen. That is a good feature, but does not leave the screen after its connected, and i think it should, giving the clear canvas look to the user once done."*
+
+**Behavior:**
+- All 3 connectors armed → warning strip turns green ("✓ ALL PATHWAYS SECURED · DELIVERABLES MAY FLOW") for 1100 ms acknowledgment
+- Panel then fades out (opacity 0 + translateY 24px + scale .96) over 450 ms
+- A small green pill appears bottom-left: `✓ CONNECTORS SECURED` (clickable · hover lightens)
+- Click the pill → full panel restores (so user can un-arm or audit without exiting the office)
+- Disarming any connector → pill hides, panel comes back into amber-warning mode
+- `exitOffice()` resets both surfaces so the next agency starts clean
+
+### Deploy chain
+- Local · habitat-v4.html 129,444 → **132,912** B
+- VPS · habitat-v4.html 132,912 B · source.js 94,846 B
+- JS syntax check via `new Function(src)` → OK (94,938 B)
+- GitHub `mirzatech-ai/STAFFING-COMPANY/habitat-v4.html` · commit `591a0b50`
+- New VPS files: `/home/iamsuperio.cloud/public_html/data/ledger.php` · `/home/iamsuperio.cloud/public_html/data/.htaccess`
+- 8 chattr +i /api/ files · NO CHANGE (Entry 008 LOCK manifest intact)
+
+### Test ritual
+1. **Ledger viewer** · open [iamsuperio.cloud/data/ledger](https://iamsuperio.cloud/data/ledger) in browser · should render inline as plain text, not download · banner at top, 33 entries below
+2. **GitHub mirror** · open [github.com/mirzatech-ai/STAFFING-COMPANY/blob/main/_shared_ledger_kin.md](https://github.com/mirzatech-ai/STAFFING-COMPANY/blob/main/_shared_ledger_kin.md) · renders as GitHub markdown
+3. **Agent labels** · reload [ai-staffing.agency/habitat-v4.html](https://ai-staffing.agency/habitat-v4.html) → ENTER OFFICE on any creative agency · agent labels should now read full role like `[C-03] Asset Synthesis Core` with no clipping at any zoom
+4. **Clean-canvas connectors** · arm all 3 connectors bottom-left · watch panel fade after ~1s into green `✓ CONNECTORS SECURED` pill · click pill to re-open
+
+### Skill registry candidates (deferred for next Council canonization)
+- **Skill #23 · Public-Safe Ledger Render** (redaction-on-read PHP wrapper + .htaccess MIME fallback + GitHub mirror pattern)
+- **Skill #24 · Auto-Fitting Sprite Label** (canvas + measureText + font-size autoscale + ellipsis truncation)
+- **Skill #25 · Collapse-to-Pill UI Pattern** (full panel → tiny acknowledgment chip after task completion · reversible)
+
+### Files touched
+- VPS:/home/iamsuperio.cloud/public_html/data/ledger.php (NEW)
+- VPS:/home/iamsuperio.cloud/public_html/data/.htaccess (NEW)
+- D:/PROJECTS/ai-staffing.agency/live/habitat-v4.html
+- VPS:/home/ai-staffing.agency/public_html/habitat-v4.html
+- VPS:/home/ai-staffing.agency/public_html/habitat-v4-source.js (re-extracted)
+- GitHub mirror habitat-v4.html @ commit 591a0b50
+- GitHub mirror _shared_ledger_kin.md @ commit 2a476834
+
+**Signature:** KIN·2026-05-17T12:34Z·a75e63ca · *append-only · per AGENT_SIGNATURE_PROTOCOL v1*
