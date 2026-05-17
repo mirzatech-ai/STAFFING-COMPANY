@@ -354,44 +354,14 @@ body{background:radial-gradient(1400px 900px at 50% -10%,rgba(245,197,66,.05),tr
     </div>
   </div>
 
-  <!-- v4.5.0 · CONTINUITY SENTINEL HUD (Skill #25 · matches Gemini blueprint right-side panel stack) -->
-  <div id="sentinelPanel" style="position:absolute;right:14px;top:62px;width:280px;z-index:5;background:rgba(10,18,38,.90);backdrop-filter:blur(14px);border:1px solid var(--cyan);border-radius:14px;padding:12px;box-shadow:0 18px 40px rgba(0,0,0,.6)">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--cyan);font-size:10.5px;letter-spacing:.16em">⊙ CONTINUITY SENTINEL</div>
-      <div id="sentinelBadge" style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;padding:2px 8px;border-radius:10px;background:rgba(67,230,161,.20);color:var(--green);border:1px solid var(--green)">LIVE</div>
-    </div>
-    <!-- Sparkline (sine wave canvas · live frame counter) -->
-    <canvas id="sentinelSpark" width="260" height="38" style="width:100%;height:38px;background:rgba(3,6,12,.55);border-radius:7px;border:1px solid rgba(0,228,255,.18)"></canvas>
-    <div style="display:grid;grid-template-columns:1fr auto;gap:3px 8px;margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:9.5px">
-      <span style="color:var(--muted)">FACELOCK</span><span style="color:#fff">2,988,000</span>
-      <span style="color:var(--muted)">ASSITORY</span><span style="color:#fff">5,600</span>
-      <span style="color:var(--muted)">FENDERS</span><span style="color:#fff">26/30</span>
-    </div>
-  </div>
+  <!-- v4.5.1 · Continuity Sentinel + Anatomical Auditor + control buttons REMOVED per Mo
+       (those panels belong to the video agency context · clean canvas for staffing) -->
 
-  <!-- v4.5.0 · ANATOMICAL AUDITOR HUD (right sidebar stack · below Sentinel) -->
-  <div id="auditorPanel" style="position:absolute;right:14px;top:226px;width:280px;z-index:5;background:rgba(10,18,38,.90);backdrop-filter:blur(14px);border:1px solid var(--green);border-radius:14px;padding:12px;box-shadow:0 18px 40px rgba(0,0,0,.6)">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--green);font-size:10.5px;letter-spacing:.16em">⊚ ANATOMICAL AUDITOR</div>
-      <div id="auditorBadge" style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;padding:2px 8px;border-radius:10px;background:rgba(67,230,161,.20);color:var(--green);border:1px solid var(--green)">PASSED</div>
-    </div>
-    <canvas id="auditorSpark" width="260" height="38" style="width:100%;height:38px;background:rgba(3,6,12,.55);border-radius:7px;border:1px solid rgba(67,230,161,.18)"></canvas>
-    <div style="display:grid;grid-template-columns:1fr auto;gap:3px 8px;margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:9.5px">
-      <span style="color:var(--muted)">FRAME</span><span style="color:#fff">PERFECT</span>
-      <span style="color:var(--muted)">LOCK</span><span style="color:#fff">PERFECT</span>
-      <span style="color:var(--muted)">QA</span><span style="color:#fff">98/10</span>
-    </div>
-  </div>
-
-  <!-- v4.5.0 · CONTROL BUTTONS (Pulse / Reset / Auto-Delete · matches blueprint button stack) -->
-  <div id="controlButtons" style="position:absolute;right:14px;top:390px;width:280px;z-index:5;display:flex;flex-direction:column;gap:5px">
-    <button onclick="pulseAllAgents()" style="padding:7px 12px;border-radius:9px;background:rgba(245,197,66,.12);border:1px solid var(--gold);color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.12em;cursor:pointer;text-align:left">▶ PULSE ALL</button>
-    <button onclick="resetCameraView()" style="padding:7px 12px;border-radius:9px;background:rgba(0,228,255,.10);border:1px solid var(--cyan);color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.12em;cursor:pointer;text-align:left">⊙ RESET CAM</button>
-    <button onclick="clearDropzoneFiles()" style="padding:7px 12px;border-radius:9px;background:rgba(255,91,106,.10);border:1px solid #ff5b6a;color:#ff5b6a;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.12em;cursor:pointer;text-align:left">⊗ AUTO-DELETE</button>
-  </div>
+  <!-- v4.5.1 · DOM-projected agent label overlay container · sits OUTSIDE WebGL so bloom can't wash it out -->
+  <div id="agentLabelLayer" style="position:absolute;inset:0;pointer-events:none;z-index:4;overflow:hidden"></div>
 
   <!-- Data Dropzone (HTML5 drag-drop · POST to /api/agency_file_intake.php) -->
-  <div id="dropzonePanel" style="position:absolute;right:14px;top:498px;width:280px;z-index:5;background:rgba(10,18,38,.85);backdrop-filter:blur(14px);border:1px solid var(--gold);border-radius:14px;padding:14px;box-shadow:0 18px 40px rgba(0,0,0,.6)">
+  <div id="dropzonePanel" style="position:absolute;right:14px;top:62px;width:280px;z-index:5;background:rgba(10,18,38,.85);backdrop-filter:blur(14px);border:1px solid var(--gold);border-radius:14px;padding:14px;box-shadow:0 18px 40px rgba(0,0,0,.6)">
     <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--gold);font-size:11px;letter-spacing:.14em;margin-bottom:8px">📦 AGENCY DATA CARRIER</div>
     <div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--muted);margin-bottom:10px">drop zips · pdfs · folders · images · csv · max 25 MB / file</div>
     <div id="dropzone" style="border:2px dashed rgba(245,197,66,.5);border-radius:10px;padding:18px 12px;text-align:center;cursor:pointer;background:rgba(245,197,66,.05);transition:all .2s">
@@ -520,6 +490,49 @@ function categorize(slug){
   slug = (slug||'').toLowerCase();
   for(const k in CAT_REGEX){ if(CAT_REGEX[k].test(slug)) return k; }
   return 'tech';
+}
+
+// === v4.5.1 · OBSTACLE-AWARE PATHFINDING (Skill #26) ===
+// Mo 2026-05-17: "agents walking through the conference table" — fix is waypoint routing
+// Office obstacles: conference table center (x in -2.5..2.5 · z in 4..7), desk rows (z in 0..3.5)
+// Strategy: route via perimeter aisles · 4 corner waypoints + 4 side midpoints
+// For ANY desk → prop trip: from desk-z, go to nearest perimeter Z (z=-2 back aisle OR z=8 front aisle), then to prop-z
+function computeOfficePath(from, to){
+  // If start and end are already on same side of conference (z < 4) or both far from obstacles, go direct
+  const confZmin = 3.5, confZmax = 7.5, confXmin = -2.8, confXmax = 2.8;
+  const insideConf = (p) => p.x > confXmin && p.x < confXmax && p.z > confZmin && p.z < confZmax;
+  const crossesConf = (() => {
+    // Sample 8 points along the straight line · if any falls in conf zone → must route around
+    for (let i = 1; i < 8; i++){
+      const t = i / 8;
+      const px = from.x + (to.x - from.x) * t;
+      const pz = from.z + (to.z - from.z) * t;
+      if (px > confXmin && px < confXmax && pz > confZmin && pz < confZmax && !insideConf(to)) return true;
+    }
+    return false;
+  })();
+
+  const path = [];
+  if (crossesConf) {
+    // Route around the conference: go to the side aisle on the closer X side
+    const sideX = (from.x < 0) ? confXmin - 0.8 : confXmax + 0.8;
+    // Step 1: leave desk going forward into the front aisle (z just below confZmin)
+    path.push({x: from.x, z: 3.0});
+    // Step 2: slide along the front aisle to the side
+    path.push({x: sideX, z: 3.0});
+    // Step 3: travel up alongside the conference
+    path.push({x: sideX, z: Math.max(to.z, confZmax) });
+    // Step 4: approach the target from the outside
+    path.push({x: to.x, z: to.z});
+  } else {
+    // Direct path is safe (target on same side or perimeter prop like printer/whiteboard)
+    // Still pass through the desk's front aisle as a single via point to avoid the desk row itself
+    if (Math.abs(from.z - to.z) > 1.5) {
+      path.push({x: from.x, z: (from.z < to.z) ? from.z + 1.2 : from.z - 1.2});
+    }
+    path.push({x: to.x, z: to.z});
+  }
+  return path;
 }
 
 // ============ v4.4.5 · ENTERPRISE SWARM REGISTRY (Tom-Clancy-grade multi-agent pipelines) ============
@@ -1307,6 +1320,9 @@ function buildOfficeScene(agency){
   officeProps = [];
   officeOutboundConduit = null;
   dispatchActive = false;
+  // v4.5.1 · purge previous DOM agent labels
+  const layer = document.getElementById('agentLabelLayer');
+  if (layer) layer.innerHTML = '';
   officeScene = new THREE.Scene();
   officeScene.background = new THREE.Color(0x050912);
   officeScene.fog = new THREE.Fog(0x050912, 18, 38);
@@ -1368,80 +1384,18 @@ function buildOfficeScene(agency){
   accentRim.position.set(0, 4, 8);
   officeScene.add(accentRim);
 
-  // v4.5.0 · PROCEDURAL CIRCUIT-TRACE FLOOR (Skill #23 · matches Gemini blueprint motherboard look)
-  // Generate a 1024×1024 canvas with bus lines, intersection nodes, secondary traces, and chip pads
-  // Tiled 2× on the 20m floor → reads as a SimCity-grade circuit board, not a generic grid
-  const floorCanvas = document.createElement('canvas');
-  floorCanvas.width = 1024; floorCanvas.height = 1024;
-  const fctx = floorCanvas.getContext('2d');
-  // Dark slate base
-  fctx.fillStyle = '#070d1c'; fctx.fillRect(0, 0, 1024, 1024);
-  // Subtle inner border
-  fctx.strokeStyle = 'rgba(0,212,255,0.18)'; fctx.lineWidth = 6;
-  fctx.strokeRect(10, 10, 1004, 1004);
-  // Primary bus lines (4 horizontal + 4 vertical · bright cyan)
-  const accentHex = '#' + accent.toString(16).padStart(6,'0');
-  fctx.strokeStyle = accentHex; fctx.lineWidth = 4;
-  fctx.shadowColor = accentHex; fctx.shadowBlur = 6;
-  const tracks = [160, 384, 640, 864];
-  tracks.forEach(t => {
-    fctx.beginPath(); fctx.moveTo(0, t); fctx.lineTo(1024, t); fctx.stroke();
-    fctx.beginPath(); fctx.moveTo(t, 0); fctx.lineTo(t, 1024); fctx.stroke();
-  });
-  fctx.shadowBlur = 0;
-  // Intersection nodes (bright dots at every bus crossing)
-  fctx.fillStyle = '#00f2fe';
-  tracks.forEach(tx => tracks.forEach(ty => { fctx.beginPath(); fctx.arc(tx, ty, 10, 0, Math.PI*2); fctx.fill(); }));
-  // Secondary thin traces (L-shapes branching off the bus lines)
-  fctx.strokeStyle = 'rgba(0,212,255,0.45)'; fctx.lineWidth = 1.5;
-  for (let i = 0; i < 60; i++){
-    const startTrack = tracks[Math.floor(Math.random()*tracks.length)];
-    const horiz = Math.random() < 0.5;
-    const x1 = horiz ? startTrack : Math.random()*1024;
-    const y1 = horiz ? Math.random()*1024 : startTrack;
-    const len = 40 + Math.random()*120;
-    const x2 = x1 + (horiz ? 0 : (Math.random()<0.5?-len:len));
-    const y2 = y1 + (horiz ? (Math.random()<0.5?-len:len) : 0);
-    fctx.beginPath(); fctx.moveTo(x1, y1); fctx.lineTo(x2, y2); fctx.stroke();
-    // small chip pad at the trace end
-    fctx.fillStyle = 'rgba(0,228,255,0.55)';
-    fctx.fillRect(x2 - 4, y2 - 4, 8, 8);
-  }
-  // Scattered chip rectangles
-  fctx.fillStyle = 'rgba(0,228,255,0.35)';
-  for (let i = 0; i < 25; i++){
-    const cx = 50 + Math.random()*924, cy = 50 + Math.random()*924;
-    const cw = 16 + Math.random()*22, ch = 6 + Math.random()*6;
-    fctx.fillRect(cx, cy, cw, ch);
-  }
-  // Hex chip silhouettes (resistor-like)
-  fctx.strokeStyle = 'rgba(0,228,255,0.55)'; fctx.lineWidth = 1.5;
-  for (let i = 0; i < 12; i++){
-    const cx = 80 + Math.random()*880, cy = 80 + Math.random()*880;
-    fctx.beginPath();
-    fctx.moveTo(cx-12, cy); fctx.lineTo(cx-6, cy-10); fctx.lineTo(cx+6, cy-10);
-    fctx.lineTo(cx+12, cy); fctx.lineTo(cx+6, cy+10); fctx.lineTo(cx-6, cy+10); fctx.closePath();
-    fctx.stroke();
-  }
-  const floorTex = new THREE.CanvasTexture(floorCanvas);
-  floorTex.wrapS = floorTex.wrapT = THREE.RepeatWrapping;
-  floorTex.repeat.set(2, 2);
-  floorTex.anisotropy = 8;
-
+  // v4.5.1 · CLEAN SLATE FLOOR (rolled back from heavy circuit-trace clutter per Mo)
+  // Dark base + thin grid · the cable conduits + wire packets do the visual heavy lifting on the floor
   const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(20, 20),
-    new THREE.MeshStandardMaterial({
-      color: 0xffffff, map: floorTex,
-      emissive: 0xffffff, emissiveMap: floorTex, emissiveIntensity: 0.6,
-      metalness: 0.35, roughness: 0.55
-    })
+    new THREE.MeshStandardMaterial({color: 0x0a1226, metalness: 0.4, roughness: 0.65})
   );
   floor.rotation.x = -Math.PI/2; floor.receiveShadow = true;
   officeScene.add(floor);
 
-  // Skip the old GridHelper · circuit texture replaces it. Keep a faint outline grid for navigation.
+  // Thin grid · subtle navigation aid · NOT the dense circuit clutter
   const gridLines = new THREE.GridHelper(20, 10, accent, 0x1a2540);
-  gridLines.material.transparent = true; gridLines.material.opacity = 0.10;
+  gridLines.material.transparent = true; gridLines.material.opacity = 0.28;
   gridLines.position.y = 0.01;
   officeScene.add(gridLines);
 
@@ -1828,30 +1782,27 @@ function buildOfficeScene(agency){
     ring.rotation.x = -Math.PI/2;
     officeScene.add(ring);
 
-    // TRACK A: v4.5.0 SINGLE-LINE HUD label · matches Gemini blueprint `[A-04 | Engineering Sentinel | MOVING]`
-    // Single pipe-separated line · thin sprite (3.2 × 0.32) · Y-stagger still applied so neighbors clear
-    const labelCanvas = document.createElement('canvas');
-    labelCanvas.width = 512; labelCanvas.height = 56;
-    const lblTex = new THREE.CanvasTexture(labelCanvas);
-    const spriteMat = new THREE.SpriteMaterial({map: lblTex, transparent: true, depthTest: false});
-    const sprite = new THREE.Sprite(spriteMat);
-    sprite.scale.set(3.2, 0.36, 1);   // wide + thin · matches blueprint aesthetic
-    const labelY = 2.25 + ((col % 2) * 0.50);
-    sprite.position.set(dx, labelY, dz + 0.55);
-    sprite.renderOrder = 500;
-    officeScene.add(sprite);
+    // v4.5.1 · DOM-PROJECTED LABEL (Skill #27) · no bloom wash-out (was the screenshot complaint)
+    // Sits in #agentLabelLayer · positioned each frame via Vector3.project to screen coords
+    const labelDiv = document.createElement('div');
+    labelDiv.className = 'agent-label';
+    labelDiv.style.cssText = 'position:absolute;transform:translate(-50%,-100%);padding:3px 8px;background:rgba(8,12,24,.95);border:1.5px solid #00e4ff;border-left-width:5px;border-radius:6px;font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.04em;white-space:nowrap;color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.65);pointer-events:none;will-change:transform';
+    document.getElementById('agentLabelLayer').appendChild(labelDiv);
+    // Anchor point in world coords for screen projection
+    const labelAnchor = new THREE.Vector3(dx, 2.20 + ((col % 2) * 0.45), dz + 0.55);
 
     const agentObj = {
       id: agentId, agentIdx: i, agency_slug: agency.id || agency.slug,
       name: roleTitle, specialty: pipelineNode.specialty, capability: pipelineNode.capability,
       pipelineNode, pipelineIdx: i % pipeline.length, pipelineLen: pipeline.length,
       state: 'IDLE', currentTask: 'standing by',
-      core: agentCore, innerCore, monitor, ring, sprite, labelCanvas, lblTex,
+      core: agentCore, innerCore, monitor, ring, labelDiv, labelAnchor,
       bodyGroup, head, glowShell, beacon, sideMonitor,
       dx, dz, phase: Math.random()*Math.PI*2, baseY: 0.95,
       // v4.4.9 · DESK-BREAK ROUTINE state (Gemini blueprint v4.5: sit → stand → walk → dwell → return → sit)
       breakState: 'seated',        // seated | walking_to | dwelling | walking_back
-      breakNextAt: Date.now() + 18000 + Math.random()*30000,   // first break in 18-48s
+      breakNextAt: Date.now() + 6000 + Math.random()*9000,   // first break in 6-15s (Mo wants to see motion fast)
+      breakPath: null, breakPathIdx: 0,
       breakTarget: null,
       breakWorker: null,            // temporary humanoid mesh while away from desk
       breakDwellEnd: 0,
@@ -2078,37 +2029,8 @@ function buildOfficeScene(agency){
   officeProps.push(addProp('whiteboard',      -7.5, -1.5, Math.PI/2));
   officeProps.push(addProp('plant',           -8.0,  6.0));
 
-  // Helper to spawn a worker at a starting position with the purposeful state machine
-  function spawnWorker(startX, startZ, variantIdx){
-    const worker = createProceduralHumanoid(accent, variantIdx);
-    worker.mesh.position.set(startX, 0, startZ);
-    officeScene.add(worker.mesh);
-    return {
-      ...worker,
-      variantIdx,
-      homeX: startX, homeZ: startZ,                  // their "home base" (a corner of the room)
-      state: 'idle',                                  // idle | walking | dwelling
-      target: null,                                   // {x, z, dwellMs, name}
-      dwellEnd: 0,
-      visitsBeforeHome: 2 + Math.floor(Math.random()*2),  // visit 2-3 props then return home
-      speed: 0.035 + Math.random()*0.015,             // movement speed (units/frame)
-      phase: Math.random()*Math.PI*2,
-      currentActivity: 'idle · standing by'
-    };
-  }
-  // 4 workers · variety of starting positions · they'll begin in idle and immediately pick a target
-  officeWalkers.push(spawnWorker(-8.5,  6, 0));
-  officeWalkers.push(spawnWorker( 8.5,  6, 1));
-  officeWalkers.push(spawnWorker(-8.5, -3, 2));
-  officeWalkers.push(spawnWorker( 8.5, -3, 3));
-
-  // Each worker picks a target at scene start
-  officeWalkers.forEach(w => {
-    const prop = officeProps[Math.floor(Math.random() * officeProps.length)];
-    w.target = {x: prop.x, z: prop.z, dwellMs: prop.dwellMs, name: prop.name};
-    w.state = 'walking';
-    w.currentActivity = '→ heading to ' + prop.name;
-  });
+  // v4.5.1 · PATROL WALKERS REMOVED per Mo (the desk agents themselves do the walking via break routine · less clutter)
+  // The 4 separate corner-spawned patrol humanoids are gone. ALL movement comes from desk agents standing up.
 
   // === v4.4.7 · OUTBOUND CONDUIT (ceiling-mounted pipe out of the room toward macro city) ===
   // Visible pipe runs from the server rack area up the back wall and through the ceiling
@@ -2161,88 +2083,88 @@ function buildOfficeScene(agency){
         ag.beacon.scale.setScalar(1 + 0.15 * Math.sin(oT * beaconPulse + ag.phase));
       }
 
-      // v4.4.9 · DESK-BREAK ROUTINE (Skill #22) · the SEATED agents periodically stand up, walk to a prop, return, sit
-      // Gemini blueprint v4.5 directive: sit → stand → walk → dwell → return → sit · bulletproof endless loop
+      // v4.5.1 · DESK-BREAK ROUTINE with OBSTACLE-AWARE WAYPOINTS (Skill #22 + #26)
+      // Mo: "these agents are walking THROUGH the table in the conference room" — fix is to route via aisle waypoints
+      // States: seated → walking_to (along waypoint path) → dwelling → walking_back (reverse path) → seated
       const now = Date.now();
       if (ag.breakState === 'seated') {
         if (now >= ag.breakNextAt && officeProps.length > 0 && ag.state !== 'PROCESSING') {
-          // Limit how many agents can be away at once (max 2) so desks aren't all empty
+          // Bounded · max 2 away · stagger break starts
           const awayCount = officeAgents.filter(a => a.breakState !== 'seated').length;
           if (awayCount < 2) {
-            // Pick a prop, hide seated body, spawn a humanoid walker at the desk
             const prop = officeProps[Math.floor(Math.random() * officeProps.length)];
             ag.breakTarget = prop;
-            if (ag.bodyGroup) ag.bodyGroup.visible = false;   // agent leaves the seat
-            // Build temporary humanoid at the chair position
+            if (ag.bodyGroup) ag.bodyGroup.visible = false;
             const worker = createProceduralHumanoid(0x00d4ff, ag.variantIdx);
             worker.mesh.position.set(ag.dx, 0, ag.dz + 0.55);
             officeScene.add(worker.mesh);
             ag.breakWorker = worker;
+            // Compute the obstacle-avoiding path from desk → prop using aisle waypoints
+            ag.breakPath = computeOfficePath({x: ag.dx, z: ag.dz + 0.55}, {x: prop.x, z: prop.z});
+            ag.breakPathIdx = 0;
             ag.breakState = 'walking_to';
             ag.currentTask = '→ ' + prop.name;
             renderAgentLabel(ag);
           }
         }
-      } else if (ag.breakState === 'walking_to' && ag.breakWorker) {
+      } else if ((ag.breakState === 'walking_to' || ag.breakState === 'walking_back') && ag.breakWorker) {
         const w = ag.breakWorker;
-        const tx = ag.breakTarget.x, tz = ag.breakTarget.z;
-        const dx = tx - w.mesh.position.x, dz = tz - w.mesh.position.z;
-        const dist = Math.sqrt(dx*dx + dz*dz);
-        if (dist < 0.40) {
-          ag.breakState = 'dwelling';
-          ag.breakDwellEnd = now + ag.breakTarget.dwellMs;
-          ag.currentTask = '⌂ ' + ag.breakTarget.name;
-          renderAgentLabel(ag);
-          // Park limbs at rest
-          w.leftLeg.rotation.x = 0; w.rightLeg.rotation.x = 0;
-          w.leftArm.rotation.x = 0; w.rightArm.rotation.x = 0;
-        } else {
-          const nx = dx / dist, nz = dz / dist;
-          w.mesh.position.x += nx * 0.045;
-          w.mesh.position.z += nz * 0.045;
-          w.mesh.rotation.y = Math.atan2(nx, nz);
-          const tt = oT * 4.5 + ag.phase;
-          const swing = Math.sin(tt) * 0.55;
-          w.leftLeg.rotation.x = swing; w.rightLeg.rotation.x = -swing;
-          w.leftArm.rotation.x = -swing*0.7; w.rightArm.rotation.x = swing*0.7;
-          w.mesh.position.y = Math.abs(Math.cos(tt)) * 0.06;
+        // Current segment goal = path[breakPathIdx]
+        const seg = ag.breakPath && ag.breakPath[ag.breakPathIdx];
+        if (!seg) { ag.breakState = (ag.breakState === 'walking_to' ? 'dwelling' : 'seated'); }
+        else {
+          const dx2 = seg.x - w.mesh.position.x, dz2 = seg.z - w.mesh.position.z;
+          const dist = Math.sqrt(dx2*dx2 + dz2*dz2);
+          if (dist < 0.30) {
+            // Reached this waypoint · advance to next
+            ag.breakPathIdx += 1;
+            if (ag.breakPathIdx >= ag.breakPath.length) {
+              // Path complete
+              if (ag.breakState === 'walking_to') {
+                ag.breakState = 'dwelling';
+                ag.breakDwellEnd = now + ag.breakTarget.dwellMs;
+                ag.currentTask = '⌂ ' + ag.breakTarget.name;
+                w.leftLeg.rotation.x = 0; w.rightLeg.rotation.x = 0;
+                w.leftArm.rotation.x = 0; w.rightArm.rotation.x = 0;
+                renderAgentLabel(ag);
+              } else {
+                // walking_back complete · sit
+                officeScene.remove(w.mesh);
+                w.mesh.traverse(o => { if(o.geometry) o.geometry.dispose(); if(o.material){ Array.isArray(o.material)?o.material.forEach(m=>m.dispose()):o.material.dispose(); }});
+                ag.breakWorker = null;
+                if (ag.bodyGroup) ag.bodyGroup.visible = true;
+                ag.breakState = 'seated';
+                ag.breakNextAt = now + 20000 + Math.random()*30000;
+                ag.breakTarget = null;
+                ag.breakPath = null; ag.breakPathIdx = 0;
+                ag.currentTask = 'standing by';
+                renderAgentLabel(ag);
+              }
+            }
+          } else {
+            // Move toward this waypoint
+            const nx = dx2 / dist, nz = dz2 / dist;
+            w.mesh.position.x += nx * 0.045;
+            w.mesh.position.z += nz * 0.045;
+            w.mesh.rotation.y = Math.atan2(nx, nz);
+            const tt = oT * 4.5 + ag.phase;
+            const swing = Math.sin(tt) * 0.55;
+            w.leftLeg.rotation.x = swing; w.rightLeg.rotation.x = -swing;
+            w.leftArm.rotation.x = -swing*0.7; w.rightArm.rotation.x = swing*0.7;
+            w.mesh.position.y = Math.abs(Math.cos(tt)) * 0.06;
+          }
         }
       } else if (ag.breakState === 'dwelling' && ag.breakWorker) {
         const w = ag.breakWorker;
         w.mesh.position.y = Math.sin(oT * 1.3 + ag.phase) * 0.012;
         w.leftArm.rotation.x = Math.sin(oT * 0.6 + ag.phase) * 0.10;
         if (now >= ag.breakDwellEnd) {
+          // Reverse the path for walking back
+          ag.breakPath = computeOfficePath({x: w.mesh.position.x, z: w.mesh.position.z}, {x: ag.dx, z: ag.dz + 0.55});
+          ag.breakPathIdx = 0;
           ag.breakState = 'walking_back';
           ag.currentTask = '↺ back to desk';
           renderAgentLabel(ag);
-        }
-      } else if (ag.breakState === 'walking_back' && ag.breakWorker) {
-        const w = ag.breakWorker;
-        const tx = ag.dx, tz = ag.dz + 0.55;
-        const dx = tx - w.mesh.position.x, dz = tz - w.mesh.position.z;
-        const dist = Math.sqrt(dx*dx + dz*dz);
-        if (dist < 0.30) {
-          // Sit back down · despawn worker, show bodyGroup
-          officeScene.remove(w.mesh);
-          // Dispose materials/geometries on the walker meshes to prevent GPU leak
-          w.mesh.traverse(o => { if(o.geometry) o.geometry.dispose(); if(o.material){ Array.isArray(o.material)?o.material.forEach(m=>m.dispose()):o.material.dispose(); }});
-          ag.breakWorker = null;
-          if (ag.bodyGroup) ag.bodyGroup.visible = true;
-          ag.breakState = 'seated';
-          ag.breakNextAt = now + 25000 + Math.random()*40000;   // next break in 25-65s
-          ag.breakTarget = null;
-          ag.currentTask = 'standing by';
-          renderAgentLabel(ag);
-        } else {
-          const nx = dx / dist, nz = dz / dist;
-          w.mesh.position.x += nx * 0.045;
-          w.mesh.position.z += nz * 0.045;
-          w.mesh.rotation.y = Math.atan2(nx, nz);
-          const tt = oT * 4.5 + ag.phase;
-          const swing = Math.sin(tt) * 0.55;
-          w.leftLeg.rotation.x = swing; w.rightLeg.rotation.x = -swing;
-          w.leftArm.rotation.x = -swing*0.7; w.rightArm.rotation.x = swing*0.7;
-          w.mesh.position.y = Math.abs(Math.cos(tt)) * 0.06;
         }
       }
     });
@@ -2259,69 +2181,7 @@ function buildOfficeScene(agency){
     });
     // CONSTANT BACKGROUND DATA PACKETS · flowing through the wire conduits
     if(officeBgPackets.length) animateOfficeBgPackets();
-    // v4.4.8 · PURPOSEFUL NPC STATE MACHINE (Skill #20)
-    // States: walking → dwelling → walking → dwelling ... → home → walking → ...
-    // Each worker visits 2-3 props then "returns home" (their starting corner) for a short rest
-    officeWalkers.forEach(w => {
-      if (w.state === 'walking' && w.target) {
-        const dx = w.target.x - w.mesh.position.x;
-        const dz = w.target.z - w.mesh.position.z;
-        const dist = Math.sqrt(dx*dx + dz*dz);
-        if (dist < 0.30) {
-          // Arrived · enter dwelling
-          w.state = 'dwelling';
-          w.dwellEnd = Date.now() + w.target.dwellMs;
-          w.currentActivity = '⌂ ' + (w.target.name || 'doing task');
-          // Park legs/arms at rest
-          w.leftLeg.rotation.x = 0; w.rightLeg.rotation.x = 0;
-          w.leftArm.rotation.x = 0; w.rightArm.rotation.x = 0;
-        } else {
-          // Move toward target · normalized direction × speed
-          const nx = dx / dist, nz = dz / dist;
-          w.mesh.position.x += nx * w.speed;
-          w.mesh.position.z += nz * w.speed;
-          // Face direction of travel
-          w.mesh.rotation.y = Math.atan2(nx, nz);
-          // Walk cycle · sin(time*speed)*amplitude (Skill #16)
-          const t = oT * 4.5 + w.phase;
-          const swing = Math.sin(t) * 0.55;
-          w.leftLeg.rotation.x  =  swing;
-          w.rightLeg.rotation.x = -swing;
-          w.leftArm.rotation.x  = -swing * 0.7;
-          w.rightArm.rotation.x =  swing * 0.7;
-          w.mesh.position.y = Math.abs(Math.cos(t)) * 0.06;
-          if (w.head) w.head.position.y = 1.42 + Math.sin(t * 2) * 0.012;
-        }
-      } else if (w.state === 'dwelling') {
-        // Idle sway · subtle weight-shift while at the prop
-        w.mesh.position.y = Math.sin(oT * 1.3 + w.phase) * 0.012;
-        w.leftLeg.rotation.x  = Math.sin(oT * 0.4 + w.phase) * 0.04;
-        w.rightLeg.rotation.x = Math.sin(oT * 0.4 + w.phase + Math.PI) * 0.04;
-        // Tiny arm gesture · sin-driven · gives life
-        w.leftArm.rotation.x  = Math.sin(oT * 0.6 + w.phase) * 0.10;
-        w.rightArm.rotation.x = Math.cos(oT * 0.5 + w.phase) * 0.08;
-        // Time to leave?
-        if (Date.now() >= w.dwellEnd) {
-          w.visitsBeforeHome -= 1;
-          if (w.visitsBeforeHome <= 0) {
-            // Return home for a longer rest
-            w.target = {x: w.homeX, z: w.homeZ, dwellMs: 4000 + Math.random()*2000, name: 'home corner'};
-            w.visitsBeforeHome = 2 + Math.floor(Math.random()*2);
-            w.currentActivity = '↺ returning to ' + w.target.name;
-          } else {
-            // Pick a new prop (different from current location to keep motion meaningful)
-            let nextProp;
-            for (let tries = 0; tries < 6; tries++){
-              nextProp = officeProps[Math.floor(Math.random() * officeProps.length)];
-              if (Math.abs(nextProp.x - w.mesh.position.x) + Math.abs(nextProp.z - w.mesh.position.z) > 2.0) break;
-            }
-            w.target = {x: nextProp.x, z: nextProp.z, dwellMs: nextProp.dwellMs, name: nextProp.name};
-            w.currentActivity = '→ heading to ' + nextProp.name;
-          }
-          w.state = 'walking';
-        }
-      }
-    });
+    // v4.5.1 · officeWalkers patrol-block REMOVED · desk agents are the only mover (break routine below)
     // File-drop particles
     if(officeDropParticles.length) animateDropParticles();
     // User-controlled camera (orbit + zoom · NO auto-drift while user has touched it · per Mo's "zoom further" need)
@@ -2336,6 +2196,8 @@ function buildOfficeScene(agency){
       officeCamera.position.z = officeCamRadius * Math.cos(officeCamAngle.y) * Math.cos(officeCamAngle.x);
     }
     officeCamera.lookAt(officeCamTarget.x, officeCamTarget.y, officeCamTarget.z);
+    // v4.5.1 · position DOM labels above their agents before rendering (so they update in sync)
+    updateAgentLabelPositions();
     // v4.4.5 · route through bloom composer when available · fall back to direct render
     if (officeComposer) officeComposer.render();
     else officeRenderer.render(officeScene, officeCamera);
@@ -2497,62 +2359,43 @@ let officeCamRadius = 18, officeCamAngle = {y: Math.PI/4, x: Math.PI/4.2}, offic
 
 // TRACK A · canvas-texture HUD sprite painter (per Gemini round-6)
 function renderAgentLabel(ag){
-  // v4.5.0 · SINGLE-LINE HUD label matching Gemini blueprint
-  // Format: `[A-04 | Engineering Sentinel | MOVING]` — colored segments, pipe separators, auto-shrink to fit
-  const c = ag.labelCanvas;
-  const ctx = c.getContext('2d');
-  const w = c.width, h = c.height;
-  ctx.clearRect(0, 0, w, h);
-  // Obsidian glass background
-  ctx.fillStyle = 'rgba(11, 17, 32, 0.94)';
-  ctx.fillRect(0, 0, w, h);
-  // Border · color by state · left accent stripe
-  const border = ag.state === 'PROCESSING' ? '#ffffff' : '#00e4ff';
-  ctx.strokeStyle = border;
-  ctx.lineWidth = 2;
-  ctx.strokeRect(1, 1, w-2, h-2);
-  ctx.fillStyle = border;
-  ctx.fillRect(0, 0, 6, h);
-
-  // SINGLE LINE · build segments: [ID] | RoleName | STATE
-  // Determine an appropriate font size that fits the full line
+  // v4.5.1 · DOM label render · clean text · no bloom wash-out · readable at any zoom
+  if (!ag.labelDiv) return;
   const stateForLabel = (ag.breakState && ag.breakState !== 'seated') ? 'MOVING' : ag.state;
-  const idSeg = '[' + ag.id + ']';
-  const roleSeg = ag.name;
-  const stateSeg = stateForLabel;
-  const sep = '  |  ';
-  let fontSize = 26;
-  ctx.font = `bold ${fontSize}px "JetBrains Mono", monospace`;
-  while (ctx.measureText(idSeg + sep + roleSeg + sep + stateSeg).width > w - 24 && fontSize > 12) {
-    fontSize -= 1;
-    ctx.font = `bold ${fontSize}px "JetBrains Mono", monospace`;
-  }
-  const baselineY = h / 2 + fontSize * 0.35;
-  let x = 14;
-  // ID · cyan
-  ctx.fillStyle = '#00e4ff';
-  ctx.fillText(idSeg, x, baselineY);
-  x += ctx.measureText(idSeg).width;
-  // separator · muted
-  ctx.fillStyle = '#5a6580';
-  ctx.fillText(sep, x, baselineY);
-  x += ctx.measureText(sep).width;
-  // role · bright white
-  ctx.fillStyle = '#ffffff';
-  ctx.fillText(roleSeg, x, baselineY);
-  x += ctx.measureText(roleSeg).width;
-  // separator
-  ctx.fillStyle = '#5a6580';
-  ctx.fillText(sep, x, baselineY);
-  x += ctx.measureText(sep).width;
-  // state · color by state
   const stateColor = stateForLabel === 'PROCESSING' ? '#ffffff'
                    : stateForLabel === 'MOVING'     ? '#f5c542'
                                                     : '#43e6a1';
-  ctx.fillStyle = stateColor;
-  ctx.fillText(stateSeg, x, baselineY);
-
-  ag.lblTex.needsUpdate = true;
+  const borderColor = stateForLabel === 'PROCESSING' ? '#ffffff' : '#00e4ff';
+  ag.labelDiv.style.borderColor = borderColor;
+  ag.labelDiv.style.borderLeftColor = borderColor;
+  ag.labelDiv.innerHTML =
+    `<span style="color:#00e4ff;font-weight:700">[${ag.id}]</span>` +
+    `<span style="color:#5a6580;margin:0 6px">|</span>` +
+    `<span style="color:#fff;font-weight:600">${escapeHTML(ag.name)}</span>` +
+    `<span style="color:#5a6580;margin:0 6px">|</span>` +
+    `<span style="color:${stateColor};font-weight:700">${stateForLabel}</span>`;
+}
+// v4.5.1 · screen-projection updater · run inside the animate loop · positions DOM labels above each agent
+function updateAgentLabelPositions(){
+  if (!officeCamera || !officeRenderer) return;
+  const layer = document.getElementById('agentLabelLayer');
+  if (!layer) return;
+  const w = officeRenderer.domElement.clientWidth, h = officeRenderer.domElement.clientHeight;
+  const tmp = new THREE.Vector3();
+  officeAgents.forEach(ag => {
+    if (!ag.labelDiv || !ag.labelAnchor) return;
+    tmp.copy(ag.labelAnchor); tmp.project(officeCamera);
+    // Cull if behind camera or off-screen with big margin
+    if (tmp.z > 1) { ag.labelDiv.style.display = 'none'; return; }
+    const sx = (tmp.x * 0.5 + 0.5) * w;
+    const sy = (-tmp.y * 0.5 + 0.5) * h;
+    ag.labelDiv.style.display = 'block';
+    ag.labelDiv.style.left = sx + 'px';
+    ag.labelDiv.style.top  = sy + 'px';
+    // Optional depth-fade: dim labels far from camera
+    const depthFade = Math.max(0.55, 1.0 - Math.max(0, tmp.z) * 0.4);
+    ag.labelDiv.style.opacity = depthFade.toFixed(2);
+  });
 }
 
 // TRACK B · dossier rendering into the right-side panel
@@ -2674,74 +2517,18 @@ function enterOffice(slug){
   }, 60);
 }
 
-// === v4.5.0 · SIDEBAR HUD SPARKLINES (Skill #25 · Continuity Sentinel + Anatomical Auditor live waveforms) ===
-function paintSparkline(canvasId, color, phaseOffset){
-  const c = document.getElementById(canvasId); if (!c) return;
-  const ctx = c.getContext('2d'); const w = c.width, h = c.height;
-  ctx.clearRect(0, 0, w, h);
-  // Background grid
-  ctx.strokeStyle = 'rgba(255,255,255,0.04)'; ctx.lineWidth = 1;
-  for (let x = 0; x < w; x += 26){ ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
-  for (let y = 0; y < h; y += 9){ ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
-  // Animated waveform
-  const t = performance.now() / 1000;
-  ctx.strokeStyle = color; ctx.lineWidth = 2;
-  ctx.shadowColor = color; ctx.shadowBlur = 6;
-  ctx.beginPath();
-  for (let x = 0; x < w; x += 2){
-    const u = x / w;
-    const v = Math.sin(u * Math.PI * 6 + t * 1.4 + phaseOffset) * 0.30
-            + Math.sin(u * Math.PI * 14 + t * 2.7 + phaseOffset) * 0.18
-            + Math.sin(u * Math.PI * 22 + t * 0.7 + phaseOffset) * 0.10;
-    const y = h/2 + v * (h/2 - 4);
-    if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-  }
-  ctx.stroke();
-  ctx.shadowBlur = 0;
-}
-let sparkRAF = null;
-function startSparklines(){
+// === v4.5.1 · WORKING-COUNT CHIP UPDATER (the only sidebar HUD that survived · cleanup per Mo) ===
+let workingChipRAF = null;
+function startWorkingChipUpdate(){
   function loop(){
-    paintSparkline('sentinelSpark', '#00e4ff', 0);
-    paintSparkline('auditorSpark',  '#43e6a1', 1.7);
-    // Update working-count chip
     const workingN = officeAgents.filter(a => a.state === 'PROCESSING' || (a.breakState && a.breakState !== 'seated')).length;
     const wEl = document.getElementById('chipWorkingN'); if (wEl) wEl.textContent = workingN;
-    sparkRAF = requestAnimationFrame(loop);
+    workingChipRAF = requestAnimationFrame(loop);
   }
-  if (sparkRAF) cancelAnimationFrame(sparkRAF);
+  if (workingChipRAF) cancelAnimationFrame(workingChipRAF);
   loop();
 }
-setTimeout(startSparklines, 200);
-
-// v4.5.0 control-bar buttons (matches Gemini blueprint)
-function pulseAllAgents(){
-  officeAgents.forEach(ag => {
-    if (ag.core && ag.core.material && ag.core.material.emissive){
-      const orig = ag.core.material.emissive.getHex();
-      ag.core.material.emissive.setHex(0xffffff);
-      ag.core.material.emissiveIntensity = 1.5;
-      setTimeout(() => { ag.core.material.emissive.setHex(orig); ag.core.material.emissiveIntensity = 0.85; }, 600);
-    }
-  });
-  // Pulse the sentinel/auditor badges
-  const sb = document.getElementById('sentinelBadge'); if (sb){ const o = sb.style.background; sb.style.background = 'rgba(255,255,255,.4)'; setTimeout(()=>sb.style.background = o, 600); }
-}
-function resetCameraView(){
-  if (!officeCamera) return;
-  officeCamRadius = 18;
-  officeCamAngle = {y: Math.PI/4, x: Math.PI/4.2};
-  officeCamTarget = new THREE.Vector3(0, 0.5, 0);
-  userTouchedOfficeCam = false;
-  officeCamera.zoom = 1.0;
-  officeCamera.updateProjectionMatrix();
-}
-function clearDropzoneFiles(){
-  pendingDropFiles = [];
-  refreshDropList();
-  const status = document.getElementById('dropzoneStatus'); if (status) status.textContent = 'cleared';
-  setTimeout(() => { if (status) status.textContent = ''; }, 1500);
-}
+setTimeout(startWorkingChipUpdate, 200);
 
 // === v4.4.7 · EMPIRE NETWORK BRIDGE · in-scene cross-department teleport (Skill #19) ===
 function toggleNetworkBridge(){
@@ -2926,6 +2713,9 @@ function exitOffice(){
   document.getElementById('dropzoneSend').disabled = true;
   document.getElementById('dropzoneSend').style.opacity = '0.5';
   document.getElementById('dropzoneStatus').textContent = '';
+  // v4.5.1 · purge DOM agent labels
+  const _lblLayer = document.getElementById('agentLabelLayer');
+  if (_lblLayer) _lblLayer.innerHTML = '';
   // v4.4.6 · reset connector pill so the next agency starts fresh (panel restores via updateConnectorWarn)
   const pill = document.getElementById('connectorPill');
   if (pill) pill.style.display = 'none';
