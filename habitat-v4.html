@@ -1144,74 +1144,111 @@ function sovereignOverride(){ window.location.href = 'tel:+17432151423'; }
 let officeScene = null, officeCamera = null, officeRenderer = null, officeAgents = [], officeRAF = null, currentOfficeAgency = null;
 let officeServerLEDs = [];
 let officeComposer = null, officeBloomPass = null;   // v4.4.5 · cinematic post-processing
-let officeWalkers = [], officeOutboundConduit = null;  // v4.4.7 · walking humanoids + dispatch conduit
+let officeWalkers = [], officeOutboundConduit = null, officeProps = [];  // v4.4.7/8 · walkers + dispatch conduit + props
 let dispatchActive = false;                            // v4.4.7 · gate for inter-agency packet flight
 
-// === v4.4.7 · PROCEDURAL HUMANOID FACTORY (Skill #16 · Mo 2026-05-17 game-dev directive) ===
+// === v4.4.7/v4.4.8 · PROCEDURAL HUMANOID FACTORY (Skill #16 · Mo 2026-05-17 game-dev directive) ===
+// v4.4.8 upgrade: more SimCity-like silhouette · shoulders + hands + hair tuft + clothing-color split (Mo: "more human-like, more SimCity kind of a character")
 // Builds a low-poly walking humanoid from pure geometry. No glTF · no external models.
 // Hierarchical Group so leg/arm anchors rotate from the hip/shoulder joint via sin(time*speed)*amplitude.
-// Returns {mesh, leftLeg, rightLeg, leftArm, rightArm, head, torso} so animate loop can drive each part.
 function createProceduralHumanoid(accentColor, variantIdx){
   const g = new THREE.Group();
-  const palette = [0x00e4ff, 0x43e6a1, 0xf5c542, 0xa384ff, 0xff5cc4];
-  const skin = palette[variantIdx % palette.length] || accentColor;
-  const torsoMat = new THREE.MeshPhysicalMaterial({color: skin, emissive: skin, emissiveIntensity: 0.25, metalness:0.3, roughness:0.45, transparent:true, opacity:0.92});
-  const limbMat  = new THREE.MeshPhysicalMaterial({color: skin, emissive: skin, emissiveIntensity: 0.15, metalness:0.4, roughness:0.5});
-  const headMat  = new THREE.MeshPhysicalMaterial({color: 0xffffff, emissive: skin, emissiveIntensity: 0.5, metalness:0.2, roughness:0.2, transparent:true, opacity:0.95});
+  // 8-color palette · skin tones + clothing
+  const shirtPalette = [0x00d4ff, 0x43e6a1, 0xf5c542, 0xa384ff, 0xff5cc4, 0xff8a4c, 0x4cd9ff, 0xc0c0d8];
+  const pantsPalette = [0x2a3550, 0x1a2030, 0x3a2540, 0x252535, 0x303048, 0x2a3a3a, 0x1f2a3e, 0x382848];
+  const hairPalette  = [0x2a1810, 0x5a3a20, 0x1a1410, 0x8a5520, 0x3a2818, 0x6a4030, 0x4a3018, 0x1f1810];
+  const skinPalette  = [0xf5c79a, 0xd4a07a, 0xa67c5a, 0xe5b07a, 0xc99372, 0x8a6240, 0xefc8a0, 0xb98a64];
+  const shirt = shirtPalette[variantIdx % shirtPalette.length];
+  const pants = pantsPalette[variantIdx % pantsPalette.length];
+  const hair  = hairPalette[variantIdx % hairPalette.length];
+  const skin  = skinPalette[variantIdx % skinPalette.length];
 
-  // Torso · rounded capsule via cylinder + sphere caps
-  const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.20, 0.55, 12), torsoMat);
+  const shirtMat = new THREE.MeshPhysicalMaterial({color: shirt, emissive: shirt, emissiveIntensity: 0.18, metalness:0.2, roughness:0.55});
+  const pantsMat = new THREE.MeshPhysicalMaterial({color: pants, emissive: shirt, emissiveIntensity: 0.05, metalness:0.3, roughness:0.6});
+  const skinMat  = new THREE.MeshPhysicalMaterial({color: skin,  emissive: skin,  emissiveIntensity: 0.08, metalness:0.1, roughness:0.5});
+  const hairMat  = new THREE.MeshStandardMaterial({color: hair,  metalness:0.15, roughness:0.85});
+
+  // Torso (shirt) · slightly tapered cylinder
+  const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 0.50, 12), shirtMat);
   torso.position.y = 0.95; torso.castShadow = true;
   g.add(torso);
 
+  // Shoulders (broader bar across the top of the torso for silhouette weight)
+  const shoulders = new THREE.Mesh(new THREE.BoxGeometry(0.50, 0.10, 0.22), shirtMat);
+  shoulders.position.y = 1.20; shoulders.castShadow = true;
+  g.add(shoulders);
+
+  // Neck
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.08, 8), skinMat);
+  neck.position.y = 1.30;
+  g.add(neck);
+
   // Head
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 12), headMat);
-  head.position.y = 1.40; head.castShadow = true;
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 12), skinMat);
+  head.position.y = 1.42; head.castShadow = true;
   g.add(head);
 
-  // Hip anchors (legs swing from these via rotation.x)
-  const legGeom = new THREE.CylinderGeometry(0.055, 0.045, 0.55, 8);
+  // Hair tuft (squashed dome on top of head)
+  const hairTuft = new THREE.Mesh(new THREE.SphereGeometry(0.165, 14, 10), hairMat);
+  hairTuft.scale.set(1, 0.45, 1);
+  hairTuft.position.y = 1.52;
+  g.add(hairTuft);
+
+  // Eyes · 2 tiny dark dots on the head (face)
+  const eyeMat = new THREE.MeshBasicMaterial({color: 0x000000});
+  const eyeGeom = new THREE.SphereGeometry(0.018, 8, 6);
+  const leftEye = new THREE.Mesh(eyeGeom, eyeMat); leftEye.position.set(-0.05, 1.44, 0.14); g.add(leftEye);
+  const rightEye = new THREE.Mesh(eyeGeom, eyeMat); rightEye.position.set( 0.05, 1.44, 0.14); g.add(rightEye);
+
+  // Hip anchors (legs swing on rotation.x · pants color)
+  const legGeom = new THREE.CylinderGeometry(0.06, 0.05, 0.55, 8);
   const leftLegAnchor = new THREE.Group();
-  const leftLeg = new THREE.Mesh(legGeom, limbMat);
-  leftLeg.position.y = -0.275;    // pivot from top → leg dangles down
-  leftLeg.castShadow = true;
+  const leftLeg = new THREE.Mesh(legGeom, pantsMat);
+  leftLeg.position.y = -0.275; leftLeg.castShadow = true;
   leftLegAnchor.add(leftLeg);
+  // Shoe (a small dark box at the bottom of the leg)
+  const shoeGeom = new THREE.BoxGeometry(0.10, 0.05, 0.16);
+  const leftShoe = new THREE.Mesh(shoeGeom, new THREE.MeshStandardMaterial({color: 0x101820, metalness:0.4, roughness:0.6}));
+  leftShoe.position.set(0, -0.555, 0.02); leftShoe.castShadow = true;
+  leftLegAnchor.add(leftShoe);
   leftLegAnchor.position.set(-0.10, 0.65, 0);
   g.add(leftLegAnchor);
 
   const rightLegAnchor = new THREE.Group();
-  const rightLeg = new THREE.Mesh(legGeom, limbMat);
-  rightLeg.position.y = -0.275;
-  rightLeg.castShadow = true;
+  const rightLeg = new THREE.Mesh(legGeom, pantsMat);
+  rightLeg.position.y = -0.275; rightLeg.castShadow = true;
   rightLegAnchor.add(rightLeg);
+  const rightShoe = leftShoe.clone();
+  rightShoe.position.set(0, -0.555, 0.02);
+  rightLegAnchor.add(rightShoe);
   rightLegAnchor.position.set(0.10, 0.65, 0);
   g.add(rightLegAnchor);
 
-  // Shoulder anchors (arms swing opposite the legs)
-  const armGeom = new THREE.CylinderGeometry(0.045, 0.04, 0.48, 8);
+  // Shoulder anchors (arms · shirt color)
+  const armGeom = new THREE.CylinderGeometry(0.048, 0.042, 0.45, 8);
   const leftArmAnchor = new THREE.Group();
-  const leftArm = new THREE.Mesh(armGeom, limbMat);
-  leftArm.position.y = -0.24;
+  const leftArm = new THREE.Mesh(armGeom, shirtMat);
+  leftArm.position.y = -0.225; leftArm.castShadow = true;
   leftArmAnchor.add(leftArm);
-  leftArmAnchor.position.set(-0.22, 1.18, 0);
+  // Hand (skin sphere at the end of the arm)
+  const handGeom = new THREE.SphereGeometry(0.058, 10, 8);
+  const leftHand = new THREE.Mesh(handGeom, skinMat);
+  leftHand.position.y = -0.48; leftHand.castShadow = true;
+  leftArmAnchor.add(leftHand);
+  leftArmAnchor.position.set(-0.25, 1.18, 0);
   g.add(leftArmAnchor);
 
   const rightArmAnchor = new THREE.Group();
-  const rightArm = new THREE.Mesh(armGeom, limbMat);
-  rightArm.position.y = -0.24;
+  const rightArm = new THREE.Mesh(armGeom, shirtMat);
+  rightArm.position.y = -0.225; rightArm.castShadow = true;
   rightArmAnchor.add(rightArm);
-  rightArmAnchor.position.set(0.22, 1.18, 0);
+  const rightHand = leftHand.clone();
+  rightHand.position.y = -0.48;
+  rightArmAnchor.add(rightHand);
+  rightArmAnchor.position.set(0.25, 1.18, 0);
   g.add(rightArmAnchor);
 
-  // Base glow ring (signals presence on the floor)
-  const baseRing = new THREE.Mesh(
-    new THREE.RingGeometry(0.20, 0.28, 20),
-    new THREE.MeshBasicMaterial({color: skin, transparent:true, opacity:0.45, side:THREE.DoubleSide})
-  );
-  baseRing.position.y = 0.02; baseRing.rotation.x = -Math.PI/2;
-  g.add(baseRing);
-
-  return {mesh: g, head, torso, leftLeg: leftLegAnchor, rightLeg: rightLegAnchor, leftArm: leftArmAnchor, rightArm: rightArmAnchor, skin};
+  return {mesh: g, head, torso, leftLeg: leftLegAnchor, rightLeg: rightLegAnchor, leftArm: leftArmAnchor, rightArm: rightArmAnchor, shirt, pants, skin, hair, hairTuft};
 }
 
 function buildOfficeScene(agency){
@@ -1221,8 +1258,9 @@ function buildOfficeScene(agency){
     officeRenderer.dispose(); officeRenderer.domElement.remove();
     if(officeRAF) cancelAnimationFrame(officeRAF);
   }
-  // v4.4.7 · reset walker registry + dispatch state so cross-agency jumps don't leak
+  // v4.4.7/8 · reset walker registry + props + dispatch state so cross-agency jumps don't leak
   officeWalkers = [];
+  officeProps = [];
   officeOutboundConduit = null;
   dispatchActive = false;
   officeScene = new THREE.Scene();
@@ -1666,29 +1704,106 @@ function buildOfficeScene(agency){
   // DROPZONE PARTICLE POOL (for the file-drop visual effect)
   officeDropParticles = [];
 
-  // === v4.4.7 · PROCEDURAL WALKING HUMANOIDS (Mo: "real walking workers · pure code · no external files") ===
-  // Spawn 3 walking workers per office. Each worker is a hierarchical Group:
-  // hipGroup → (head sphere · torso cylinder · leftLegAnchor + leftLeg · rightLegAnchor + rightLeg · leftArmAnchor + leftArm · rightArmAnchor + rightArm)
-  // Leg/arm anchors pivot from the hip joint. Walk math = sin(time*speed)*amplitude.
+  // === v4.4.8 · OFFICE PROPS + PURPOSEFUL NPC STATE MACHINE (Mo: "not just walking circles · water cooler, conference, coffee, real human-like SimCity characters") ===
+  // Step 1 · build the props the agents walk TO (gives their motion intent)
+  // Step 2 · spawn 4 workers · each has a state machine (seated → standing → walking → at_prop → walking_back → seated)
+  // Skill #20 · Purposeful NPC State Machine (Logic Seed at /skills/purposeful_npc_state_machine.md)
   officeWalkers = [];
-  const walkerPaths = [
-    // Each path is a list of waypoints the worker patrols (loops back)
-    [new THREE.Vector3(-5.5, 0, -2.0), new THREE.Vector3(-5.5, 0, -6.5), new THREE.Vector3(-1.0, 0, -6.5), new THREE.Vector3(-1.0, 0, -2.0)],
-    [new THREE.Vector3( 5.5, 0, -1.0), new THREE.Vector3( 5.5, 0, -7.0), new THREE.Vector3( 1.5, 0, -7.0), new THREE.Vector3( 1.5, 0, -1.0)],
-    [new THREE.Vector3( 0.0, 0,  3.5), new THREE.Vector3(-6.0, 0,  3.5), new THREE.Vector3(-6.0, 0, -0.5), new THREE.Vector3( 6.0, 0, -0.5), new THREE.Vector3( 6.0, 0,  3.5)]
-  ];
-  walkerPaths.forEach((path, wi) => {
-    const worker = createProceduralHumanoid(accent, wi);
-    worker.mesh.position.copy(path[0]);
+  officeProps = [];
+
+  function addProp(kind, x, z, color){
+    const propGroup = new THREE.Group();
+    propGroup.position.set(x, 0, z);
+    if (kind === 'waterCooler') {
+      // Bottle (blue tinted) on top of a base
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.20, 0.22, 0.45, 12), new THREE.MeshPhysicalMaterial({color:0xe8e8ee, metalness:0.4, roughness:0.4}));
+      base.position.y = 0.22; base.castShadow = true; propGroup.add(base);
+      const bottle = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.18, 0.42, 12), new THREE.MeshPhysicalMaterial({color:0x80d4ff, metalness:0.2, roughness:0.1, transparent:true, opacity:0.55, transmission:0.6}));
+      bottle.position.y = 0.66; bottle.castShadow = true; propGroup.add(bottle);
+      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.10, 0.06, 10), new THREE.MeshStandardMaterial({color:0x202838}));
+      cap.position.y = 0.90; propGroup.add(cap);
+      // Dispenser tap glow
+      const tap = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), new THREE.MeshBasicMaterial({color:0x00d4ff, transparent:true, opacity:0.9}));
+      tap.position.set(0, 0.32, 0.22); propGroup.add(tap);
+    } else if (kind === 'conferenceTable') {
+      // Long oval table + 4 chairs
+      const top = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.85, 0.06, 24), new THREE.MeshPhysicalMaterial({color:0x141c30, metalness:0.5, roughness:0.35, clearcoat:0.5}));
+      top.scale.set(1.6, 1, 1); top.position.y = 0.72; top.castShadow = top.receiveShadow = true; propGroup.add(top);
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.10, 0.7, 10), new THREE.MeshStandardMaterial({color:0x0a0e18, metalness:0.7}));
+      post.position.y = 0.35; propGroup.add(post);
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.50, 0.05, 16), new THREE.MeshStandardMaterial({color:0x0a0e18, metalness:0.7}));
+      base.position.y = 0.025; propGroup.add(base);
+      // Holographic plan glow above the table (the "meeting visualization")
+      const planGlow = new THREE.Mesh(new THREE.RingGeometry(0.50, 0.65, 24), new THREE.MeshBasicMaterial({color:0x00f2fe, transparent:true, opacity:0.4, side:THREE.DoubleSide}));
+      planGlow.position.y = 0.78; planGlow.rotation.x = -Math.PI/2; propGroup.add(planGlow);
+    } else if (kind === 'coffeeStation') {
+      // Counter + machine
+      const counter = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.05, 0.50), new THREE.MeshPhysicalMaterial({color:0x1a2030, metalness:0.5, roughness:0.4}));
+      counter.position.y = 0.75; counter.castShadow = true; propGroup.add(counter);
+      const counterLegs = [-0.40, 0.40].map(lx => {
+        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.75, 0.40), new THREE.MeshStandardMaterial({color:0x0a0e18, metalness:0.8}));
+        leg.position.set(lx, 0.375, 0);
+        return leg;
+      });
+      counterLegs.forEach(l => propGroup.add(l));
+      const machine = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.42, 0.30), new THREE.MeshPhysicalMaterial({color:0x2a1a1a, metalness:0.5, roughness:0.4, emissive:0x6a3020, emissiveIntensity:0.25}));
+      machine.position.set(0, 1.00, 0); machine.castShadow = true; propGroup.add(machine);
+      const machineLight = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 8), new THREE.MeshBasicMaterial({color:0xff5b00, transparent:true, opacity:0.9}));
+      machineLight.position.set(0.10, 1.10, 0.16); propGroup.add(machineLight);
+    } else if (kind === 'printer') {
+      const box = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.45, 0.55), new THREE.MeshPhysicalMaterial({color:0xc0c5d0, metalness:0.3, roughness:0.55}));
+      box.position.y = 0.225; box.castShadow = true; propGroup.add(box);
+      const tray = new THREE.Mesh(new THREE.BoxGeometry(0.50, 0.04, 0.30), new THREE.MeshStandardMaterial({color:0xffffff}));
+      tray.position.y = 0.48; tray.position.z = 0.10; propGroup.add(tray);
+      const led = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 8), new THREE.MeshBasicMaterial({color:0x43e6a1}));
+      led.position.set(0.20, 0.32, 0.28); propGroup.add(led);
+    } else if (kind === 'plant') {
+      const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.14, 0.25, 12), new THREE.MeshStandardMaterial({color:0x5a3a20}));
+      pot.position.y = 0.125; propGroup.add(pot);
+      const foliage = new THREE.Mesh(new THREE.SphereGeometry(0.32, 12, 10), new THREE.MeshStandardMaterial({color:0x2a8a3a, roughness:0.8}));
+      foliage.position.y = 0.55; propGroup.add(foliage);
+    }
+    officeScene.add(propGroup);
+    return {group: propGroup, kind, x, z, dwellMs: kind === 'conferenceTable' ? 6500 : (kind === 'coffeeStation' ? 4500 : (kind === 'printer' ? 3000 : 3500)), name: kind === 'waterCooler' ? '💧 water cooler' : kind === 'conferenceTable' ? '📋 conference' : kind === 'coffeeStation' ? '☕ coffee' : kind === 'printer' ? '🖨 printer' : '🌿 plant'};
+  }
+
+  // Place props around the room perimeter (avoid the desks + server rack)
+  officeProps.push(addProp('waterCooler',     -8,  5));
+  officeProps.push(addProp('conferenceTable',  0,  6));
+  officeProps.push(addProp('coffeeStation',    8,  5));
+  officeProps.push(addProp('printer',          7, -2));
+  officeProps.push(addProp('plant',           -8, -2));
+
+  // Helper to spawn a worker at a starting position with the purposeful state machine
+  function spawnWorker(startX, startZ, variantIdx){
+    const worker = createProceduralHumanoid(accent, variantIdx);
+    worker.mesh.position.set(startX, 0, startZ);
     officeScene.add(worker.mesh);
-    officeWalkers.push({
+    return {
       ...worker,
-      path,
-      pathIdx: 0,
-      progress: Math.random(),
-      speed: 0.0035 + Math.random()*0.002,
-      phase: Math.random()*Math.PI*2
-    });
+      variantIdx,
+      homeX: startX, homeZ: startZ,                  // their "home base" (a corner of the room)
+      state: 'idle',                                  // idle | walking | dwelling
+      target: null,                                   // {x, z, dwellMs, name}
+      dwellEnd: 0,
+      visitsBeforeHome: 2 + Math.floor(Math.random()*2),  // visit 2-3 props then return home
+      speed: 0.035 + Math.random()*0.015,             // movement speed (units/frame)
+      phase: Math.random()*Math.PI*2,
+      currentActivity: 'idle · standing by'
+    };
+  }
+  // 4 workers · variety of starting positions · they'll begin in idle and immediately pick a target
+  officeWalkers.push(spawnWorker(-8.5,  6, 0));
+  officeWalkers.push(spawnWorker( 8.5,  6, 1));
+  officeWalkers.push(spawnWorker(-8.5, -3, 2));
+  officeWalkers.push(spawnWorker( 8.5, -3, 3));
+
+  // Each worker picks a target at scene start
+  officeWalkers.forEach(w => {
+    const prop = officeProps[Math.floor(Math.random() * officeProps.length)];
+    w.target = {x: prop.x, z: prop.z, dwellMs: prop.dwellMs, name: prop.name};
+    w.state = 'walking';
+    w.currentActivity = '→ heading to ' + prop.name;
   });
 
   // === v4.4.7 · OUTBOUND CONDUIT (ceiling-mounted pipe out of the room toward macro city) ===
@@ -1755,37 +1870,68 @@ function buildOfficeScene(agency){
     });
     // CONSTANT BACKGROUND DATA PACKETS · flowing through the wire conduits
     if(officeBgPackets.length) animateOfficeBgPackets();
-    // v4.4.7 · WALKING HUMANOIDS · advance each worker along its patrol path with leg/arm swing
+    // v4.4.8 · PURPOSEFUL NPC STATE MACHINE (Skill #20)
+    // States: walking → dwelling → walking → dwelling ... → home → walking → ...
+    // Each worker visits 2-3 props then "returns home" (their starting corner) for a short rest
     officeWalkers.forEach(w => {
-      // Position along path segments
-      const segs = w.path.length;
-      const segProgress = w.progress * segs;
-      const segIdx = Math.floor(segProgress) % segs;
-      const nextIdx = (segIdx + 1) % segs;
-      const segT = segProgress - Math.floor(segProgress);
-      const from = w.path[segIdx], to = w.path[nextIdx];
-      const px = from.x + (to.x - from.x) * segT;
-      const pz = from.z + (to.z - from.z) * segT;
-      w.mesh.position.x = px;
-      w.mesh.position.z = pz;
-      // Face direction of travel (yaw)
-      const dxh = to.x - from.x, dzh = to.z - from.z;
-      if (Math.abs(dxh) + Math.abs(dzh) > 0.01) {
-        w.mesh.rotation.y = Math.atan2(dxh, dzh);
+      if (w.state === 'walking' && w.target) {
+        const dx = w.target.x - w.mesh.position.x;
+        const dz = w.target.z - w.mesh.position.z;
+        const dist = Math.sqrt(dx*dx + dz*dz);
+        if (dist < 0.30) {
+          // Arrived · enter dwelling
+          w.state = 'dwelling';
+          w.dwellEnd = Date.now() + w.target.dwellMs;
+          w.currentActivity = '⌂ ' + (w.target.name || 'doing task');
+          // Park legs/arms at rest
+          w.leftLeg.rotation.x = 0; w.rightLeg.rotation.x = 0;
+          w.leftArm.rotation.x = 0; w.rightArm.rotation.x = 0;
+        } else {
+          // Move toward target · normalized direction × speed
+          const nx = dx / dist, nz = dz / dist;
+          w.mesh.position.x += nx * w.speed;
+          w.mesh.position.z += nz * w.speed;
+          // Face direction of travel
+          w.mesh.rotation.y = Math.atan2(nx, nz);
+          // Walk cycle · sin(time*speed)*amplitude (Skill #16)
+          const t = oT * 4.5 + w.phase;
+          const swing = Math.sin(t) * 0.55;
+          w.leftLeg.rotation.x  =  swing;
+          w.rightLeg.rotation.x = -swing;
+          w.leftArm.rotation.x  = -swing * 0.7;
+          w.rightArm.rotation.x =  swing * 0.7;
+          w.mesh.position.y = Math.abs(Math.cos(t)) * 0.06;
+          if (w.head) w.head.position.y = 1.42 + Math.sin(t * 2) * 0.012;
+        }
+      } else if (w.state === 'dwelling') {
+        // Idle sway · subtle weight-shift while at the prop
+        w.mesh.position.y = Math.sin(oT * 1.3 + w.phase) * 0.012;
+        w.leftLeg.rotation.x  = Math.sin(oT * 0.4 + w.phase) * 0.04;
+        w.rightLeg.rotation.x = Math.sin(oT * 0.4 + w.phase + Math.PI) * 0.04;
+        // Tiny arm gesture · sin-driven · gives life
+        w.leftArm.rotation.x  = Math.sin(oT * 0.6 + w.phase) * 0.10;
+        w.rightArm.rotation.x = Math.cos(oT * 0.5 + w.phase) * 0.08;
+        // Time to leave?
+        if (Date.now() >= w.dwellEnd) {
+          w.visitsBeforeHome -= 1;
+          if (w.visitsBeforeHome <= 0) {
+            // Return home for a longer rest
+            w.target = {x: w.homeX, z: w.homeZ, dwellMs: 4000 + Math.random()*2000, name: 'home corner'};
+            w.visitsBeforeHome = 2 + Math.floor(Math.random()*2);
+            w.currentActivity = '↺ returning to ' + w.target.name;
+          } else {
+            // Pick a new prop (different from current location to keep motion meaningful)
+            let nextProp;
+            for (let tries = 0; tries < 6; tries++){
+              nextProp = officeProps[Math.floor(Math.random() * officeProps.length)];
+              if (Math.abs(nextProp.x - w.mesh.position.x) + Math.abs(nextProp.z - w.mesh.position.z) > 2.0) break;
+            }
+            w.target = {x: nextProp.x, z: nextProp.z, dwellMs: nextProp.dwellMs, name: nextProp.name};
+            w.currentActivity = '→ heading to ' + nextProp.name;
+          }
+          w.state = 'walking';
+        }
       }
-      // Trig walk cycle · legs swing opposite each other · arms swing opposite the legs
-      const t = oT * 4 + w.phase;
-      const swing = Math.sin(t) * 0.55;
-      w.leftLeg.rotation.x  =  swing;
-      w.rightLeg.rotation.x = -swing;
-      w.leftArm.rotation.x  = -swing * 0.7;
-      w.rightArm.rotation.x =  swing * 0.7;
-      // Vertical bob (weight shift) + slight head bob
-      w.mesh.position.y = Math.abs(Math.cos(t)) * 0.06;
-      if (w.head) w.head.position.y = 1.40 + Math.sin(t * 2) * 0.012;
-      // Advance progress
-      w.progress += w.speed;
-      if (w.progress >= 1) w.progress -= 1;
     });
     // File-drop particles
     if(officeDropParticles.length) animateDropParticles();
