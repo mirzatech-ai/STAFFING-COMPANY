@@ -332,6 +332,14 @@ body{background:radial-gradient(1400px 900px at 50% -10%,rgba(245,197,66,.05),tr
       </div>
     </div>
     <div id="officeTitle" style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--white);font-size:14px;letter-spacing:.06em"></div>
+    <!-- v4.5.0 · TOP STATUS BAR METRIC CHIPS (Skill #24 · matches Gemini blueprint) -->
+    <span class="metric-chip" id="chipVersion" style="display:inline-flex;align-items:center;padding:5px 11px;border-radius:13px;background:rgba(245,197,66,.12);border:1px solid var(--gold);color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;font-weight:600">v4.5.0</span>
+    <span class="metric-chip" id="chipAgencies" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:13px;background:rgba(0,212,255,.10);border:1px solid var(--cyan);color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em"><b style="color:#fff">100</b> Agencies</span>
+    <span class="metric-chip" id="chipRoles" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:13px;background:rgba(67,230,161,.10);border:1px solid var(--green);color:var(--green);font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em"><b style="color:#fff">724</b> Roles</span>
+    <span class="metric-chip" id="chipCouncil" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:13px;background:rgba(245,197,66,.10);border:1px solid var(--gold);color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em">Council <b style="color:#fff">99%</b></span>
+    <span class="metric-chip" id="chipWorking" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:13px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.25);color:#fff;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em"><b id="chipWorkingN">0</b> Working</span>
+    <span class="metric-chip" id="chipMayaLines" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:13px;background:rgba(163,132,255,.10);border:1px solid #a384ff;color:#a384ff;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em">Maya Lines <b style="color:#fff">OPEN</b></span>
+    <span class="metric-chip" id="chipPhone" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:13px;background:linear-gradient(135deg,rgba(245,197,66,.18),rgba(205,153,56,.12));border:1px solid var(--gold);color:#fff;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em">☎ +1 (245) 225-1493</span>
   </div>
   <div id="officeStage" style="position:absolute;inset:0"></div>
 
@@ -346,8 +354,44 @@ body{background:radial-gradient(1400px 900px at 50% -10%,rgba(245,197,66,.05),tr
     </div>
   </div>
 
+  <!-- v4.5.0 · CONTINUITY SENTINEL HUD (Skill #25 · matches Gemini blueprint right-side panel stack) -->
+  <div id="sentinelPanel" style="position:absolute;right:14px;top:62px;width:280px;z-index:5;background:rgba(10,18,38,.90);backdrop-filter:blur(14px);border:1px solid var(--cyan);border-radius:14px;padding:12px;box-shadow:0 18px 40px rgba(0,0,0,.6)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--cyan);font-size:10.5px;letter-spacing:.16em">⊙ CONTINUITY SENTINEL</div>
+      <div id="sentinelBadge" style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;padding:2px 8px;border-radius:10px;background:rgba(67,230,161,.20);color:var(--green);border:1px solid var(--green)">LIVE</div>
+    </div>
+    <!-- Sparkline (sine wave canvas · live frame counter) -->
+    <canvas id="sentinelSpark" width="260" height="38" style="width:100%;height:38px;background:rgba(3,6,12,.55);border-radius:7px;border:1px solid rgba(0,228,255,.18)"></canvas>
+    <div style="display:grid;grid-template-columns:1fr auto;gap:3px 8px;margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:9.5px">
+      <span style="color:var(--muted)">FACELOCK</span><span style="color:#fff">2,988,000</span>
+      <span style="color:var(--muted)">ASSITORY</span><span style="color:#fff">5,600</span>
+      <span style="color:var(--muted)">FENDERS</span><span style="color:#fff">26/30</span>
+    </div>
+  </div>
+
+  <!-- v4.5.0 · ANATOMICAL AUDITOR HUD (right sidebar stack · below Sentinel) -->
+  <div id="auditorPanel" style="position:absolute;right:14px;top:226px;width:280px;z-index:5;background:rgba(10,18,38,.90);backdrop-filter:blur(14px);border:1px solid var(--green);border-radius:14px;padding:12px;box-shadow:0 18px 40px rgba(0,0,0,.6)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--green);font-size:10.5px;letter-spacing:.16em">⊚ ANATOMICAL AUDITOR</div>
+      <div id="auditorBadge" style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;padding:2px 8px;border-radius:10px;background:rgba(67,230,161,.20);color:var(--green);border:1px solid var(--green)">PASSED</div>
+    </div>
+    <canvas id="auditorSpark" width="260" height="38" style="width:100%;height:38px;background:rgba(3,6,12,.55);border-radius:7px;border:1px solid rgba(67,230,161,.18)"></canvas>
+    <div style="display:grid;grid-template-columns:1fr auto;gap:3px 8px;margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:9.5px">
+      <span style="color:var(--muted)">FRAME</span><span style="color:#fff">PERFECT</span>
+      <span style="color:var(--muted)">LOCK</span><span style="color:#fff">PERFECT</span>
+      <span style="color:var(--muted)">QA</span><span style="color:#fff">98/10</span>
+    </div>
+  </div>
+
+  <!-- v4.5.0 · CONTROL BUTTONS (Pulse / Reset / Auto-Delete · matches blueprint button stack) -->
+  <div id="controlButtons" style="position:absolute;right:14px;top:390px;width:280px;z-index:5;display:flex;flex-direction:column;gap:5px">
+    <button onclick="pulseAllAgents()" style="padding:7px 12px;border-radius:9px;background:rgba(245,197,66,.12);border:1px solid var(--gold);color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.12em;cursor:pointer;text-align:left">▶ PULSE ALL</button>
+    <button onclick="resetCameraView()" style="padding:7px 12px;border-radius:9px;background:rgba(0,228,255,.10);border:1px solid var(--cyan);color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.12em;cursor:pointer;text-align:left">⊙ RESET CAM</button>
+    <button onclick="clearDropzoneFiles()" style="padding:7px 12px;border-radius:9px;background:rgba(255,91,106,.10);border:1px solid #ff5b6a;color:#ff5b6a;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.12em;cursor:pointer;text-align:left">⊗ AUTO-DELETE</button>
+  </div>
+
   <!-- Data Dropzone (HTML5 drag-drop · POST to /api/agency_file_intake.php) -->
-  <div id="dropzonePanel" style="position:absolute;right:14px;top:62px;width:280px;z-index:5;background:rgba(10,18,38,.85);backdrop-filter:blur(14px);border:1px solid var(--gold);border-radius:14px;padding:14px;box-shadow:0 18px 40px rgba(0,0,0,.6)">
+  <div id="dropzonePanel" style="position:absolute;right:14px;top:498px;width:280px;z-index:5;background:rgba(10,18,38,.85);backdrop-filter:blur(14px);border:1px solid var(--gold);border-radius:14px;padding:14px;box-shadow:0 18px 40px rgba(0,0,0,.6)">
     <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--gold);font-size:11px;letter-spacing:.14em;margin-bottom:8px">📦 AGENCY DATA CARRIER</div>
     <div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--muted);margin-bottom:10px">drop zips · pdfs · folders · images · csv · max 25 MB / file</div>
     <div id="dropzone" style="border:2px dashed rgba(245,197,66,.5);border-radius:10px;padding:18px 12px;text-align:center;cursor:pointer;background:rgba(245,197,66,.05);transition:all .2s">
@@ -1324,17 +1368,80 @@ function buildOfficeScene(agency){
   accentRim.position.set(0, 4, 8);
   officeScene.add(accentRim);
 
-  // FLOOR · dark slate
+  // v4.5.0 · PROCEDURAL CIRCUIT-TRACE FLOOR (Skill #23 · matches Gemini blueprint motherboard look)
+  // Generate a 1024×1024 canvas with bus lines, intersection nodes, secondary traces, and chip pads
+  // Tiled 2× on the 20m floor → reads as a SimCity-grade circuit board, not a generic grid
+  const floorCanvas = document.createElement('canvas');
+  floorCanvas.width = 1024; floorCanvas.height = 1024;
+  const fctx = floorCanvas.getContext('2d');
+  // Dark slate base
+  fctx.fillStyle = '#070d1c'; fctx.fillRect(0, 0, 1024, 1024);
+  // Subtle inner border
+  fctx.strokeStyle = 'rgba(0,212,255,0.18)'; fctx.lineWidth = 6;
+  fctx.strokeRect(10, 10, 1004, 1004);
+  // Primary bus lines (4 horizontal + 4 vertical · bright cyan)
+  const accentHex = '#' + accent.toString(16).padStart(6,'0');
+  fctx.strokeStyle = accentHex; fctx.lineWidth = 4;
+  fctx.shadowColor = accentHex; fctx.shadowBlur = 6;
+  const tracks = [160, 384, 640, 864];
+  tracks.forEach(t => {
+    fctx.beginPath(); fctx.moveTo(0, t); fctx.lineTo(1024, t); fctx.stroke();
+    fctx.beginPath(); fctx.moveTo(t, 0); fctx.lineTo(t, 1024); fctx.stroke();
+  });
+  fctx.shadowBlur = 0;
+  // Intersection nodes (bright dots at every bus crossing)
+  fctx.fillStyle = '#00f2fe';
+  tracks.forEach(tx => tracks.forEach(ty => { fctx.beginPath(); fctx.arc(tx, ty, 10, 0, Math.PI*2); fctx.fill(); }));
+  // Secondary thin traces (L-shapes branching off the bus lines)
+  fctx.strokeStyle = 'rgba(0,212,255,0.45)'; fctx.lineWidth = 1.5;
+  for (let i = 0; i < 60; i++){
+    const startTrack = tracks[Math.floor(Math.random()*tracks.length)];
+    const horiz = Math.random() < 0.5;
+    const x1 = horiz ? startTrack : Math.random()*1024;
+    const y1 = horiz ? Math.random()*1024 : startTrack;
+    const len = 40 + Math.random()*120;
+    const x2 = x1 + (horiz ? 0 : (Math.random()<0.5?-len:len));
+    const y2 = y1 + (horiz ? (Math.random()<0.5?-len:len) : 0);
+    fctx.beginPath(); fctx.moveTo(x1, y1); fctx.lineTo(x2, y2); fctx.stroke();
+    // small chip pad at the trace end
+    fctx.fillStyle = 'rgba(0,228,255,0.55)';
+    fctx.fillRect(x2 - 4, y2 - 4, 8, 8);
+  }
+  // Scattered chip rectangles
+  fctx.fillStyle = 'rgba(0,228,255,0.35)';
+  for (let i = 0; i < 25; i++){
+    const cx = 50 + Math.random()*924, cy = 50 + Math.random()*924;
+    const cw = 16 + Math.random()*22, ch = 6 + Math.random()*6;
+    fctx.fillRect(cx, cy, cw, ch);
+  }
+  // Hex chip silhouettes (resistor-like)
+  fctx.strokeStyle = 'rgba(0,228,255,0.55)'; fctx.lineWidth = 1.5;
+  for (let i = 0; i < 12; i++){
+    const cx = 80 + Math.random()*880, cy = 80 + Math.random()*880;
+    fctx.beginPath();
+    fctx.moveTo(cx-12, cy); fctx.lineTo(cx-6, cy-10); fctx.lineTo(cx+6, cy-10);
+    fctx.lineTo(cx+12, cy); fctx.lineTo(cx+6, cy+10); fctx.lineTo(cx-6, cy+10); fctx.closePath();
+    fctx.stroke();
+  }
+  const floorTex = new THREE.CanvasTexture(floorCanvas);
+  floorTex.wrapS = floorTex.wrapT = THREE.RepeatWrapping;
+  floorTex.repeat.set(2, 2);
+  floorTex.anisotropy = 8;
+
   const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(20, 20),
-    new THREE.MeshStandardMaterial({color:0x0a1226, metalness:0.4, roughness:0.7})
+    new THREE.MeshStandardMaterial({
+      color: 0xffffff, map: floorTex,
+      emissive: 0xffffff, emissiveMap: floorTex, emissiveIntensity: 0.6,
+      metalness: 0.35, roughness: 0.55
+    })
   );
   floor.rotation.x = -Math.PI/2; floor.receiveShadow = true;
   officeScene.add(floor);
 
-  // FLOOR grid stripe pattern
+  // Skip the old GridHelper · circuit texture replaces it. Keep a faint outline grid for navigation.
   const gridLines = new THREE.GridHelper(20, 10, accent, 0x1a2540);
-  gridLines.material.transparent = true; gridLines.material.opacity = 0.32;
+  gridLines.material.transparent = true; gridLines.material.opacity = 0.10;
   gridLines.position.y = 0.01;
   officeScene.add(gridLines);
 
@@ -1509,15 +1616,25 @@ function buildOfficeScene(agency){
       officeScene.add(cable);
     }
 
-    // (5) DESK PARTITION · low-poly side wall between desks (so the room reads as a real bullpen)
+    // (5) DESK PARTITION · v4.5.0 · proper GLASS read with strong transmission + emissive frame border
     if (col < cols - 1) {
+      // The glass panel itself
       const partition = new THREE.Mesh(
-        new THREE.BoxGeometry(0.04, 0.55, 1.0),
-        new THREE.MeshPhysicalMaterial({color:0x0a1226, metalness:0.5, roughness:0.5, transparent:true, opacity:0.85, transmission:0.3})
+        new THREE.BoxGeometry(0.05, 0.75, 1.05),
+        new THREE.MeshPhysicalMaterial({color:0xaaccff, metalness:0.05, roughness:0.05, transparent:true, opacity:0.18, transmission:0.85, thickness:0.4, clearcoat:1.0})
       );
-      partition.position.set(dx + deskSpacing/2 - 0.02, 1.0, dz - 0.05);
-      partition.castShadow = true;
+      partition.position.set(dx + deskSpacing/2 - 0.02, 1.05, dz - 0.05);
       officeScene.add(partition);
+      // Emissive cyan frame border (top + bottom edges glow)
+      const frameTop = new THREE.Mesh(
+        new THREE.BoxGeometry(0.06, 0.03, 1.05),
+        new THREE.MeshBasicMaterial({color: accent, transparent:true, opacity:0.85})
+      );
+      frameTop.position.set(dx + deskSpacing/2 - 0.02, 1.42, dz - 0.05);
+      officeScene.add(frameTop);
+      const frameBot = frameTop.clone();
+      frameBot.position.set(dx + deskSpacing/2 - 0.02, 0.68, dz - 0.05);
+      officeScene.add(frameBot);
     }
 
     // (6) UNDER-DESK TRASH BIN · classic SimCity micro-detail
@@ -1529,6 +1646,73 @@ function buildOfficeScene(agency){
       bin.position.set(dx + 0.65, 0.10, dz + 0.25);
       bin.castShadow = true;
       officeScene.add(bin);
+    }
+
+    // v4.5.0 GREEBLE EXPANSION (Gemini blueprint: real desk clutter · coffee mugs visible on monitors)
+    // (7) COFFEE MUG on every other desk · white cylinder + dark handle
+    if (i % 2 === 0) {
+      const mug = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.07, 0.06, 0.13, 12),
+        new THREE.MeshPhysicalMaterial({color:0xffffff, metalness:0.1, roughness:0.45})
+      );
+      mug.position.set(dx - 0.55, 0.89, dz - 0.10);
+      mug.castShadow = true;
+      officeScene.add(mug);
+      // Coffee inside (dark surface)
+      const coffee = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.065, 0.065, 0.01, 12),
+        new THREE.MeshBasicMaterial({color: 0x3a1f10})
+      );
+      coffee.position.set(dx - 0.55, 0.955, dz - 0.10);
+      officeScene.add(coffee);
+      // Steam wisp (tiny emissive sphere)
+      const steam = new THREE.Mesh(
+        new THREE.SphereGeometry(0.04, 8, 8),
+        new THREE.MeshBasicMaterial({color: 0xffffff, transparent:true, opacity:0.25})
+      );
+      steam.position.set(dx - 0.55, 1.10, dz - 0.10);
+      officeScene.add(steam);
+    }
+
+    // (8) PAPER STACK on alternate desks
+    if (i % 2 === 1) {
+      const paper = new THREE.Mesh(
+        new THREE.BoxGeometry(0.22, 0.04, 0.30),
+        new THREE.MeshStandardMaterial({color:0xfafaff, emissive:0xffffff, emissiveIntensity:0.06})
+      );
+      paper.position.set(dx + 0.55, 0.84, dz - 0.05);
+      paper.castShadow = true;
+      officeScene.add(paper);
+      // A single sticky note glow
+      const sticky = new THREE.Mesh(
+        new THREE.BoxGeometry(0.10, 0.005, 0.10),
+        new THREE.MeshBasicMaterial({color: 0xf5c542, transparent:true, opacity:0.85})
+      );
+      sticky.position.set(dx + 0.55, 0.862, dz - 0.05);
+      officeScene.add(sticky);
+    }
+
+    // (9) DESK LAMP on every 4th desk · arched arm + emissive bulb
+    if (i % 4 === 1) {
+      const lampBase = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.08, 0.10, 0.04, 10),
+        new THREE.MeshStandardMaterial({color:0x202838, metalness:0.7})
+      );
+      lampBase.position.set(dx + 0.55, 0.84, dz + 0.30);
+      officeScene.add(lampBase);
+      const lampArm = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.015, 0.015, 0.32, 8),
+        new THREE.MeshStandardMaterial({color:0x202838, metalness:0.8})
+      );
+      lampArm.position.set(dx + 0.55, 0.99, dz + 0.30);
+      lampArm.rotation.z = Math.PI / 8;
+      officeScene.add(lampArm);
+      const bulb = new THREE.Mesh(
+        new THREE.SphereGeometry(0.055, 10, 10),
+        new THREE.MeshBasicMaterial({color: 0xfff5c0})
+      );
+      bulb.position.set(dx + 0.46, 1.13, dz + 0.30);
+      officeScene.add(bulb);
     }
     // === HUMANOID PERSONNEL FIGURE (replaces the abstract cylinder · Mo 2026-05-17 "build personnel inside") ===
     // Body = capsule (cylinder + sphere-head) · base ring · holographic glow shell
@@ -1644,18 +1828,15 @@ function buildOfficeScene(agency){
     ring.rotation.x = -Math.PI/2;
     officeScene.add(ring);
 
-    // TRACK A: floating HUD sprite · v4.4.9 fix · adjacent-agent overlap was clipping labels
-    // (Mo screenshots showed "[T-01] Systems Architect" colliding into "[T-02] Engine Scripting Node")
-    // Solution: SHRINK label width 3.4→2.2 · stagger Y by column so col 0+2 sit higher than col 1+3
-    // Canvas stays generous (320×96) for the 3-line layout (ID · ROLE · STATUS)
+    // TRACK A: v4.5.0 SINGLE-LINE HUD label · matches Gemini blueprint `[A-04 | Engineering Sentinel | MOVING]`
+    // Single pipe-separated line · thin sprite (3.2 × 0.32) · Y-stagger still applied so neighbors clear
     const labelCanvas = document.createElement('canvas');
-    labelCanvas.width = 320; labelCanvas.height = 96;
+    labelCanvas.width = 512; labelCanvas.height = 56;
     const lblTex = new THREE.CanvasTexture(labelCanvas);
     const spriteMat = new THREE.SpriteMaterial({map: lblTex, transparent: true, depthTest: false});
     const sprite = new THREE.Sprite(spriteMat);
-    sprite.scale.set(2.2, 0.66, 1);   // 35% narrower so col-neighbors don't overlap
-    // Y-stagger by column to prevent same-row labels from colliding when seen from camera angle
-    const labelY = 2.20 + ((col % 2) * 0.55);
+    sprite.scale.set(3.2, 0.36, 1);   // wide + thin · matches blueprint aesthetic
+    const labelY = 2.25 + ((col % 2) * 0.50);
     sprite.position.set(dx, labelY, dz + 0.55);
     sprite.renderOrder = 500;
     officeScene.add(sprite);
@@ -2316,10 +2497,8 @@ let officeCamRadius = 18, officeCamAngle = {y: Math.PI/4, x: Math.PI/4.2}, offic
 
 // TRACK A · canvas-texture HUD sprite painter (per Gemini round-6)
 function renderAgentLabel(ag){
-  // v4.4.9 · 3-line layout with auto-shrink per line + slim left accent bar
-  // Top line: bold ID badge (always fits 320px canvas)
-  // Middle: role name auto-shrunk to fit
-  // Bottom: STATUS + activity short
+  // v4.5.0 · SINGLE-LINE HUD label matching Gemini blueprint
+  // Format: `[A-04 | Engineering Sentinel | MOVING]` — colored segments, pipe separators, auto-shrink to fit
   const c = ag.labelCanvas;
   const ctx = c.getContext('2d');
   const w = c.width, h = c.height;
@@ -2327,42 +2506,51 @@ function renderAgentLabel(ag){
   // Obsidian glass background
   ctx.fillStyle = 'rgba(11, 17, 32, 0.94)';
   ctx.fillRect(0, 0, w, h);
-  // Border · color by state · accent bar on the left
+  // Border · color by state · left accent stripe
   const border = ag.state === 'PROCESSING' ? '#ffffff' : '#00e4ff';
   ctx.strokeStyle = border;
   ctx.lineWidth = 2;
   ctx.strokeRect(1, 1, w-2, h-2);
   ctx.fillStyle = border;
-  ctx.fillRect(0, 0, 6, h);  // left accent stripe
+  ctx.fillRect(0, 0, 6, h);
 
-  // LINE 1 · ID badge · bold · always one-line
-  ctx.font = 'bold 22px "JetBrains Mono", monospace';
-  ctx.fillStyle = '#ffffff';
-  ctx.fillText(`[${ag.id}]`, 14, 28);
-
-  // LINE 2 · role name · auto-shrink to fit on its own line (no overflow into next agent)
-  let roleSize = 17;
-  ctx.font = `bold ${roleSize}px "Space Grotesk", sans-serif`;
-  while (ctx.measureText(ag.name).width > w - 18 && roleSize > 10) {
-    roleSize -= 1;
-    ctx.font = `bold ${roleSize}px "Space Grotesk", sans-serif`;
+  // SINGLE LINE · build segments: [ID] | RoleName | STATE
+  // Determine an appropriate font size that fits the full line
+  const stateForLabel = (ag.breakState && ag.breakState !== 'seated') ? 'MOVING' : ag.state;
+  const idSeg = '[' + ag.id + ']';
+  const roleSeg = ag.name;
+  const stateSeg = stateForLabel;
+  const sep = '  |  ';
+  let fontSize = 26;
+  ctx.font = `bold ${fontSize}px "JetBrains Mono", monospace`;
+  while (ctx.measureText(idSeg + sep + roleSeg + sep + stateSeg).width > w - 24 && fontSize > 12) {
+    fontSize -= 1;
+    ctx.font = `bold ${fontSize}px "JetBrains Mono", monospace`;
   }
-  ctx.fillStyle = '#e0eaff';
-  ctx.fillText(ag.name, 14, 56);
-
-  // LINE 3 · STATUS pill + activity
-  ctx.font = 'bold 11px "JetBrains Mono", monospace';
-  const statusColor = ag.state === 'PROCESSING' ? '#ffffff' : '#43e6a1';
-  ctx.fillStyle = statusColor;
-  ctx.fillText(ag.state, 14, 78);
-  // Task text · auto-truncate with ellipsis
-  let task = (ag.currentTask || '');
-  ctx.font = '11px "JetBrains Mono", monospace';
-  ctx.fillStyle = '#9bb0d4';
-  const taskX = 14 + ctx.measureText(ag.state + '  ').width + 10;
-  while (ctx.measureText(task).width > (w - taskX - 8) && task.length > 4) task = task.slice(0, -1);
-  if (task.length < (ag.currentTask || '').length) task = task.slice(0, -1) + '…';
-  ctx.fillText(task, taskX, 78);
+  const baselineY = h / 2 + fontSize * 0.35;
+  let x = 14;
+  // ID · cyan
+  ctx.fillStyle = '#00e4ff';
+  ctx.fillText(idSeg, x, baselineY);
+  x += ctx.measureText(idSeg).width;
+  // separator · muted
+  ctx.fillStyle = '#5a6580';
+  ctx.fillText(sep, x, baselineY);
+  x += ctx.measureText(sep).width;
+  // role · bright white
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText(roleSeg, x, baselineY);
+  x += ctx.measureText(roleSeg).width;
+  // separator
+  ctx.fillStyle = '#5a6580';
+  ctx.fillText(sep, x, baselineY);
+  x += ctx.measureText(sep).width;
+  // state · color by state
+  const stateColor = stateForLabel === 'PROCESSING' ? '#ffffff'
+                   : stateForLabel === 'MOVING'     ? '#f5c542'
+                                                    : '#43e6a1';
+  ctx.fillStyle = stateColor;
+  ctx.fillText(stateSeg, x, baselineY);
 
   ag.lblTex.needsUpdate = true;
 }
@@ -2484,6 +2672,75 @@ function enterOffice(slug){
       }
     }
   }, 60);
+}
+
+// === v4.5.0 · SIDEBAR HUD SPARKLINES (Skill #25 · Continuity Sentinel + Anatomical Auditor live waveforms) ===
+function paintSparkline(canvasId, color, phaseOffset){
+  const c = document.getElementById(canvasId); if (!c) return;
+  const ctx = c.getContext('2d'); const w = c.width, h = c.height;
+  ctx.clearRect(0, 0, w, h);
+  // Background grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)'; ctx.lineWidth = 1;
+  for (let x = 0; x < w; x += 26){ ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+  for (let y = 0; y < h; y += 9){ ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+  // Animated waveform
+  const t = performance.now() / 1000;
+  ctx.strokeStyle = color; ctx.lineWidth = 2;
+  ctx.shadowColor = color; ctx.shadowBlur = 6;
+  ctx.beginPath();
+  for (let x = 0; x < w; x += 2){
+    const u = x / w;
+    const v = Math.sin(u * Math.PI * 6 + t * 1.4 + phaseOffset) * 0.30
+            + Math.sin(u * Math.PI * 14 + t * 2.7 + phaseOffset) * 0.18
+            + Math.sin(u * Math.PI * 22 + t * 0.7 + phaseOffset) * 0.10;
+    const y = h/2 + v * (h/2 - 4);
+    if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+}
+let sparkRAF = null;
+function startSparklines(){
+  function loop(){
+    paintSparkline('sentinelSpark', '#00e4ff', 0);
+    paintSparkline('auditorSpark',  '#43e6a1', 1.7);
+    // Update working-count chip
+    const workingN = officeAgents.filter(a => a.state === 'PROCESSING' || (a.breakState && a.breakState !== 'seated')).length;
+    const wEl = document.getElementById('chipWorkingN'); if (wEl) wEl.textContent = workingN;
+    sparkRAF = requestAnimationFrame(loop);
+  }
+  if (sparkRAF) cancelAnimationFrame(sparkRAF);
+  loop();
+}
+setTimeout(startSparklines, 200);
+
+// v4.5.0 control-bar buttons (matches Gemini blueprint)
+function pulseAllAgents(){
+  officeAgents.forEach(ag => {
+    if (ag.core && ag.core.material && ag.core.material.emissive){
+      const orig = ag.core.material.emissive.getHex();
+      ag.core.material.emissive.setHex(0xffffff);
+      ag.core.material.emissiveIntensity = 1.5;
+      setTimeout(() => { ag.core.material.emissive.setHex(orig); ag.core.material.emissiveIntensity = 0.85; }, 600);
+    }
+  });
+  // Pulse the sentinel/auditor badges
+  const sb = document.getElementById('sentinelBadge'); if (sb){ const o = sb.style.background; sb.style.background = 'rgba(255,255,255,.4)'; setTimeout(()=>sb.style.background = o, 600); }
+}
+function resetCameraView(){
+  if (!officeCamera) return;
+  officeCamRadius = 18;
+  officeCamAngle = {y: Math.PI/4, x: Math.PI/4.2};
+  officeCamTarget = new THREE.Vector3(0, 0.5, 0);
+  userTouchedOfficeCam = false;
+  officeCamera.zoom = 1.0;
+  officeCamera.updateProjectionMatrix();
+}
+function clearDropzoneFiles(){
+  pendingDropFiles = [];
+  refreshDropList();
+  const status = document.getElementById('dropzoneStatus'); if (status) status.textContent = 'cleared';
+  setTimeout(() => { if (status) status.textContent = ''; }, 1500);
 }
 
 // === v4.4.7 · EMPIRE NETWORK BRIDGE · in-scene cross-department teleport (Skill #19) ===
