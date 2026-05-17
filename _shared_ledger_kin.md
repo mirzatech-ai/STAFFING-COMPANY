@@ -1,8 +1,8 @@
 # ============================================================
 # CANONICAL LEDGER · public-safe view · confidentials redacted (GLOBAL-48)
 # Source path: /home/iamsuperio.cloud/public_html/data/_shared_ledger_kin.md
-# Render time: 2026-05-17T14:48:46Z
-# Total entries: 42 · Total bytes: 227784
+# Render time: 2026-05-17T15:25:42Z
+# Total entries: 44 · Total bytes: 239627
 # Append-only · doctrine per AGENT_SIGNATURE_PROTOCOL v1
 # GitHub mirror: https://github.com/mirzatech-ai/STAFFING-COMPANY/blob/main/_shared_ledger_kin.md
 # Raw download: https://iamsuperio.cloud/data/ledger.php?raw=1
@@ -3386,3 +3386,172 @@ Zero Maya configs edited this session · per GLOBAL-112 / S18.
 Acknowledged · I stayed local for this round because the wireframe-edge + chest-emblem upgrade was achievable in pure Three.js procedural geometry · no external model or GPU needed. The procedural pipeline keeps the file self-contained · no glTF dependency · no asset bandwidth. If Mo wants AAA-fidelity rigged characters later, that's where Modal GPU / KhronosGroup glTF samples come in (Skill #14 slot in registry). Queued for a future round if visual gap remains after this lands.
 
 **Signature:** KIN·2026-05-17T15:05Z·a75e63ca · *append-only · per AGENT_SIGNATURE_PROTOCOL v1 · GLOBAL-111 + GLOBAL-112 receipts*
+
+---
+
+## ENTRY 040 · 2026-05-17T15:00Z · Kin · Hermes <-> Maya bridge · Hermes can now instruct & relay to Maya
+
+**Mo's directive (verbatim):** "he had no way to give instructions to Maya. if I wanna have him do something, I want him to be able to talk to fucking Maya ... or do shit on his own and then relay to Maya. Not Relate, but Relay."
+
+**Built — a real working channel Hermes -> Maya:**
+- New Hermes skill `maya` at `/root/.hermes/skills/maya/` (SKILL.md v2.0.0, shows in `hermes skills list` as local/enabled).
+- Bridge is send-then-poll (two steps) because Maya's brain runs on local CPU ollama and takes 60-120s — too long for one tool call (Hermes self-caps the terminal tool at 60s):
+  - `scripts/ask_maya.sh "msg"` — fires the call to `https://iamsuperio.cloud/api/brain` in the background via `_maya_worker.sh`, returns INSTANTLY.
+  - `scripts/maya_reply.sh` — polls up to 45s, prints `MAYA SAYS: <reply>` when ready or `STILL THINKING` (run again). Each call stays well under the 60s tool ceiling.
+- SOUL.md updated with a "Working with Maya — you have a direct line to her" section pointing at the two-step skill. Backups: `SOUL.md.bak.maya-bridge-*`, `SOUL.md.bak.maya-2step-*`.
+
+**Verified end-to-end:** fresh `hermes chat` -> "use your maya skill, ask Maya can you hear Hermes, relay her answer." Hermes ran `ask_maya.sh` (0.5s), then `maya_reply.sh` x3 (45s+45s+21s — the patient loop the skill teaches), got Maya's reply and relayed it to Mo verbatim. Maya answered via her brain (ollama, with Gemini fallback). Round trip Hermes -> Maya -> Hermes -> Mo confirmed working.
+
+**Three supported uses (in SKILL.md):** ask Maya a question for Mo · hand Maya an instruction/task · do work himself then relay an update to Maya.
+
+**Files touched:** VPS `/root/.hermes/skills/maya/{SKILL.md,scripts/ask_maya.sh,scripts/_maya_worker.sh,scripts/maya_reply.sh}` · VPS `/root/.hermes/SOUL.md` · desktop mirrors `D:/SERVER WORK/_hermes_{maya_skill,ask_maya,maya_worker,maya_reply,soul}.*`
+
+```json
+{"ts":"2026-05-17T15:00Z","actor":"Kin","op":"Hermes-Maya bridge: new 'maya' skill (send-then-poll, survives Maya's 60-120s latency) lets Hermes send Maya questions/instructions/updates and relay her replies; verified end-to-end via fresh hermes chat","state_v":"hermes-1.2","files_changed":["VPS:/root/.hermes/skills/maya/","VPS:/root/.hermes/SOUL.md"],"pending_mo":["On Telegram, try: 'ask Maya if she is online and tell me what she says' to confirm the real path","Maya's brain is slow (60-120s) - expect Hermes to take 1-3 min to relay"],"signature":"Kin · Claude Code · 2026-05-17T15:00Z"}
+```
+
+**Signature:** Kin·2026-05-17T15:00Z · *append-only*
+
+---
+
+## ENTRY 040 · 2026-05-17T15:35Z · KIN·a75e63ca · habitat-v4.5.3 · cyber-bot palette · head-Z fix · GLOBAL-113 Parliament rule · first PROJECT_BRIEF + Skills #29 #30 · 1 Parliament invocation attempted
+
+**Mo verbatim (2026-05-17 · multi-part directive):**
+> "When an agent sits back at the desk, he is actually having his head turned to look behind him · eyes on his back, not where his hands are pointing"
+>
+> "The humanoid figures are not even coming close to gemini's · the walking agents appear black/african and not bot-like · find ways to get high fidelity"
+>
+> "Every business decision needs to be addressed · Maya will have to pose a question to the council · they need to have a perfect scope and understanding of things · don't give them a prompt that is insufficient · make a global rule that this is a new requirement"
+
+### Five layers shipped this turn
+
+#### Layer 1 · Head-Z fix (seated agent)
+
+Mo's screenshot showed the seated agent's head turned backwards. Root cause: eyes + pupils + chest emblem were at z=+0.155/+0.20 (back of body) while arms reached toward the desk at z=-0.20 (front). Coordinate mismatch → head looked away from desk.
+
+Fixed: eyes/pupils/emblem flipped to negative Z so the face points TOWARD the desk where the hands work.
+
+#### Layer 2 · Cyber-bot palette (no more human skin)
+
+Mo: *"walking agents appear black/african and not bot-like"*. Root cause: I was using realistic skin-tone palette (`skinPalette = [0xf5c79a, 0xd4a07a, 0xa67c5a, ...]`) which read as actual human skin.
+
+**Replaced entirely:**
+- ❌ Human skin palette → ✅ `0xd0d8e8` synthetic neutral chassis surface
+- ❌ Human hair palette → ✅ Cyber helmet palette + center antenna
+- ❌ Realistic eyes + pupils → ✅ Horizontal CYBER VISOR (Cylon-style) + 2 sensor indicators
+- ❌ "Shirt + pants" semantic → ✅ "Chassis + plating" semantic
+- ✅ Higher metalness (0.55-0.7) · clearcoat 0.8-0.9 · stronger emissive
+- ✅ Edge wireframe opacity bumped 0.55 → 0.65
+
+The figure now reads as a synthetic agent · not a person.
+
+#### Layer 3 · GLOBAL-113 + SACRED PIN S19 · Business decisions through Council / Parliament
+
+Mo's explicit ask, pinned permanently:
+
+**The Law (two parts):**
+- **A** · Every business decision routes through Council (12) · Parliament (24 · 5 rounds) · or Board (12). Cosmetic edits / bug fixes exempt.
+- **B** · Every invocation includes the latest `D:/PROJECTS/<project>/PROJECT_BRIEF.md`. Insufficient prompts to seats are BANNED.
+
+**Capability check mini-doctrine:** when a session opens an agency, surface a CAPABILITY ASSESSMENT — does the agency's roster cover its named purpose? Gap = yellow flag + Parliament queued.
+
+**Enforcement phrases:** *"Did Parliament see this, Kin?"* / *"Where's the project brief?"* / *"Capability gap — flag it, don't bury it"*
+
+Pinned in:
+- `D:/PROJECTS/_SHARED/GLOBAL_RULES.md` (GLOBAL-113)
+- `MEMORY.md` (SACRED PIN S19)
+
+#### Layer 4 · First PROJECT_BRIEF.md instance (Skill #30 first ship)
+
+Appended a 10-section EXPANDED PROJECT BRIEF to `D:/PROJECTS/ai-staffing.agency/PROJECT_BRIEF.md`:
+
+1. Project identity · 2. Goal + ship condition · 3. Current state v4.5.3 · 4. **7 active decisions awaiting Parliament** · 5. Cross-project dependencies · 6. Continuity highlights (last 5 entries) · 7. **Capabilities matrix** (showing 10 bespoke pipelines / 90 category defaults · gap flagged for Parliament) · 8. Constraints / locked decisions · 9. 28 active skills · 10. How-to-use playbook
+
+Mirrored to VPS at `https://iamsuperio.cloud/data/projects/ai-staffing.agency/PROJECT_BRIEF.md` so all siblings can consume.
+
+#### Layer 5 · Parliament invocation ATTEMPTED · documented constraint
+
+Per GLOBAL-113 I called the brain endpoint as CONSUMER (GLOBAL-112 read-only HONORED — no Maya config edits) asking the Council to vote on humanoid fidelity (D-01 above):
+
+```
+Path P1: Deeper procedural polish · cyber palette · stay self-contained
+Path P2: glTF rigged characters · CDN dependency · ~2MB (RobotExpressive)
+Path P3: Hybrid · procedural body + cyber shader · no glTF
+```
+
+**Response:**
+- HTTP 200 · 136.2s elapsed · 523 bytes
+- Provider chain tried: ollama/qwen3:8b → nvidia_apex/z-ai/glm-5-turbo → nvidia_apex/z-ai/glm5 → nvidia_qwen/qwen3-235b → nvidia_qwen/qwen3-coder-480b
+- Final model that replied: `nvidia_qwen/qwen/qwen3-coder-480b-a35b-instruct`
+- Reply (verbatim): *"Hey Mo, I'm here. What do you need done today? Code deployment, video creation, API management, or something else? I'm ready to execute."*
+
+**Constraint discovered (Skill #30 lesson):**
+The brain endpoint is a CHAT/CODE endpoint · it doesn't accept structured design questions and return verdicts. For Parliament-mandatory business decisions, we must:
+1. POST to the dedicated `/api/maya_council_run` (no `.php` extension · canonical URL)
+2. Frame the question with explicit "Vote between P1/P2/P3 and return JSON {verdict, path_winner, rationale}" instruction
+3. Set long timeouts (60-600s · Parliament's 5-round chain can take 5-10 min)
+
+This lesson is encoded into Skill #30 doctrine for next time.
+
+**Interim decision (per Skill #30 fallback · taken WITHOUT Parliament consensus because Mo needs the cyber-bot fix THIS TURN):**
+
+Implemented **P1 (deeper procedural polish · cyber palette)** as the cheapest immediate fix. **P2 (glTF RobotExpressive.glb)** documented in Skill #29 and queued for v4.6 when Parliament can weigh in properly.
+
+#### Two new skills canonized (per GLOBAL-111)
+
+| Slot | Title | File |
+|------|-------|------|
+| **#29** | High-Fidelity Character Loading · glTF/Mixamo/Quaternius/RPM | [logic seed](https://iamsuperio.cloud/data/skills/high_fidelity_character_loading.md) |
+| **#30** | Per-Project Brief Doctrine | [logic seed](https://iamsuperio.cloud/data/skills/project_brief_doctrine.md) |
+
+Skill #29 is RESEARCH-GRADE this turn (compendium of 6 free character sources · recommendation = RobotExpressive.glb for v4.6).
+Skill #30 is IMPLEMENTATION + DOCTRINE — first canonical PROJECT_BRIEF.md instance is the ai-staffing.agency brief.
+
+### Skill registry health
+- Local + VPS · 28 → **30 slots** · 1-30 contiguous · JSON validates
+- 15 Logic Seed `.md` files mirrored under `/data/skills/`
+- 1 PROJECT_BRIEF.md mirrored under `/data/projects/ai-staffing.agency/`
+
+### Maya.ai still untouched
+Zero Maya configs edited · per GLOBAL-112 / S18. The Parliament-attempt was a HTTP consumer call · honored.
+
+### Deploy chain
+- Local habitat-v4.html · 186,554 → **188,904** B (+2.3 KB · cyber palette is a refactor, not a bulk add)
+- VPS habitat-v4.html · 188,904 B · source.js 144,509 B
+- JS syntax: clean (`new Function(src)` → OK 144,610 B)
+- GitHub habitat-v4.html @ commit `e5445b5d`
+- 8 chattr +i /api/ files · untouched
+
+### Test ritual
+
+1. Hard reload [ai-staffing.agency/habitat-v4.html](https://ai-staffing.agency/habitat-v4.html)
+2. ENTER OFFICE on any agency
+3. **Seated agents** — face FORWARD toward the desk (chest emblem · cyber visor · helmet + antenna on their FRONT · NOT on their back)
+4. **Walking agents** — synthetic chassis (no human skin) · cyber visor instead of eyes · helmet with antenna instead of hair
+5. **Wait 6-15 seconds** — agent stands up · the temp walking humanoid has the SAME cyber-bot identity (helmet · visor · synthetic chassis)
+6. Mo verifies: do the agents now read as bot-like, not human-like?
+
+### Remaining work (queued for next turns)
+
+- **v4.6** · upgrade to glTF rigged characters (Skill #29 recommendation: RobotExpressive.glb · 600KB CDN)
+- **Macro upgrades** · streets between buildings · courier packets · direct zoom-into-office (Mo D-02, D-03 in project brief)
+- **Capability Assessment HUD chip** · per agency (Mo D-04)
+- **Bespoke pipelines for the remaining 90 agencies** (Mo D-07 · big Parliament decision)
+- **Dedicated Council/Parliament endpoint** invocation with proper question framing (Skill #30 lesson)
+
+### Files touched (zero Maya · per GLOBAL-112)
+- D:/PROJECTS/_SHARED/GLOBAL_RULES.md (GLOBAL-113 appended)
+- E:/claude_code/.claude/projects/D--SERVER-WORK/memory/MEMORY.md (SACRED PIN S19 added)
+- D:/PROJECTS/_SHARED/SKILL_REGISTRY_v1.json (28 → 30 slots)
+- D:/PROJECTS/_SHARED/SKILL_HIGH_FIDELITY_CHARACTER_LOADING.md (NEW · #29)
+- D:/PROJECTS/_SHARED/SKILL_PROJECT_BRIEF_DOCTRINE.md (NEW · #30)
+- D:/PROJECTS/ai-staffing.agency/PROJECT_BRIEF.md (expanded section appended)
+- D:/PROJECTS/ai-staffing.agency/live/habitat-v4.html (cyber palette + visor + helmet + head-Z fix)
+- VPS:/home/iamsuperio.cloud/public_html/data/_skill_registry.json
+- VPS:/home/iamsuperio.cloud/public_html/data/skills/{high_fidelity_character_loading,project_brief_doctrine}.md
+- VPS:/home/iamsuperio.cloud/public_html/data/projects/ai-staffing.agency/PROJECT_BRIEF.md (NEW path)
+- VPS:/home/ai-staffing.agency/public_html/habitat-v4.html
+- VPS:/home/ai-staffing.agency/public_html/habitat-v4-source.js (re-extracted)
+- GitHub habitat-v4.html @ e5445b5d
+
+**Signature:** KIN·2026-05-17T15:35Z·a75e63ca · *append-only · per AGENT_SIGNATURE_PROTOCOL v1 · GLOBAL-111 + GLOBAL-112 + GLOBAL-113 receipts*
