@@ -1,8 +1,8 @@
 # ============================================================
 # CANONICAL LEDGER · public-safe view · confidentials redacted (GLOBAL-48)
 # Source path: /home/iamsuperio.cloud/public_html/data/_shared_ledger_kin.md
-# Render time: 2026-05-17T13:59:25Z
-# Total entries: 39 · Total bytes: 208853
+# Render time: 2026-05-17T14:35:31Z
+# Total entries: 40 · Total bytes: 217347
 # Append-only · doctrine per AGENT_SIGNATURE_PROTOCOL v1
 # GitHub mirror: https://github.com/mirzatech-ai/STAFFING-COMPANY/blob/main/_shared_ledger_kin.md
 # Raw download: https://iamsuperio.cloud/data/ledger.php?raw=1
@@ -3123,3 +3123,129 @@ Zero Maya configs touched this session. Pure staffing-agency surface work. Per S
 - GitHub habitat-v4.html @ 4c60514d
 
 **Signature:** KIN·2026-05-17T14:18Z·a75e63ca · *append-only · per AGENT_SIGNATURE_PROTOCOL v1 · GLOBAL-111 + GLOBAL-112 receipts*
+
+---
+
+## ENTRY 038 · 2026-05-17T14:40Z · KIN·a75e63ca · habitat-v4.5.1 · CLEANUP · DOM labels · waypoint routing · Mo's 6 complaints all fixed
+
+**Mo verbatim (2026-05-17):** *"Please remove the continuity sentinel · UI is cluttered · I can't read this · these agents are walking through the table · only desk agents should walk · third time asking · clean it up"*
+
+### Six complaints · six fixes
+
+| # | Mo's complaint | Fix |
+|---|---|---|
+| 1 | "Continuity Sentinel · only for video agency · contradicts continuity I've been building" | **REMOVED** both `sentinelPanel` and `auditorPanel` from HTML + JS · `paintSparkline`, `pulseAllAgents`, `resetCameraView`, `clearDropzoneFiles` all stripped · sidebar empty |
+| 2 | "Pulse all / Reset cam have moved · don't even need them" | **REMOVED** all 3 control buttons · clean sidebar |
+| 3 | "Agents walking straight through the conference table" | **NEW SKILL #26 Obstacle-Aware Waypoint Pathfinding** · `computeOfficePath()` routes around the conf table via perimeter aisles · 8-sample line-crossing test · 1-4 waypoints per trip |
+| 4 | "Too many squares on the floor · roll back" | **ROLLED BACK** the dense circuit-trace texture · floor is now clean dark slate + thin grid (opacity 0.28) · the way it was before |
+| 5 | "Text not visible · can't read it · only you can because you know what's in there" | **NEW SKILL #27 DOM-Projected Labels** · agent labels now render as DOM divs OUTSIDE the WebGL canvas · bloom can't wash them out · `vector.project(camera)` positions them each frame · readable at any zoom |
+| 6 | "Animated figures are not desk agents standing up · third time asking" | **REMOVED** the 4 separate corner-spawned patrol walkers · the ONLY moving figures are now the desk agents themselves doing the break routine · first break in 6-15s (was 18-48s) so motion is visible quickly |
+
+### Code-level changes to `habitat-v4.html` (191,600 → **180,799** bytes · NET -10.8 KB)
+
+#### Removed (~17 KB)
+- `<div id="sentinelPanel">` block (sparkline canvas + stats grid)
+- `<div id="auditorPanel">` block (sparkline canvas + stats grid)
+- `<div id="controlButtons">` block (3 buttons)
+- `paintSparkline()` function (24 LOC)
+- `startSparklines()` function
+- `pulseAllAgents()` / `resetCameraView()` / `clearDropzoneFiles()` functions
+- Dense circuit-trace floor texture generator (~58 LOC of canvas drawing)
+- Patrol-walker spawn block (4 `spawnWorker()` calls + initial target picks)
+- Patrol-walker animation block in render loop (~50 LOC)
+
+#### Added (~6 KB)
+- `<div id="agentLabelLayer">` container (sits OUTSIDE the WebGL canvas)
+- `computeOfficePath(from, to)` · 25 LOC obstacle-aware pathfinding (Skill #26)
+- DOM label create-per-agent (replaces sprite + canvas + texture)
+- `updateAgentLabelPositions()` · screen-projection updater · hooked into the animate loop before render
+- `renderAgentLabel()` rewritten to update DOM div innerHTML (instead of canvas + texture upload)
+- `startWorkingChipUpdate()` · slimmer than the deleted `startSparklines()` · just updates the Working chip
+- Desk-break routine now consumes `agent.breakPath` waypoint array · advances `breakPathIdx` per segment
+
+### What you'll see in v4.5.1
+
+**Clean canvas:**
+- No sentinel/auditor sidebars
+- No PULSE/RESET/AUTO-DELETE buttons
+- Only the Dropzone panel on the right + Dossier panel bottom-right + Connector pill (collapsed) bottom-left
+- Top bar still has the metric chips (those are useful · they stayed)
+
+**Floor:**
+- Dark slate · thin cyan grid (10×10) at 28% opacity
+- The L-shape cable conduits + flowing wire packets still visible (they were the GOOD floor detail)
+- No more 60-trace clutter · no chip pads · no resistor silhouettes
+
+**Labels (the big readability fix):**
+- DOM divs above each agent · obsidian glass background `rgba(8,12,24,.95)` · cyan border with 5px left accent stripe
+- Format `[T-01] | Systems Architect | IDLE` with color-coded segments: ID cyan · separator gray · role white · state green/gold/white
+- Crisp at any zoom · bloom can't touch them
+- Auto-fade with depth (far labels at 55% opacity · near labels 100%)
+- Culled when behind camera
+
+**Movement:**
+- 4 desk-bound agents · seated by default
+- Every 6-15s, ONE (max 2 at a time) stands up · hides seated bodyGroup · spawns a temp humanoid walker
+- Walker follows the waypoint path: desk → front-aisle (z=3.0) → side-aisle if conference is in the way → prop
+- Arrives at water cooler / conference / coffee / printer / whiteboard / plant
+- Dwells with prop-specific time
+- Reverse waypoint path back to desk · sits down (despawn + bodyGroup reshown)
+- HUD label flips `IDLE` → `MOVING` → `IDLE` cleanly
+- **No more clipping through the conference table.** Path goes around the side aisle.
+
+### Two new skills canonized (per GLOBAL-111)
+
+| Slot | Title | File |
+|------|-------|------|
+| **#26** | Obstacle-Aware Waypoint Pathfinding | [logic seed](https://iamsuperio.cloud/data/skills/obstacle_aware_pathfinding.md) |
+| **#27** | DOM-Projected 3D Labels (no bloom wash-out) | [logic seed](https://iamsuperio.cloud/data/skills/dom_projected_labels.md) |
+
+Skill #26 includes: 8-sample line-crossing test · perimeter aisle waypoint emit · when-to-upgrade-to-A* guidance · 5 game-dev use cases.
+Skill #27 includes: full DOM/sprite comparison table · perf budget (~200 visible labels) · cleanup-on-rebuild pattern · 5 game-dev use cases.
+
+### Skill registry health
+- Local + VPS · 25 → **27 slots** · 1-27 contiguous · JSON validates
+- 12 Logic Seed `.md` files now mirrored under `/data/skills/`
+
+### Maya.ai lockdown honored
+Zero Maya configs touched · pure staffing-agency surface · per S18 GLOBAL-112.
+
+### Deploy trail
+- Local habitat-v4.html · 191,600 → **180,799** B (NET -10.8 KB · cleanup)
+- VPS habitat-v4.html · 180,799 B · source.js 136,442 B
+- JS syntax: clean (`new Function(src)` → OK 136,543 B)
+- Grep validates: 0 occurrences of removed strings · 11 of new
+- GitHub habitat-v4.html @ commit `64917b84`
+- 8 chattr +i /api/ files · untouched
+
+### Test ritual
+
+1. Hard reload [ai-staffing.agency/habitat-v4.html](https://ai-staffing.agency/habitat-v4.html)
+2. ENTER OFFICE on engineering or any agency
+3. **Read the labels** — they should be CRISP DOM text now · obsidian box · cyan accent stripe · `[T-01] | Systems Architect | IDLE` · no bloom blur
+4. **Look at the floor** — dark slate + thin grid · NOT the dense chip-clutter floor from v4.5.0
+5. **Right sidebar** — only the Dropzone (where it used to be) · no sentinel/auditor noise
+6. **Wait 6-15 seconds** — one desk agent stands up · walks via the aisle waypoint route (NOT through the conference table) · arrives at a prop · dwells · walks back via aisle · sits down
+7. **Confirm 2-at-most rule** — never more than 2 agents away simultaneously
+8. **Drop a file** → cascade still fires + inter-agency dispatch still works · break routine pauses for the agent that's PROCESSING
+
+### Mo's "load superpowers · look for skills that will deliver" directive
+Per GLOBAL-109 (GitHub scan rule), candidate repos for future humanoid fidelity upgrade (queued · not loaded this turn):
+- `mrdoob/three.js` examples · skinned mesh + GLB loader patterns
+- `donmccurdy/three-pathfinding` · proper navmesh A* for when this scene grows
+- `pmndrs/three-stdlib` · selective bloom passes (label exclusion if we ever want to re-add 3D sprite labels)
+
+If you want, in the next turn I can pull from `three-pathfinding` to upgrade waypoint routing into proper navmesh A* for crowded scenes. For an office with 4-8 agents and 6 props, the rectangle-and-aisle approach is sufficient.
+
+### Files touched (zero Maya · per GLOBAL-112)
+- D:/PROJECTS/ai-staffing.agency/live/habitat-v4.html (191,600 → 180,799 B · NET CLEANUP)
+- D:/PROJECTS/_SHARED/SKILL_REGISTRY_v1.json (25 → 27 slots)
+- D:/PROJECTS/_SHARED/SKILL_OBSTACLE_AWARE_PATHFINDING.md (NEW)
+- D:/PROJECTS/_SHARED/SKILL_DOM_PROJECTED_LABELS.md (NEW)
+- VPS:/home/iamsuperio.cloud/public_html/data/_skill_registry.json
+- VPS:/home/iamsuperio.cloud/public_html/data/skills/{obstacle_aware_pathfinding,dom_projected_labels}.md
+- VPS:/home/ai-staffing.agency/public_html/habitat-v4.html
+- VPS:/home/ai-staffing.agency/public_html/habitat-v4-source.js (re-extracted)
+- GitHub habitat-v4.html @ 64917b84
+
+**Signature:** KIN·2026-05-17T14:40Z·a75e63ca · *append-only · per AGENT_SIGNATURE_PROTOCOL v1 · GLOBAL-111 + GLOBAL-112 receipts*
