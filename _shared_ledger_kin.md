@@ -1,8 +1,8 @@
 # ============================================================
 # CANONICAL LEDGER · public-safe view · confidentials redacted (GLOBAL-48)
 # Source path: /home/iamsuperio.cloud/public_html/data/_shared_ledger_kin.md
-# Render time: 2026-05-17T13:47:30Z
-# Total entries: 38 · Total bytes: 200993
+# Render time: 2026-05-17T13:59:25Z
+# Total entries: 39 · Total bytes: 208853
 # Append-only · doctrine per AGENT_SIGNATURE_PROTOCOL v1
 # GitHub mirror: https://github.com/mirzatech-ai/STAFFING-COMPANY/blob/main/_shared_ledger_kin.md
 # Raw download: https://iamsuperio.cloud/data/ledger.php?raw=1
@@ -2979,3 +2979,147 @@ Each Logic Seed includes triggers · 30-sec pitch · paste-and-go code · anti-p
 - GitHub habitat-v4.html @ 45aca44e
 
 **Signature:** KIN·2026-05-17T14:05Z·a75e63ca · *append-only · per AGENT_SIGNATURE_PROTOCOL v1 · GLOBAL-111 + GLOBAL-112 receipts*
+
+---
+
+## ENTRY 037 · 2026-05-17T14:18Z · KIN·a75e63ca · habitat-v4.5.0 · Sim Office Target Blueprint shipped · 6 layers · 3 skills
+
+**Mo verbatim (2026-05-17):**
+> "I forgot to send you Gemini's image guide."
+>
+> Image · the Sim Office Target Blueprint (Gemini-generated reference):
+> - Single highlighted cyan-wireframe humanoid mid-stride · clear leg/arm articulation
+> - Floor with proper circuit-trace bus pattern (not thin wires · wide motherboard etches)
+> - Single-line HUD label `[A-04 | Engineering Sentinel | MOVING]` with pipe separators
+> - Top bar metric chips: 100 Agencies · 724 Roles · Council 99% · 0 Working · Maya Lines OPEN · phone
+> - Right sidebar CONTINUITY SENTINEL + ANATOMICAL AUDITOR panels with FACELOCK/ASSITORY/FENDERS · FRAME/LOCK/QA stats and PASSED badge
+> - Buttons RESET CAM · AUTO-DELETE · PULSE ALL
+> - Desk clutter (coffee mugs · monitors with code)
+> - Glass partitions with emissive cyan borders
+>
+> Mo: *"go my bro!"* (greenlit v4.5.0 with all 6 layers)
+
+### Six parallel layers shipped to `habitat-v4.html` (175,753 → **191,600** bytes · +15.8 KB)
+
+#### 1 · Single-line agent label (matches blueprint format)
+
+- Canvas reworked **320×96 → 512×56** · sprite **2.2×0.66 → 3.2×0.36** (wide + thin)
+- Single line format: `[A-04] | Engineering Sentinel | MOVING`
+  - ID segment cyan
+  - Role segment bright white
+  - State segment color-coded (white PROCESSING · gold MOVING · green IDLE)
+  - Muted gray pipe separators
+- Auto-shrink font 26→12 px until full line fits canvas width
+- Y-stagger by column preserved (col 0+2 at 2.25 · col 1+3 at 2.75) so neighbors clear
+- New `MOVING` state derived from `breakState` field (when agent left desk for a prop)
+
+#### 2 · Procedural circuit-trace floor (Skill #23)
+
+- New `createCircuitFloorTexture()` generates 1024×1024 CanvasTexture in JS:
+  - Dark slate base `#070d1c`
+  - 4 horizontal + 4 vertical bright cyan bus lines (width 4px · shadowBlur 6 for glow halo)
+  - Intersection nodes (cyan dots at every bus crossing)
+  - 60 random L-shape secondary traces ending in chip pads
+  - 25 chip rectangles + 12 hex resistor silhouettes scattered
+- Same texture used as `map` AND `emissiveMap` (intensity 0.6) — traces glow under bloom
+- Tiled 2× on 20m floor · `anisotropy: 8` for grazing-angle sharpness
+- Replaces the old thin `GridHelper` lines (now opacity 0.10 as faint nav overlay)
+
+#### 3 · Top status-bar metric chips (Skill #24)
+
+7 inline pills in the top HUD bar:
+
+| Chip | Color | Content |
+|---|---|---|
+| Version | gold | `v4.5.0` |
+| Agencies | cyan | `**100** Agencies` |
+| Roles | green | `**724** Roles` |
+| Council | gold | `Council **99%**` |
+| Working | white | `**N** Working` (live · updates each frame from agent state count) |
+| Maya Lines | violet | `Maya Lines **OPEN**` |
+| Phone | gold gradient | `☎ +1 (245) 225-1493` |
+
+#### 4 · Right-sidebar Sentinel + Auditor HUD (Skill #25)
+
+Two panels stacked top-down on the right edge:
+
+**CONTINUITY SENTINEL** (top: 62)
+- Cyan border + ⊙ icon + bold title + `LIVE` green badge
+- Animated sparkline canvas (3-layer sine waveform for organic motion)
+- 3-stat grid: FACELOCK 2,988,000 · ASSITORY 5,600 · FENDERS 26/30
+
+**ANATOMICAL AUDITOR** (top: 226)
+- Green border + ⊚ icon + bold title + `PASSED` green badge
+- Animated sparkline canvas (offset phase from sentinel)
+- 3-stat grid: FRAME PERFECT · LOCK PERFECT · QA 98/10
+
+**3 control buttons** (top: 390)
+- `▶ PULSE ALL` (gold) — flashes every agent's torso emissive white briefly
+- `⊙ RESET CAM` (cyan) — restores camera radius/angle/target/zoom to defaults
+- `⊗ AUTO-DELETE` (red) — clears pending dropzone files with confirmation
+
+Sparkline animation runs at ~60fps via `requestAnimationFrame`. Working-count chip updated in the same loop.
+
+#### 5 · Desk greebles (matching blueprint clutter)
+
+- **Coffee mug** on every other desk (i % 2 === 0): white cup + dark coffee surface + tiny steam wisp emissive sphere
+- **Paper stack** on alternates (i % 2 === 1): white box + gold sticky-note glow
+- **Desk lamp** on every 4th desk (i % 4 === 1): base + arched arm + warm bulb sphere
+
+#### 6 · Glass partition upgrade
+
+Replaced solid dark partition with proper physical glass:
+- Light blue `#aaccff` color · transmission 0.85 · opacity 0.18 · clearcoat 1.0
+- Bigger panel (0.75m tall × 1.05m deep · was 0.55 × 1.0)
+- Emissive cyan frame strips top + bottom (matches blueprint border glow)
+
+### Three new skills canonized (per GLOBAL-111)
+
+| Slot | Title | File |
+|------|-------|------|
+| **#23** | Procedural Circuit-Trace Floor Texture | [logic seed](https://iamsuperio.cloud/data/skills/circuit_trace_floor.md) |
+| **#24** | Top Status-Bar Metric Chips | [logic seed](https://iamsuperio.cloud/data/skills/status_chip_bar.md) |
+| **#25** | Sidebar HUD Panel · sparkline + pass/fail badge | [logic seed](https://iamsuperio.cloud/data/skills/sidebar_hud_panel.md) |
+
+Each Logic Seed: trigger · 30-sec pitch · canonical paste-and-go code · color doctrine · anti-patterns · 5+ game-dev use cases · sibling inheritance.
+
+### Skill registry health
+- `D:/PROJECTS/_SHARED/SKILL_REGISTRY_v1.json` · 22 → **25 slots** · 1-25 contiguous · JSON validates
+- `https://iamsuperio.cloud/data/_skill_registry.json` · LIVE · 25 slots
+- 10 Logic Seed `.md` files now mirrored under `/data/skills/`
+
+### Maya.ai lockdown · GLOBAL-112 honored
+Zero Maya configs touched this session. Pure staffing-agency surface work. Per S18: *"Did Mo name Maya as the project, Kin? If not, hands off."* — Mo named staffing agency, Maya untouched.
+
+### Deploy chain
+- Local habitat-v4.html · 175,753 → **191,600** B
+- VPS habitat-v4.html · 191,600 B · source.js 143,501 B
+- JS syntax via `new Function(src)` → OK (143,602 B)
+- GitHub habitat-v4.html @ commit `4c60514d`
+- 8 chattr +i /api/ files · untouched
+
+### Test ritual
+
+1. Hard reload [ai-staffing.agency/habitat-v4.html](https://ai-staffing.agency/habitat-v4.html)
+2. ENTER OFFICE on engineering or game-development
+3. Look at the top bar — 7 metric chips visible (v4.5.0 · 100 Agencies · 724 Roles · Council 99% · N Working · Maya Lines OPEN · phone) · Working number ticks up when an agent is PROCESSING or MOVING
+4. Look at the FLOOR — circuit-board pattern with bright cyan bus lines + intersection nodes + scattered chips · no more thin grid wires
+5. Look at agent labels above each desk — single-line `[X-NN] | Role Name | STATE` with color-coded segments · `MOVING` state shows when an agent leaves their desk for a prop
+6. Right sidebar — CONTINUITY SENTINEL panel with live sparkline + FACELOCK/ASSITORY/FENDERS stats · ANATOMICAL AUDITOR with PASSED badge + FRAME/LOCK/QA stats
+7. Click `▶ PULSE ALL` → every agent core flashes white
+8. Click `⊙ RESET CAM` → camera returns to default isometric view
+9. Look at desks → coffee mugs · paper stacks · desk lamps on alternating desks · glass partitions between desks with cyan emissive top/bottom edges
+
+### Files touched (zero Maya · per GLOBAL-112)
+- D:/PROJECTS/ai-staffing.agency/live/habitat-v4.html (175,753 → 191,600 B)
+- D:/PROJECTS/_SHARED/SKILL_REGISTRY_v1.json (22 → 25 slots)
+- D:/PROJECTS/_SHARED/SKILL_CIRCUIT_TRACE_FLOOR.md (NEW)
+- D:/PROJECTS/_SHARED/SKILL_STATUS_CHIP_BAR.md (NEW)
+- D:/PROJECTS/_SHARED/SKILL_SIDEBAR_HUD_PANEL.md (NEW)
+- VPS:/home/iamsuperio.cloud/public_html/data/_skill_registry.json
+- VPS:/home/iamsuperio.cloud/public_html/data/skills/{circuit_trace_floor,status_chip_bar,sidebar_hud_panel}.md
+- VPS:/home/ai-staffing.agency/public_html/habitat-v4.html
+- VPS:/home/ai-staffing.agency/public_html/habitat-v4-source.js (re-extracted)
+- GitHub habitat-v4.html @ 4c60514d
+
+**Signature:** KIN·2026-05-17T14:18Z·a75e63ca · *append-only · per AGENT_SIGNATURE_PROTOCOL v1 · GLOBAL-111 + GLOBAL-112 receipts*
