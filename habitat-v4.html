@@ -1201,13 +1201,16 @@ function sovereignOverride(){ window.location.href = 'tel:+17432151423'; }
 let officeScene = null, officeCamera = null, officeRenderer = null, officeAgents = [], officeRAF = null, currentOfficeAgency = null;
 let officeServerLEDs = [];
 let officeComposer = null, officeBloomPass = null;   // v4.4.5 · cinematic post-processing
-let officeWalkers = [], officeOutboundConduit = null, officeProps = [];  // v4.4.7/8 · walkers + dispatch conduit + props
+let officeWalkers = [], officeOutboundConduit = null, officeProps = [], officePropLabels = [];  // v4.4.7/8/4.5.2 · walkers + dispatch conduit + props + DOM prop labels
 let dispatchActive = false;                            // v4.4.7 · gate for inter-agency packet flight
 
-// === v4.4.7/v4.4.8 · PROCEDURAL HUMANOID FACTORY (Skill #16 · Mo 2026-05-17 game-dev directive) ===
-// v4.4.8 upgrade: more SimCity-like silhouette · shoulders + hands + hair tuft + clothing-color split (Mo: "more human-like, more SimCity kind of a character")
-// Builds a low-poly walking humanoid from pure geometry. No glTF · no external models.
-// Hierarchical Group so leg/arm anchors rotate from the hip/shoulder joint via sin(time*speed)*amplitude.
+// === PROCEDURAL HUMANOID FACTORY v2 (Skill #16 v2 · v4.5.2 upgrade per Mo: "improve agents and their body") ===
+// Key v2 changes (Gemini blueprint alignment):
+//   · CYAN WIREFRAME EDGE OVERLAY on torso + head + shoulders (the signature cyber-look from the blueprint)
+//   · CHEST EMBLEM (glowing accent box · gives each humanoid identity)
+//   · GLOWING EYES (emissive · readable from a distance · brighter than dark dots)
+//   · ATHLETIC PROPORTIONS (defined waist · slight chest taper · longer legs)
+//   · FRESNEL RIM via emissive intensity bump on edges
 function createProceduralHumanoid(accentColor, variantIdx){
   const g = new THREE.Group();
   // 8-color palette · skin tones + clothing
@@ -1220,92 +1223,133 @@ function createProceduralHumanoid(accentColor, variantIdx){
   const hair  = hairPalette[variantIdx % hairPalette.length];
   const skin  = skinPalette[variantIdx % skinPalette.length];
 
-  const shirtMat = new THREE.MeshPhysicalMaterial({color: shirt, emissive: shirt, emissiveIntensity: 0.18, metalness:0.2, roughness:0.55});
-  const pantsMat = new THREE.MeshPhysicalMaterial({color: pants, emissive: shirt, emissiveIntensity: 0.05, metalness:0.3, roughness:0.6});
-  const skinMat  = new THREE.MeshPhysicalMaterial({color: skin,  emissive: skin,  emissiveIntensity: 0.08, metalness:0.1, roughness:0.5});
-  const hairMat  = new THREE.MeshStandardMaterial({color: hair,  metalness:0.15, roughness:0.85});
+  const shirtMat = new THREE.MeshPhysicalMaterial({color: shirt, emissive: shirt, emissiveIntensity: 0.22, metalness:0.25, roughness:0.45, clearcoat:0.5});
+  const pantsMat = new THREE.MeshPhysicalMaterial({color: pants, emissive: shirt, emissiveIntensity: 0.06, metalness:0.35, roughness:0.55});
+  const skinMat  = new THREE.MeshPhysicalMaterial({color: skin,  emissive: skin,  emissiveIntensity: 0.10, metalness:0.1, roughness:0.45});
+  const hairMat  = new THREE.MeshStandardMaterial({color: hair,  metalness:0.20, roughness:0.80});
+  const edgeMat  = new THREE.LineBasicMaterial({color: 0x00f2fe, transparent:true, opacity:0.55});   // wireframe overlay
 
-  // Torso (shirt) · slightly tapered cylinder
-  const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 0.50, 12), shirtMat);
-  torso.position.y = 0.95; torso.castShadow = true;
+  // Helper · adds a glowing edge wireframe overlay on top of a mesh (Skill #28)
+  function addEdges(mesh, ymtx){
+    const edges = new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry, 25), edgeMat);
+    edges.position.copy(mesh.position);
+    edges.rotation.copy(mesh.rotation);
+    edges.scale.copy(mesh.scale);
+    edges.renderOrder = 11;
+    return edges;
+  }
+
+  // TORSO · tapered (broader at shoulders narrower at waist for defined silhouette)
+  const torsoGeo = new THREE.CylinderGeometry(0.16, 0.21, 0.54, 14);
+  const torso = new THREE.Mesh(torsoGeo, shirtMat);
+  torso.position.y = 0.97; torso.castShadow = true;
   g.add(torso);
+  g.add(addEdges(torso));
 
-  // Shoulders (broader bar across the top of the torso for silhouette weight)
-  const shoulders = new THREE.Mesh(new THREE.BoxGeometry(0.50, 0.10, 0.22), shirtMat);
-  shoulders.position.y = 1.20; shoulders.castShadow = true;
+  // SHOULDERS · broader bar with edge highlight
+  const shouldersGeo = new THREE.BoxGeometry(0.54, 0.11, 0.24);
+  const shoulders = new THREE.Mesh(shouldersGeo, shirtMat);
+  shoulders.position.y = 1.23; shoulders.castShadow = true;
   g.add(shoulders);
+  g.add(addEdges(shoulders));
 
-  // Neck
-  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.08, 8), skinMat);
-  neck.position.y = 1.30;
+  // CHEST EMBLEM · small glowing accent box on the sternum · gives each agent identity
+  const emblemGeo = new THREE.BoxGeometry(0.10, 0.10, 0.02);
+  const emblemMat = new THREE.MeshBasicMaterial({color: 0x00f2fe, transparent:true, opacity:0.85});
+  const emblem = new THREE.Mesh(emblemGeo, emblemMat);
+  emblem.position.set(0, 1.05, 0.18);
+  g.add(emblem);
+  const emblemRing = new THREE.Mesh(new THREE.RingGeometry(0.07, 0.085, 14), new THREE.MeshBasicMaterial({color: 0x00f2fe, transparent:true, opacity:0.6, side:THREE.DoubleSide}));
+  emblemRing.position.set(0, 1.05, 0.19);
+  g.add(emblemRing);
+
+  // NECK
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.09, 10), skinMat);
+  neck.position.y = 1.32;
   g.add(neck);
 
-  // Head
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 12), skinMat);
-  head.position.y = 1.42; head.castShadow = true;
+  // HEAD · slightly bigger sphere for proportion
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.175, 18, 14), skinMat);
+  head.position.y = 1.45; head.castShadow = true;
   g.add(head);
+  // Light edge halo on head
+  const headEdges = new THREE.LineSegments(new THREE.EdgesGeometry(head.geometry, 25), new THREE.LineBasicMaterial({color: 0x00f2fe, transparent:true, opacity:0.35}));
+  headEdges.position.copy(head.position);
+  headEdges.renderOrder = 11;
+  g.add(headEdges);
 
-  // Hair tuft (squashed dome on top of head)
-  const hairTuft = new THREE.Mesh(new THREE.SphereGeometry(0.165, 14, 10), hairMat);
-  hairTuft.scale.set(1, 0.45, 1);
-  hairTuft.position.y = 1.52;
+  // HAIR · larger tuft with shape variation by variant
+  const hairTuft = new THREE.Mesh(new THREE.SphereGeometry(0.185, 16, 12), hairMat);
+  hairTuft.scale.set(1, 0.50, 1);
+  hairTuft.position.y = 1.555;
   g.add(hairTuft);
 
-  // Eyes · 2 tiny dark dots on the head (face)
-  const eyeMat = new THREE.MeshBasicMaterial({color: 0x000000});
-  const eyeGeom = new THREE.SphereGeometry(0.018, 8, 6);
-  const leftEye = new THREE.Mesh(eyeGeom, eyeMat); leftEye.position.set(-0.05, 1.44, 0.14); g.add(leftEye);
-  const rightEye = new THREE.Mesh(eyeGeom, eyeMat); rightEye.position.set( 0.05, 1.44, 0.14); g.add(rightEye);
+  // EYES · bigger + emissive cyan (glow read from distance · matches Gemini cyan-wireframe look)
+  const eyeMat = new THREE.MeshBasicMaterial({color: 0x00f2fe, transparent:true, opacity:0.95});
+  const eyeGeom = new THREE.SphereGeometry(0.030, 10, 8);
+  const leftEye = new THREE.Mesh(eyeGeom, eyeMat); leftEye.position.set(-0.06, 1.46, 0.155); g.add(leftEye);
+  const rightEye = new THREE.Mesh(eyeGeom, eyeMat); rightEye.position.set( 0.06, 1.46, 0.155); g.add(rightEye);
+  // Tiny dark pupil dots for definition
+  const pupilMat = new THREE.MeshBasicMaterial({color: 0x0a0e18});
+  const pupilGeo = new THREE.SphereGeometry(0.014, 8, 6);
+  const leftPupil = new THREE.Mesh(pupilGeo, pupilMat); leftPupil.position.set(-0.06, 1.46, 0.182); g.add(leftPupil);
+  const rightPupil = new THREE.Mesh(pupilGeo, pupilMat); rightPupil.position.set( 0.06, 1.46, 0.182); g.add(rightPupil);
 
-  // Hip anchors (legs swing on rotation.x · pants color)
-  const legGeom = new THREE.CylinderGeometry(0.06, 0.05, 0.55, 8);
+  // LEGS · longer + better proportions
+  const legGeom = new THREE.CylinderGeometry(0.065, 0.05, 0.62, 10);
   const leftLegAnchor = new THREE.Group();
   const leftLeg = new THREE.Mesh(legGeom, pantsMat);
-  leftLeg.position.y = -0.275; leftLeg.castShadow = true;
+  leftLeg.position.y = -0.31; leftLeg.castShadow = true;
   leftLegAnchor.add(leftLeg);
-  // Shoe (a small dark box at the bottom of the leg)
-  const shoeGeom = new THREE.BoxGeometry(0.10, 0.05, 0.16);
-  const leftShoe = new THREE.Mesh(shoeGeom, new THREE.MeshStandardMaterial({color: 0x101820, metalness:0.4, roughness:0.6}));
-  leftShoe.position.set(0, -0.555, 0.02); leftShoe.castShadow = true;
+  // Edges on leg
+  const leftLegEdges = new THREE.LineSegments(new THREE.EdgesGeometry(legGeom, 25), edgeMat);
+  leftLegEdges.position.y = -0.31;
+  leftLegAnchor.add(leftLegEdges);
+  // SHOE · slightly bigger + cleaner
+  const shoeGeom = new THREE.BoxGeometry(0.12, 0.06, 0.20);
+  const leftShoe = new THREE.Mesh(shoeGeom, new THREE.MeshStandardMaterial({color: 0x101820, metalness:0.5, roughness:0.5}));
+  leftShoe.position.set(0, -0.628, 0.04); leftShoe.castShadow = true;
   leftLegAnchor.add(leftShoe);
-  leftLegAnchor.position.set(-0.10, 0.65, 0);
+  leftLegAnchor.position.set(-0.10, 0.68, 0);
   g.add(leftLegAnchor);
 
   const rightLegAnchor = new THREE.Group();
   const rightLeg = new THREE.Mesh(legGeom, pantsMat);
-  rightLeg.position.y = -0.275; rightLeg.castShadow = true;
+  rightLeg.position.y = -0.31; rightLeg.castShadow = true;
   rightLegAnchor.add(rightLeg);
+  const rightLegEdges = new THREE.LineSegments(new THREE.EdgesGeometry(legGeom, 25), edgeMat);
+  rightLegEdges.position.y = -0.31;
+  rightLegAnchor.add(rightLegEdges);
   const rightShoe = leftShoe.clone();
-  rightShoe.position.set(0, -0.555, 0.02);
+  rightShoe.position.set(0, -0.628, 0.04);
   rightLegAnchor.add(rightShoe);
-  rightLegAnchor.position.set(0.10, 0.65, 0);
+  rightLegAnchor.position.set(0.10, 0.68, 0);
   g.add(rightLegAnchor);
 
-  // Shoulder anchors (arms · shirt color)
-  const armGeom = new THREE.CylinderGeometry(0.048, 0.042, 0.45, 8);
+  // ARMS · slightly longer + better proportions
+  const armGeom = new THREE.CylinderGeometry(0.05, 0.043, 0.50, 10);
   const leftArmAnchor = new THREE.Group();
   const leftArm = new THREE.Mesh(armGeom, shirtMat);
-  leftArm.position.y = -0.225; leftArm.castShadow = true;
+  leftArm.position.y = -0.25; leftArm.castShadow = true;
   leftArmAnchor.add(leftArm);
-  // Hand (skin sphere at the end of the arm)
-  const handGeom = new THREE.SphereGeometry(0.058, 10, 8);
+  const handGeom = new THREE.SphereGeometry(0.062, 10, 8);
   const leftHand = new THREE.Mesh(handGeom, skinMat);
-  leftHand.position.y = -0.48; leftHand.castShadow = true;
+  leftHand.position.y = -0.53; leftHand.castShadow = true;
   leftArmAnchor.add(leftHand);
-  leftArmAnchor.position.set(-0.25, 1.18, 0);
+  leftArmAnchor.position.set(-0.26, 1.21, 0);
   g.add(leftArmAnchor);
 
   const rightArmAnchor = new THREE.Group();
   const rightArm = new THREE.Mesh(armGeom, shirtMat);
-  rightArm.position.y = -0.225; rightArm.castShadow = true;
+  rightArm.position.y = -0.25; rightArm.castShadow = true;
   rightArmAnchor.add(rightArm);
   const rightHand = leftHand.clone();
-  rightHand.position.y = -0.48;
+  rightHand.position.y = -0.53;
   rightArmAnchor.add(rightHand);
-  rightArmAnchor.position.set(0.25, 1.18, 0);
+  rightArmAnchor.position.set(0.26, 1.21, 0);
   g.add(rightArmAnchor);
 
-  return {mesh: g, head, torso, leftLeg: leftLegAnchor, rightLeg: rightLegAnchor, leftArm: leftArmAnchor, rightArm: rightArmAnchor, shirt, pants, skin, hair, hairTuft};
+  return {mesh: g, head, torso, leftLeg: leftLegAnchor, rightLeg: rightLegAnchor, leftArm: leftArmAnchor, rightArm: rightArmAnchor, shirt, pants, skin, hair, hairTuft, emblem};
 }
 
 function buildOfficeScene(agency){
@@ -1318,9 +1362,10 @@ function buildOfficeScene(agency){
   // v4.4.7/8 · reset walker registry + props + dispatch state so cross-agency jumps don't leak
   officeWalkers = [];
   officeProps = [];
+  officePropLabels = [];
   officeOutboundConduit = null;
   dispatchActive = false;
-  // v4.5.1 · purge previous DOM agent labels
+  // v4.5.1/4.5.2 · purge previous DOM labels (agents + props share the same layer)
   const layer = document.getElementById('agentLabelLayer');
   if (layer) layer.innerHTML = '';
   officeScene = new THREE.Scene();
@@ -1696,77 +1741,108 @@ function buildOfficeScene(agency){
     chairBack.castShadow = true;
     officeScene.add(chairBack);
 
-    // PERSONNEL FIGURE · sitting at the desk
-    // Body (torso) · capsule shape using cylinder + hemisphere top
+    // v4.5.2 · SEATED PERSONNEL FIGURE · upgraded to match the new walking humanoid style
+    // (Mo: "improve agents and their body · the way they look")
+    // Same color palette concept as createProceduralHumanoid · but posed sitting + uses office accent for unity
     const bodyGroup = new THREE.Group();
     bodyGroup.position.set(dx, 0, dz + 0.55);
 
-    // Torso
-    const torsoMat = new THREE.MeshPhysicalMaterial({
-      color: accent, emissive: accent, emissiveIntensity: 0.45,
-      transparent: true, opacity: 0.78, metalness: 0.35, roughness: 0.25,
-      transmission: 0.25, thickness: 0.4, clearcoat: 0.8
-    });
-    const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.26, 0.65, 16), torsoMat);
+    const seatedShirtMat = new THREE.MeshPhysicalMaterial({color: accent, emissive: accent, emissiveIntensity: 0.30, metalness:0.30, roughness:0.40, clearcoat:0.6});
+    const seatedSkinMat  = new THREE.MeshPhysicalMaterial({color: 0xf5c79a, emissive: 0xf5c79a, emissiveIntensity: 0.10, metalness:0.10, roughness:0.45});
+    const seatedEdgeMat  = new THREE.LineBasicMaterial({color: 0x00f2fe, transparent:true, opacity:0.55});
+
+    // TORSO (sitting · centered on chair) · tapered cylinder
+    const torsoGeoS = new THREE.CylinderGeometry(0.20, 0.24, 0.55, 14);
+    const torso = new THREE.Mesh(torsoGeoS, seatedShirtMat);
     torso.position.set(0, 0.95, 0);
     torso.castShadow = true;
     bodyGroup.add(torso);
+    // Cyan wireframe edge overlay (Skill #28)
+    const torsoEdges = new THREE.LineSegments(new THREE.EdgesGeometry(torsoGeoS, 25), seatedEdgeMat);
+    torsoEdges.position.copy(torso.position);
+    torsoEdges.renderOrder = 11;
+    bodyGroup.add(torsoEdges);
 
-    // Shoulders (slight horizontal bar)
-    const shoulders = new THREE.Mesh(
-      new THREE.BoxGeometry(0.6, 0.12, 0.25),
-      torsoMat
-    );
+    // SHOULDERS
+    const shouldersGeoS = new THREE.BoxGeometry(0.56, 0.12, 0.25);
+    const shoulders = new THREE.Mesh(shouldersGeoS, seatedShirtMat);
     shoulders.position.set(0, 1.22, 0);
     shoulders.castShadow = true;
     bodyGroup.add(shoulders);
+    const shouldersEdges = new THREE.LineSegments(new THREE.EdgesGeometry(shouldersGeoS, 25), seatedEdgeMat);
+    shouldersEdges.position.copy(shoulders.position);
+    bodyGroup.add(shouldersEdges);
 
-    // HEAD (sphere · brighter · clear)
-    const headMat = new THREE.MeshPhysicalMaterial({
-      color: 0xffffff, emissive: accent, emissiveIntensity: 0.8,
-      transparent: true, opacity: 0.88, metalness: 0.2, roughness: 0.1,
-      transmission: 0.45, clearcoat: 1.0
-    });
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.18, 24, 16), headMat);
+    // CHEST EMBLEM
+    const semblem = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.11, 0.02), new THREE.MeshBasicMaterial({color: 0x00f2fe}));
+    semblem.position.set(0, 1.06, 0.20);
+    bodyGroup.add(semblem);
+    const semblemRing = new THREE.Mesh(new THREE.RingGeometry(0.07, 0.085, 14), new THREE.MeshBasicMaterial({color: 0x00f2fe, transparent:true, opacity:0.6, side:THREE.DoubleSide}));
+    semblemRing.position.set(0, 1.06, 0.21);
+    bodyGroup.add(semblemRing);
+
+    // NECK
+    const neckS = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.09, 10), seatedSkinMat);
+    neckS.position.set(0, 1.32, 0);
+    bodyGroup.add(neckS);
+
+    // HEAD
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.180, 18, 14), seatedSkinMat);
     head.position.set(0, 1.46, 0);
     head.castShadow = true;
     bodyGroup.add(head);
+    const headEdgesS = new THREE.LineSegments(new THREE.EdgesGeometry(head.geometry, 25), new THREE.LineBasicMaterial({color: 0x00f2fe, transparent:true, opacity:0.35}));
+    headEdgesS.position.copy(head.position);
+    bodyGroup.add(headEdgesS);
 
-    // ARMS (thin cylinders extending forward to desk · gives the "typing" impression)
-    const armMat = new THREE.MeshPhysicalMaterial({
-      color: accent, emissive: accent, emissiveIntensity: 0.4,
-      transparent: true, opacity: 0.72
-    });
-    const leftArm = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.55, 8), armMat);
-    leftArm.position.set(-0.22, 1.0, -0.25);
-    leftArm.rotation.x = Math.PI/3;   // angled forward toward desk
+    // HAIR
+    const hairS = new THREE.Mesh(new THREE.SphereGeometry(0.190, 16, 12), new THREE.MeshStandardMaterial({color: 0x3a2818, metalness:0.20, roughness:0.80}));
+    hairS.scale.set(1, 0.50, 1);
+    hairS.position.set(0, 1.565, 0);
+    bodyGroup.add(hairS);
+
+    // EYES · bigger emissive cyan + dark pupils
+    const eyeMatS = new THREE.MeshBasicMaterial({color: 0x00f2fe});
+    const eyeGeoS = new THREE.SphereGeometry(0.030, 10, 8);
+    const leyeS = new THREE.Mesh(eyeGeoS, eyeMatS); leyeS.position.set(-0.06, 1.47, 0.155); bodyGroup.add(leyeS);
+    const reyeS = new THREE.Mesh(eyeGeoS, eyeMatS); reyeS.position.set( 0.06, 1.47, 0.155); bodyGroup.add(reyeS);
+    const pupGeoS = new THREE.SphereGeometry(0.014, 8, 6);
+    const pupMatS = new THREE.MeshBasicMaterial({color: 0x0a0e18});
+    const lpupS = new THREE.Mesh(pupGeoS, pupMatS); lpupS.position.set(-0.06, 1.47, 0.182); bodyGroup.add(lpupS);
+    const rpupS = new THREE.Mesh(pupGeoS, pupMatS); rpupS.position.set( 0.06, 1.47, 0.182); bodyGroup.add(rpupS);
+
+    // ARMS · angled forward to desk · "typing" pose
+    const armGeoS = new THREE.CylinderGeometry(0.055, 0.045, 0.50, 10);
+    const leftArm = new THREE.Mesh(armGeoS, seatedShirtMat);
+    leftArm.position.set(-0.24, 1.04, -0.20);
+    leftArm.rotation.x = Math.PI/2.8;
+    leftArm.castShadow = true;
     bodyGroup.add(leftArm);
     const rightArm = leftArm.clone();
-    rightArm.position.set(0.22, 1.0, -0.25);
+    rightArm.position.set(0.24, 1.04, -0.20);
     bodyGroup.add(rightArm);
+    // Hands
+    const handMatS = seatedSkinMat;
+    const handGeoS = new THREE.SphereGeometry(0.058, 10, 8);
+    const lhandS = new THREE.Mesh(handGeoS, handMatS); lhandS.position.set(-0.24, 0.86, -0.42); bodyGroup.add(lhandS);
+    const rhandS = new THREE.Mesh(handGeoS, handMatS); rhandS.position.set( 0.24, 0.86, -0.42); bodyGroup.add(rhandS);
 
-    // HOLOGRAPHIC GLOW SHELL · semi-transparent outer aura
-    const glowShellMat = new THREE.MeshBasicMaterial({
-      color: accent, transparent: true, opacity: 0.12, side: THREE.BackSide
-    });
-    const glowShell = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.42, 1.55, 12), glowShellMat);
+    // GLOW SHELL (subtle outer aura · for IDLE/PROCESSING pulse)
+    const glowShell = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.40, 1.50, 14), new THREE.MeshBasicMaterial({color: accent, transparent: true, opacity: 0.10, side: THREE.BackSide}));
     glowShell.position.set(0, 1.05, 0);
     bodyGroup.add(glowShell);
 
-    // BASE RING · neon disc at agent's feet
-    const baseRing = new THREE.Mesh(
-      new THREE.RingGeometry(0.26, 0.34, 24),
-      new THREE.MeshBasicMaterial({color:accent, transparent:true, opacity:0.85, side:THREE.DoubleSide})
-    );
+    // BASE RING at agent's feet (kept · adds presence)
+    const baseRing = new THREE.Mesh(new THREE.RingGeometry(0.28, 0.36, 24), new THREE.MeshBasicMaterial({color: accent, transparent:true, opacity:0.85, side:THREE.DoubleSide}));
     baseRing.position.set(0, 0.585, 0);
     baseRing.rotation.x = -Math.PI/2;
     bodyGroup.add(baseRing);
 
-    // INNER OCTAHEDRON (the "data core" inside the chest)
+    // INNER OCTAHEDRON · the "data core" inside the chest (kept · the spin in the animation loop is iconic)
     const innerCoreGeo = new THREE.OctahedronGeometry(0.13, 0);
     const innerCoreMat = new THREE.MeshBasicMaterial({color: 0xffffff, wireframe: true, transparent:true, opacity:0.9});
     const innerCore = new THREE.Mesh(innerCoreGeo, innerCoreMat);
-    innerCore.position.set(0, 0.95, 0);   // inside torso
+    innerCore.position.set(0, 0.95, 0);
     bodyGroup.add(innerCore);
 
     officeScene.add(bodyGroup);
@@ -1853,22 +1929,22 @@ function buildOfficeScene(agency){
   officeWalkers = [];
   officeProps = [];
 
-  // v4.4.9 · Helper that adds a labeled floating sprite above each prop so users read them as REAL OBJECTS, not boxes
-  function addPropLabel(propGroup, text, color){
-    const c = document.createElement('canvas'); c.width = 256; c.height = 56;
-    const ctx = c.getContext('2d');
-    ctx.fillStyle = 'rgba(11,17,32,.85)'; ctx.fillRect(0, 0, c.width, c.height);
-    ctx.strokeStyle = color || '#00d4ff'; ctx.lineWidth = 2; ctx.strokeRect(1, 1, c.width-2, c.height-2);
-    ctx.font = 'bold 22px "Space Grotesk", sans-serif'; ctx.fillStyle = '#ffffff';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(text, c.width/2, c.height/2);
-    const tex = new THREE.CanvasTexture(c);
-    const mat = new THREE.SpriteMaterial({map: tex, transparent: true, depthTest: false});
-    const sprite = new THREE.Sprite(mat);
-    sprite.scale.set(1.6, 0.35, 1);
-    sprite.renderOrder = 600;
-    propGroup.add(sprite);
-    return sprite;
+  // v4.5.2 · Prop labels now DOM-projected (same crisp style as agent labels · no bloom wash)
+  // Returns an object with the DOM div + world-anchor Vector3 · pushed to officePropLabels for the per-frame updater
+  function addPropLabel(propGroup, text, color, anchorYOffset){
+    const div = document.createElement('div');
+    div.className = 'prop-label';
+    div.style.cssText = 'position:absolute;transform:translate(-50%,-100%);' +
+      'padding:3px 9px;background:rgba(8,12,24,.95);' +
+      'border:1.5px solid ' + (color || '#00e4ff') + ';border-left-width:5px;border-radius:6px;' +
+      'font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.06em;font-weight:600;' +
+      'white-space:nowrap;color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.65);' +
+      'pointer-events:none;will-change:transform';
+    div.textContent = text;
+    document.getElementById('agentLabelLayer').appendChild(div);
+    // Anchor at the prop's group origin + Y offset (label hovers above the prop)
+    const anchor = new THREE.Vector3(propGroup.position.x, anchorYOffset || 2.0, propGroup.position.z);
+    return {div, anchor};
   }
 
   function addProp(kind, x, z, yaw){
@@ -1892,9 +1968,8 @@ function buildOfficeScene(agency){
       tap.position.set(0, 0.65, 0.30); tap.rotation.x = Math.PI/2; propGroup.add(tap);
       const tapGlow = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 10), new THREE.MeshBasicMaterial({color:0x00d4ff, transparent:true, opacity:0.8}));
       tapGlow.position.set(0, 0.65, 0.38); propGroup.add(tapGlow);
-      // Label sprite
-      const lbl = addPropLabel(propGroup, '💧 WATER COOLER', '#60c4ff');
-      lbl.position.set(0, 2.15, 0);
+      // DOM Label
+      officePropLabels.push(addPropLabel(propGroup, '💧 WATER COOLER', '#60c4ff', 2.20));
     } else if (kind === 'conferenceTable') {
       // v4.4.9 · BIGGER + 6 REAL CHAIRS around it + holographic floor pad (Mo: "no tables in the conference room")
       // Long oval table 4.0 × 1.8
@@ -1937,9 +2012,8 @@ function buildOfficeScene(agency){
       planTop.position.y = 0.88; planTop.rotation.x = -Math.PI/2; propGroup.add(planTop);
       const planTop2 = new THREE.Mesh(new THREE.RingGeometry(0.4, 0.55, 24), new THREE.MeshBasicMaterial({color:0x00f2fe, transparent:true, opacity:0.55, side:THREE.DoubleSide}));
       planTop2.position.y = 1.05; planTop2.rotation.x = -Math.PI/2; propGroup.add(planTop2);
-      // Label sprite (high above the table)
-      const lbl = addPropLabel(propGroup, '📋 CONFERENCE ROOM', '#00f2fe');
-      lbl.position.set(0, 2.50, 0);
+      // DOM Label (above the table)
+      officePropLabels.push(addPropLabel(propGroup, '📋 CONFERENCE ROOM', '#00f2fe', 2.60));
     } else if (kind === 'coffeeStation') {
       // v4.4.9 · BIGGER counter + branded espresso machine + cup row + label
       const counter = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.06, 0.70), new THREE.MeshPhysicalMaterial({color:0x1a2030, metalness:0.5, roughness:0.35, clearcoat:0.4}));
@@ -1966,8 +2040,7 @@ function buildOfficeScene(agency){
         const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.04, 0.10, 10), new THREE.MeshStandardMaterial({color:0xffffff}));
         cup.position.set(cx, 0.94, 0.15); propGroup.add(cup);
       });
-      const lbl = addPropLabel(propGroup, '☕ COFFEE BAR', '#ff8a4c');
-      lbl.position.set(0, 1.95, 0);
+      officePropLabels.push(addPropLabel(propGroup, '☕ COFFEE BAR', '#ff8a4c', 2.05));
     } else if (kind === 'printer') {
       // v4.4.9 · BIGGER + paper stack visible + clearly a printer
       const box = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.65, 0.75), new THREE.MeshPhysicalMaterial({color:0xc0c5d0, metalness:0.3, roughness:0.5}));
@@ -1985,8 +2058,7 @@ function buildOfficeScene(agency){
       // Ready LED
       const led = new THREE.Mesh(new THREE.SphereGeometry(0.04, 10, 10), new THREE.MeshBasicMaterial({color:0x43e6a1}));
       led.position.set(0.30, 0.45, 0.376); propGroup.add(led);
-      const lbl = addPropLabel(propGroup, '🖨 PRINTER', '#43e6a1');
-      lbl.position.set(0, 1.45, 0);
+      officePropLabels.push(addPropLabel(propGroup, '🖨 PRINTER', '#43e6a1', 1.55));
     } else if (kind === 'plant') {
       // BIGGER plant · pot + tall foliage clusters
       const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.22, 0.40, 14), new THREE.MeshStandardMaterial({color:0x5a3a20, roughness:0.85}));
@@ -2012,8 +2084,7 @@ function buildOfficeScene(agency){
       sketch1.position.set(-0.20, 1.40, 0.025); propGroup.add(sketch1);
       const sketch2 = new THREE.Mesh(new THREE.PlaneGeometry(0.45, 0.04), new THREE.MeshBasicMaterial({color:0xf5c542, transparent:true, opacity:0.7}));
       sketch2.position.set(0.30, 1.20, 0.025); propGroup.add(sketch2);
-      const lbl = addPropLabel(propGroup, '📐 WHITEBOARD', '#00d4ff');
-      lbl.position.set(0, 2.05, 0);
+      officePropLabels.push(addPropLabel(propGroup, '📐 WHITEBOARD', '#00d4ff', 2.15));
     }
     officeScene.add(propGroup);
     const dwellMap = {waterCooler:3500, conferenceTable:6500, coffeeStation:4500, printer:3000, plant:1500, whiteboard:5000};
@@ -2375,26 +2446,36 @@ function renderAgentLabel(ag){
     `<span style="color:#5a6580;margin:0 6px">|</span>` +
     `<span style="color:${stateColor};font-weight:700">${stateForLabel}</span>`;
 }
-// v4.5.1 · screen-projection updater · run inside the animate loop · positions DOM labels above each agent
+// v4.5.1/4.5.2 · screen-projection updater · positions agent + prop DOM labels each frame
 function updateAgentLabelPositions(){
   if (!officeCamera || !officeRenderer) return;
-  const layer = document.getElementById('agentLabelLayer');
-  if (!layer) return;
   const w = officeRenderer.domElement.clientWidth, h = officeRenderer.domElement.clientHeight;
   const tmp = new THREE.Vector3();
+  // Agent labels
   officeAgents.forEach(ag => {
     if (!ag.labelDiv || !ag.labelAnchor) return;
     tmp.copy(ag.labelAnchor); tmp.project(officeCamera);
-    // Cull if behind camera or off-screen with big margin
     if (tmp.z > 1) { ag.labelDiv.style.display = 'none'; return; }
     const sx = (tmp.x * 0.5 + 0.5) * w;
     const sy = (-tmp.y * 0.5 + 0.5) * h;
     ag.labelDiv.style.display = 'block';
     ag.labelDiv.style.left = sx + 'px';
     ag.labelDiv.style.top  = sy + 'px';
-    // Optional depth-fade: dim labels far from camera
-    const depthFade = Math.max(0.55, 1.0 - Math.max(0, tmp.z) * 0.4);
-    ag.labelDiv.style.opacity = depthFade.toFixed(2);
+    const fade = Math.max(0.55, 1.0 - Math.max(0, tmp.z) * 0.4);
+    ag.labelDiv.style.opacity = fade.toFixed(2);
+  });
+  // Prop labels (water cooler / conference / coffee / printer / whiteboard)
+  officePropLabels.forEach(pl => {
+    if (!pl.div || !pl.anchor) return;
+    tmp.copy(pl.anchor); tmp.project(officeCamera);
+    if (tmp.z > 1) { pl.div.style.display = 'none'; return; }
+    const sx = (tmp.x * 0.5 + 0.5) * w;
+    const sy = (-tmp.y * 0.5 + 0.5) * h;
+    pl.div.style.display = 'block';
+    pl.div.style.left = sx + 'px';
+    pl.div.style.top  = sy + 'px';
+    const fade = Math.max(0.55, 1.0 - Math.max(0, tmp.z) * 0.4);
+    pl.div.style.opacity = fade.toFixed(2);
   });
 }
 
