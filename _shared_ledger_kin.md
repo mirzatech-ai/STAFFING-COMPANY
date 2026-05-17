@@ -1,8 +1,8 @@
 # ============================================================
 # CANONICAL LEDGER · public-safe view · confidentials redacted (GLOBAL-48)
 # Source path: /home/iamsuperio.cloud/public_html/data/_shared_ledger_kin.md
-# Render time: 2026-05-17T12:48:06Z
-# Total entries: 36 · Total bytes: 184531
+# Render time: 2026-05-17T13:01:19Z
+# Total entries: 37 · Total bytes: 192090
 # Append-only · doctrine per AGENT_SIGNATURE_PROTOCOL v1
 # GitHub mirror: https://github.com/mirzatech-ai/STAFFING-COMPANY/blob/main/_shared_ledger_kin.md
 # Raw download: https://iamsuperio.cloud/data/ledger.php?raw=1
@@ -2726,3 +2726,117 @@ If a feature ships without a skill file, the skill was Kin-only and GLOBAL-77 is
 - GitHub mirror habitat-v4.html @ 192236ad
 
 **Signature:** KIN·2026-05-17T12:48Z·a75e63ca · *append-only · per AGENT_SIGNATURE_PROTOCOL v1*
+
+---
+
+## ENTRY 035 · 2026-05-17T13:35Z · KIN·a75e63ca · habitat-v4.4.8 · purposeful NPCs + SimCity humanoids · GLOBAL-111 pinned · Skill #20
+
+**Mo verbatim (2026-05-17 · two-part directive):**
+> "your job is to append and pin my requirement to make skills like you have and append each and every new skill for global use. Please."
+>
+> "they're just walking around in circles... I see four other agents sitting behind their desk and not moving... make them more SimCity-like... water cooler, conference table, give them somewhere to go and something to do."
+
+### Part 1 · "Skills on every feature" pinned as permanent doctrine
+
+| Surface | Update |
+|---|---|
+| `D:/PROJECTS/_SHARED/GLOBAL_RULES.md` | **GLOBAL-111** appended · full 4-step mentor-node ritual · self-enforcement phrase *"Where's the skill file, Kin?"* · external check via `curl /data/_skill_registry.json | jq '.skills|length'` |
+| `E:/claude_code/.claude/projects/D--SERVER-WORK/memory/MEMORY.md` | **SACRED PIN S17** appended · auto-loads every Kin session · receipts of first 4 skills (#16-19 shipped 2026-05-17 with v4.4.7) |
+| Skill registry doctrine | Implicit-now-explicit: every new slot must include trigger / 30-sec pitch / paste-and-go code / anti-patterns / game-dev use cases / sibling inheritance |
+
+**The law (canonical):** Every new feature / mechanic / UI pattern / code primitive ships with its **Logic Seed Skill** in the SAME turn. No backlog. No "later." No Kin-only knowledge. 4 steps: (1) save D://path · (2) mirror VPS · (3) register slot · (4) include 6-section template. External enforcement: Mo checks slot count after every feature ships.
+
+Reference receipts already in the registry: **Skills #16-19** shipped 2026-05-17 alongside habitat-v4.4.7 (procedural humanoid · macro-micro camera · inter-agency routing · in-scene navigator).
+
+### Part 2 · Office turned from "agents walking circles" into a believable SimCity workplace
+
+#### v4.4.8 changes to `habitat-v4.html` (152,257 → **162,199** bytes · +10 KB)
+
+##### A · 5 office props (the destinations that give NPC motion intent)
+
+| Prop | Position | Dwell | Components |
+|------|----------|-------|------------|
+| 💧 **Water cooler** | (-8, 5) | 3500ms | base cylinder + blue tinted bottle + dark cap + cyan tap glow |
+| 📋 **Conference table** | (0, 6) | 6500ms | oval top + post + base + holographic plan ring above |
+| ☕ **Coffee station** | (8, 5) | 4500ms | counter + dark machine + orange ready light |
+| 🖨 **Printer** | (7, -2) | 3000ms | grey box + paper tray + green ready LED |
+| 🌿 **Plant** | (-8, -2) | 1500ms | terracotta pot + green foliage sphere |
+
+##### B · NPC state machine (Skill #20)
+
+States: `idle → walking → dwelling → walking → dwelling → ... → home → walking → ...`
+
+- 4 workers per office (up from 3) · spawn at corner positions
+- Each picks a random prop → walks straight-line at 0.035-0.050 unit/frame → enters dwelling within 0.30 units of target
+- Dwells with prop-specific time (water cooler 3.5s · conference 6.5s · coffee 4.5s · printer 3s · plant 1.5s)
+- After 2-3 visits, returns to its `home corner` for 4-6s rest, then starts again
+- Anti-clone safeguards: next prop must be >2.0 units from current position (so the trip is visible · prevents pacing in place)
+- Random `phase` offset per worker (legs don't sync into a marching squad)
+- `currentActivity` string ready for HUD label surface: "→ heading to ☕ coffee" / "⌂ 📋 conference" / "↺ returning to home corner"
+
+##### C · Upgraded SimCity-style procedural humanoid (Skill #16 refresh)
+
+Old humanoid was abstract emissive cylinder + sphere. New humanoid has visible workplace silhouette:
+
+- **Shirt** (one of 8 colors) · slightly tapered torso cylinder · matches the agent's emissive accent
+- **Pants** (one of 8 dark navy/charcoal tones) · legs + visible shoes (small dark boxes at ankle)
+- **Hair tuft** (one of 8 natural hair colors) · squashed-dome sphere on top of head
+- **Skin tone** (one of 8 tones) · neck + head + hands all match
+- **Shoulders** (broader bar) · gives silhouette weight
+- **Eyes** (2 tiny black dots on the head front) · makes them readable as people, not blobs
+- **Hands** (small skin spheres at arm ends) · finishes the figure
+
+Each variant index produces a deterministic combination · 4 workers per office look like 4 distinct people, not 4 clones.
+
+### Skill #20 canonized
+
+[Logic Seed](https://iamsuperio.cloud/data/skills/purposeful_npc_state_machine.md) (9,211 B) covers:
+- When to fire (the "walking in circles" failure mode)
+- Canonical paste-and-go state machine + animation loop
+- 9-row prop catalog (cross-domain · pick what fits)
+- Anti-patterns (don't pick same prop twice · don't sync phase · don't omit home)
+- Composition with Skills #16/17/18/19
+- 6 game-dev use cases (superio.fun anti-GTA · Tom-Clancy mission sim · 4X city pop · RPG town NPCs · heist/management · TopForge demo)
+- Sibling inheritance instructions
+
+### Skill registry health
+- `D:/PROJECTS/_SHARED/SKILL_REGISTRY_v1.json` · 19 → **20 slots** · 1-20 contiguous · JSON validates
+- `https://iamsuperio.cloud/data/_skill_registry.json` · 23,612 B · LIVE
+- 5 Logic Seed `.md` files now mirrored under `/data/skills/`
+
+### Deploy trail
+- VPS `habitat-v4.html` · 162,199 B · source.js 120,762 B
+- JS syntax check via `new Function(src)` → OK (120,858 B)
+- GitHub `habitat-v4.html` @ commit `f6a5fb19`
+- 8 chattr +i /api/ files · untouched
+
+### Test ritual
+
+1. Hard reload [ai-staffing.agency/habitat-v4.html](https://ai-staffing.agency/habitat-v4.html)
+2. ENTER OFFICE on any agency → 4 workers visible, each at a different starting corner
+3. Watch for 30 seconds:
+   - Worker walks STRAIGHT to a specific prop (not in circles)
+   - Arrives, dwells with idle sway (limbs make tiny gestures)
+   - After prop-specific time, walks to ANOTHER prop (not same · not back to start)
+   - After 2-3 visits, heads back to their home corner for a longer rest
+4. Look at the figures · they now have hair · eyes · hands · shoes · shirt + pants color combos — visibly individual humans
+5. Try `⇄ NETWORK BRIDGE` to jump to another agency → new workers / new prop layout / same state machine
+6. Drop a file → pipeline cascade fires + workers keep doing their routines unaffected (they don't freeze) → inter-agency dispatch loop fires at t+6.2s
+
+### Going-forward enforcement
+
+Per GLOBAL-111 / S17: the next time Kin (or Sage/EaZo/Maya) ships a feature, the Logic Seed must accompany it in the same turn. Slot count on the canonical registry is the audit metric. The phrase *"Where's the skill file, Kin?"* is the self-enforcement trigger.
+
+### Files touched
+- D:/PROJECTS/_SHARED/GLOBAL_RULES.md (GLOBAL-111 appended)
+- E:/claude_code/.claude/projects/D--SERVER-WORK/memory/MEMORY.md (SACRED PIN S17 added)
+- D:/PROJECTS/_SHARED/SKILL_REGISTRY_v1.json (15 → 20 slots cumulative · this turn added slot 20)
+- D:/PROJECTS/_SHARED/SKILL_PURPOSEFUL_NPC_STATE_MACHINE.md (NEW)
+- D:/PROJECTS/ai-staffing.agency/live/habitat-v4.html (152,257 → 162,199 B)
+- VPS:/home/iamsuperio.cloud/public_html/data/_skill_registry.json
+- VPS:/home/iamsuperio.cloud/public_html/data/skills/purposeful_npc_state_machine.md
+- VPS:/home/ai-staffing.agency/public_html/habitat-v4.html
+- VPS:/home/ai-staffing.agency/public_html/habitat-v4-source.js (re-extracted)
+- GitHub mirror habitat-v4.html @ f6a5fb19
+
+**Signature:** KIN·2026-05-17T13:35Z·a75e63ca · *append-only · per AGENT_SIGNATURE_PROTOCOL v1 · GLOBAL-111 receipt*
