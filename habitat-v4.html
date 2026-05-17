@@ -348,10 +348,48 @@ body{background:radial-gradient(1400px 900px at 50% -10%,rgba(245,197,66,.05),tr
     <button onclick="sendDropzoneFiles()" id="dropzoneSend" disabled style="margin-top:8px;width:100%;padding:8px;border-radius:8px;background:linear-gradient(135deg,#f5c542,#cd9938);border:1px solid var(--gold);color:#1a1a08;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:11px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;opacity:.5">SEND TO AGENCY</button>
     <div id="dropzoneStatus" style="margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--muted)"></div>
   </div>
+
+  <!-- v4.4.5 · ENTERPRISE SYSTEM CONNECTOR GATEWAY (Mo: "users hook their tokens before files matter") -->
+  <div id="connectorPanel" style="position:absolute;left:14px;bottom:14px;width:300px;z-index:5;background:rgba(10,18,38,.88);backdrop-filter:blur(14px);border:1px solid #00f2fe;border-radius:14px;padding:14px;box-shadow:0 18px 40px rgba(0,0,0,.6)">
+    <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:#00f2fe;font-size:11px;letter-spacing:.14em;margin-bottom:8px">⚙ ENTERPRISE CONNECTOR GATEWAY</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:10px">link your live infrastructure to this agency · ALL slots must arm before deliverables flow</div>
+    <div id="connectorList">
+      <div class="connector-row" data-key="api" data-armed="0" onclick="toggleConnector(this)" style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:8px;background:rgba(40,12,8,.45);border:1px solid #f5c542;margin-bottom:5px;cursor:pointer;transition:all .2s">
+        <div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:10.5px;color:var(--white);font-weight:600">API GATEWAY</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:8.5px;color:var(--muted);margin-top:1px">data pipelines · streaming ledger intake</div>
+        </div>
+        <div class="connector-state" style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;color:#f5c542">⚠ DISCONNECTED</div>
+      </div>
+      <div class="connector-row" data-key="oauth" data-armed="0" onclick="toggleConnector(this)" style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:8px;background:rgba(40,12,8,.45);border:1px solid #f5c542;margin-bottom:5px;cursor:pointer;transition:all .2s">
+        <div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:10.5px;color:var(--white);font-weight:600">OAUTH + SMS</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:8.5px;color:var(--muted);margin-top:1px">social/ad networks · account validation</div>
+        </div>
+        <div class="connector-state" style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;color:#f5c542">⚠ DISCONNECTED</div>
+      </div>
+      <div class="connector-row" data-key="webhook" data-armed="0" onclick="toggleConnector(this)" style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:8px;background:rgba(40,12,8,.45);border:1px solid #f5c542;cursor:pointer;transition:all .2s">
+        <div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:10.5px;color:var(--white);font-weight:600">WEBHOOK LISTENER</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:8.5px;color:var(--muted);margin-top:1px">real-time automation feedback</div>
+        </div>
+        <div class="connector-state" style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;color:#f5c542">⚠ DISCONNECTED</div>
+      </div>
+    </div>
+    <div id="connectorWarn" style="margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:9px;color:#f5c542;letter-spacing:.05em;line-height:1.4">CRITICAL PATHWAY DISCONNECTED · AWAITING CREDENTIAL PAYLOAD</div>
+  </div>
 </div>
 
 <!-- Three.js · MIT · verified via cdnjs https://cdnjs.cloudflare.com/ajax/libs/three.js/0.158.0/three.min.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.158.0/three.min.js"></script>
+<!-- Three.js post-processing · UnrealBloomPass for the SimCity-grade cinematic glow (Mo 2026-05-17 v4.4.5 directive)
+     Note: r146 is the last release with examples/js (non-module) builds · r148+ went jsm-only · API is stable across r146→r158 for these passes -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.146.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.146.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.146.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.146.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.146.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.146.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
 
 <script>
 /* signed: KIN·2026-05-17T16:18Z·a75e63ca · habitat v4 · REAL Three.js isometric campus
@@ -421,6 +459,83 @@ function categorize(slug){
   slug = (slug||'').toLowerCase();
   for(const k in CAT_REGEX){ if(CAT_REGEX[k].test(slug)) return k; }
   return 'tech';
+}
+
+// ============ v4.4.5 · ENTERPRISE SWARM REGISTRY (Tom-Clancy-grade multi-agent pipelines) ============
+// Every department runs an interlocking chain · not a single text-prompt agent. Sovereign Core input
+// flows top → bottom through specialized nodes. File drops flash-route through this pipeline so the
+// user SEES the workflow advance (Lead Director → Engine → Asset → QA Sentinel).
+//
+// 5 base pipelines map to the 5 visual categories (tech/biz/health/industry/creative).
+// Slug-specific overrides layered on top for the headline departments (game-development, marketing-growth, etc).
+const PIPELINE_BY_CAT = {
+  tech: [
+    {id:'T-01', role:'Systems Architect',    specialty:'Architecture & Story Loops', capability:'Decomposes sovereign input into mechanics maps + integration plans'},
+    {id:'T-02', role:'Engine Scripting Node',specialty:'Pure WebGL & JS Compiler',   capability:'Writes flawless algorithmic logic against the architect spec'},
+    {id:'T-03', role:'Asset Synthesis Core', specialty:'3D Mesh + Texture + Audio',  capability:'Generates procedural assets, shaders, audio triggers'},
+    {id:'T-04', role:'QA Sandbox Sentinel',  specialty:'Continuous Unit Testing',    capability:'Runs build inside sandbox · auto-corrects regressions'}
+  ],
+  biz: [
+    {id:'B-01', role:'Content Strategist Core',  specialty:'Scripting & Hook Engineering',   capability:'Generates multi-tier viral concepts + brand-safe hooks'},
+    {id:'B-02', role:'AV Production Engine',     specialty:'Cinematic Reel Synthesis',       capability:'Compiles video renders, localized voiceover, mix-down'},
+    {id:'B-03', role:'Deployment Automation',    specialty:'Account Creation + Webhook Push',capability:'Routes assets live to platforms, validates via SMS gateway'},
+    {id:'B-04', role:'Performance Sentinel',     specialty:'A/B + Conversion Analytics',     capability:'Reads ROAS · auto-tunes spend · alerts on regressions'}
+  ],
+  health: [
+    {id:'H-01', role:'Clinical Director',        specialty:'Protocol Architecture',        capability:'Maps patient pathways · clinical decision trees'},
+    {id:'H-02', role:'Bioinformatics Engine',    specialty:'Genomics + EHR Parsing',       capability:'Crunches sequencing data · normalizes EHR feeds'},
+    {id:'H-03', role:'Outcomes Synthesis Node',  specialty:'Population Health Analytics',  capability:'Generates outcome forecasts · risk stratification'},
+    {id:'H-04', role:'Compliance Sentinel',      specialty:'HIPAA + SOC2 Audit',           capability:'Locks every data flow against compliance frame'}
+  ],
+  industry: [
+    {id:'I-01', role:'Operations Director',      specialty:'Supply Chain Architecture',    capability:'Designs route + inventory + procurement loops'},
+    {id:'I-02', role:'Logistics Engine',         specialty:'Routing + Scheduling',         capability:'Computes optimal flows · re-routes around disruptions'},
+    {id:'I-03', role:'Field Telemetry Node',     specialty:'IoT + Sensor Ingest',          capability:'Streams machine telemetry · anomaly detection'},
+    {id:'I-04', role:'Compliance QA Sentinel',   specialty:'Audit Trail + Safety',         capability:'Verifies every action against regulatory frame'}
+  ],
+  creative: [
+    {id:'C-01', role:'Lead Systems Director',    specialty:'Architecture & Story Loops',   capability:'Breaks sovereign input into mechanics maps + narrative arcs'},
+    {id:'C-02', role:'Engine Scripting Node',    specialty:'Pure WebGL/Unity Compiler',    capability:'Writes pure code · blueprint scripts · gameplay logic'},
+    {id:'C-03', role:'Asset Synthesis Core',     specialty:'3D Mesh + Audio Trigger',      capability:'Generates rigged meshes, environment audio, FX triggers'},
+    {id:'C-04', role:'Compliance QA Sentinel',   specialty:'Continuous Unit Testing',      capability:'Auto-corrects bugs inside isolated sandboxes · ships clean builds'}
+  ]
+};
+// Slug-specific overrides (the headline departments get bespoke pipeline labels)
+const PIPELINE_BY_SLUG = {
+  'game-development': [
+    {id:'G-01', role:'Lead Systems Director',  specialty:'Architecture & Story Loops',  capability:'Breaks sovereign input into mechanics maps + Tom-Clancy-grade narrative beats'},
+    {id:'G-02', role:'Engine Automation Script',specialty:'Pure WebGL + UE5 Blueprint', capability:'Writes flawless algorithmic logic · gameplay scripts · BT nodes'},
+    {id:'G-03', role:'Asset Synthesis Node',   specialty:'3D Texture + Audio Triggering',capability:'Generates visual + sensory environments · rigged meshes · FX'},
+    {id:'G-04', role:'Compliance QA Sentinel', specialty:'Continuous Unit Testing',     capability:'Auto-corrects bugs in sandbox · civilian-harm sentinel (GLOBAL-83)'}
+  ],
+  'marketing-growth': [
+    {id:'M-01', role:'Content Strategist Core',     specialty:'Scripting & Hook Engineering',    capability:'Generates highly viral multi-tier concepts'},
+    {id:'M-02', role:'AV Production Engine',        specialty:'Cinematic Reel Synthesis',        capability:'Compiles video renders + localized audio tracks'},
+    {id:'M-03', role:'Deployment Automation Worker',specialty:'Account Creation + Distribution', capability:'Pushes assets live to webhooks + SMS-verified accounts'},
+    {id:'M-04', role:'Onboarding Verification Node',specialty:'OAuth + SMS Gateway',             capability:'Validates client creds · routes via verification API'}
+  ],
+  'finance-accounting': [
+    {id:'F-01', role:'Ledger Architect',           specialty:'Chart of Accounts',          capability:'Designs ledger structure · GAAP/IFRS aligned'},
+    {id:'F-02', role:'Reconciliation Engine',      specialty:'Bank + Card + AR/AP',        capability:'Auto-reconciles transactions · flags exceptions'},
+    {id:'F-03', role:'Reporting Synthesis Node',   specialty:'P&L + BS + Cash Flow',       capability:'Generates board-ready reporting packs'},
+    {id:'F-04', role:'Compliance Sentinel',        specialty:'SOX + Tax Audit',            capability:'Validates against every filing requirement'}
+  ],
+  'video': [
+    {id:'V-01', role:'Cinematic Director',         specialty:'Story + Shot List',          capability:'Storyboards · shot composition · continuity'},
+    {id:'V-02', role:'Render Engine Node',         specialty:'Frame Synthesis + FX',       capability:'Compiles frames · particle FX · color grade'},
+    {id:'V-03', role:'Audio Synthesis Core',       specialty:'Voiceover + Score + SFX',    capability:'Generates localized VO + adaptive score'},
+    {id:'V-04', role:'Continuity QA Sentinel',     specialty:'Face-lock + 10/10 Fingers',  capability:'Anatomical auditor · regen frames failing continuity'}
+  ]
+};
+function getPipeline(slug, cat){
+  const norm = (slug||'').toLowerCase();
+  if (PIPELINE_BY_SLUG[norm]) return PIPELINE_BY_SLUG[norm];
+  // Heuristic match on keywords inside the slug
+  if (/video|cinema|film/i.test(norm)) return PIPELINE_BY_SLUG['video'];
+  if (/marketing|growth|advertis/i.test(norm)) return PIPELINE_BY_SLUG['marketing-growth'];
+  if (/finance|accounting|tax/i.test(norm)) return PIPELINE_BY_SLUG['finance-accounting'];
+  if (/game|gaming/i.test(norm)) return PIPELINE_BY_SLUG['game-development'];
+  return PIPELINE_BY_CAT[cat] || PIPELINE_BY_CAT.tech;
 }
 
 // ============ BUILD BUILDINGS (10x10 grid · 2-unit spacing · agent recipe (a)) ============
@@ -1011,6 +1126,7 @@ function sovereignOverride(){ window.location.href = 'tel:+17432151423'; }
 // Procedural isometric office · desks · monitors · agent data-cores · NO external assets
 let officeScene = null, officeCamera = null, officeRenderer = null, officeAgents = [], officeRAF = null, currentOfficeAgency = null;
 let officeServerLEDs = [];
+let officeComposer = null, officeBloomPass = null;   // v4.4.5 · cinematic post-processing
 
 function buildOfficeScene(agency){
   const stage = document.getElementById('officeStage');
@@ -1034,7 +1150,29 @@ function buildOfficeScene(agency){
   officeRenderer.setSize(w, h);
   officeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   officeRenderer.shadowMap.enabled = true;
+  officeRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+  officeRenderer.toneMappingExposure = 1.1;
   stage.appendChild(officeRenderer.domElement);
+
+  // === v4.4.5 · CINEMATIC POST-PROCESSING (Mo: "make it bleed light · SimCity glow") ===
+  // UnrealBloomPass forces every emissive material (monitors, server LEDs, agent cores, packets)
+  // to physically radiate light into the dark slate atmosphere. Falls back to direct render if
+  // examples/js failed to load (jsdelivr hiccup) so we never go black.
+  officeComposer = null; officeBloomPass = null;
+  try {
+    if (THREE.EffectComposer && THREE.UnrealBloomPass && THREE.RenderPass) {
+      officeComposer = new THREE.EffectComposer(officeRenderer);
+      officeComposer.setSize(w, h);
+      const renderPass = new THREE.RenderPass(officeScene, officeCamera);
+      officeComposer.addPass(renderPass);
+      // strength 1.35 · radius 0.55 · threshold 0.18 · tuned for the dark-room neon vibe
+      officeBloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(w, h), 1.35, 0.55, 0.18);
+      officeComposer.addPass(officeBloomPass);
+    }
+  } catch (e) {
+    console.warn('UnrealBloom init failed · falling back to direct render', e);
+    officeComposer = null;
+  }
 
   // FIX 2026-05-17T19:10Z · init camera state BEFORE animate loop starts (was null on first frame · TypeError on lookAt)
   officeCamRadius = 18;
@@ -1138,13 +1276,16 @@ function buildOfficeScene(agency){
     creative: ['Creative Director','Video Producer','Audio Engineer','Game Designer','Content Strategist','Brand Lead','Animation Director','Story Architect']
   };
   const titles = ROLE_TITLES[cat] || ROLE_TITLES.tech;
+  // v4.4.5 · multi-agent swarm pipeline · drives the visible role labels + dossier capability text
+  const pipeline = getPipeline(agency.id || agency.slug, cat);
 
   for(let i = 0; i < roleCount; i++){
     const col = i % cols, row = Math.floor(i / cols);
     const dx = (col - (cols-1)/2) * deskSpacing;
     const dz = (row - (rows-1)/2) * 2.2 + 2;
-    const agentId = 'A-' + String(i+1).padStart(2,'0');
-    const roleTitle = titles[i % titles.length];
+    const pipelineNode = pipeline[i % pipeline.length];
+    const agentId = pipelineNode.id;
+    const roleTitle = pipelineNode.role;
 
     // Desk
     const desk = new THREE.Mesh(
@@ -1179,6 +1320,88 @@ function buildOfficeScene(agency){
     );
     stand.position.set(dx, 0.91, dz - 0.4);
     officeScene.add(stand);
+
+    // === v4.4.5 · GREEBLES (Mo: "real offices have texture · break up the flat sterile geometry") ===
+    // (1) SECONDARY MONITOR · angled to the left/right alternating · smaller · same emissive
+    const sideMonitor = new THREE.Mesh(
+      new THREE.BoxGeometry(0.55, 0.42, 0.04),
+      new THREE.MeshStandardMaterial({color:0x040810, emissive:accent, emissiveIntensity:0.7, metalness:0.7, roughness:0.2})
+    );
+    const sideX = (i % 2 === 0) ? -0.55 : 0.55;
+    sideMonitor.position.set(dx + sideX, 1.12, dz - 0.34);
+    sideMonitor.rotation.y = (i % 2 === 0) ? Math.PI/9 : -Math.PI/9;
+    sideMonitor.castShadow = true;
+    officeScene.add(sideMonitor);
+    const sideStand = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.03, 0.045, 0.16, 8),
+      new THREE.MeshStandardMaterial({color:0x0a0e18, metalness:0.7})
+    );
+    sideStand.position.set(dx + sideX, 0.90, dz - 0.34);
+    officeScene.add(sideStand);
+
+    // (2) KEYBOARD PLATE · thin emissive strip on the desk
+    const keyboard = new THREE.Mesh(
+      new THREE.BoxGeometry(0.65, 0.025, 0.18),
+      new THREE.MeshStandardMaterial({color:0x0a0e18, emissive:accent, emissiveIntensity:0.18, metalness:0.6, roughness:0.4})
+    );
+    keyboard.position.set(dx, 0.825, dz - 0.05);
+    officeScene.add(keyboard);
+
+    // (3) STATUS BEACON · pulsing sphere on desk partition · driven by agent.state
+    const beacon = new THREE.Mesh(
+      new THREE.SphereGeometry(0.055, 12, 12),
+      new THREE.MeshBasicMaterial({color: 0x43e6a1, transparent:true, opacity:0.92})
+    );
+    beacon.position.set(dx + 0.85, 0.92, dz - 0.4);
+    beacon.renderOrder = 600;
+    officeScene.add(beacon);
+    // Small post under the beacon
+    const beaconPost = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.012, 0.018, 0.08, 6),
+      new THREE.MeshStandardMaterial({color:0x0a0e18, metalness:0.8})
+    );
+    beaconPost.position.set(dx + 0.85, 0.86, dz - 0.4);
+    officeScene.add(beaconPost);
+
+    // (4) CABLE BUNDLE · 3 thin glowing tubes running from desk leg along the floor toward the aisle
+    // (the L-shape conduits already carry packets · these are the physical bundle that reads as cabling)
+    const bundleColors = [0x00e4ff, 0x43e6a1, 0xa384ff];
+    for (let cb = 0; cb < 3; cb++) {
+      const offsetX = -0.08 + cb * 0.08;
+      const cablePts = [
+        new THREE.Vector3(dx + offsetX, 0.04, dz + 0.45),
+        new THREE.Vector3(dx + offsetX, 0.04, dz),
+        new THREE.Vector3(dx + offsetX, 0.04, -3.45 + cb * 0.04)
+      ];
+      const cableGeo = new THREE.BufferGeometry().setFromPoints(cablePts);
+      const cable = new THREE.Line(
+        cableGeo,
+        new THREE.LineBasicMaterial({color: bundleColors[cb], transparent:true, opacity:0.7})
+      );
+      officeScene.add(cable);
+    }
+
+    // (5) DESK PARTITION · low-poly side wall between desks (so the room reads as a real bullpen)
+    if (col < cols - 1) {
+      const partition = new THREE.Mesh(
+        new THREE.BoxGeometry(0.04, 0.55, 1.0),
+        new THREE.MeshPhysicalMaterial({color:0x0a1226, metalness:0.5, roughness:0.5, transparent:true, opacity:0.85, transmission:0.3})
+      );
+      partition.position.set(dx + deskSpacing/2 - 0.02, 1.0, dz - 0.05);
+      partition.castShadow = true;
+      officeScene.add(partition);
+    }
+
+    // (6) UNDER-DESK TRASH BIN · classic SimCity micro-detail
+    if (i % 3 === 0) {
+      const bin = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.10, 0.12, 0.20, 10),
+        new THREE.MeshStandardMaterial({color:0x1a2540, metalness:0.5, roughness:0.6})
+      );
+      bin.position.set(dx + 0.65, 0.10, dz + 0.25);
+      bin.castShadow = true;
+      officeScene.add(bin);
+    }
     // === HUMANOID PERSONNEL FIGURE (replaces the abstract cylinder · Mo 2026-05-17 "build personnel inside") ===
     // Body = capsule (cylinder + sphere-head) · base ring · holographic glow shell
     // Each figure ~1.5 units tall so they're visibly humanoid at the office camera distance
@@ -1306,10 +1529,11 @@ function buildOfficeScene(agency){
 
     const agentObj = {
       id: agentId, agentIdx: i, agency_slug: agency.id || agency.slug,
-      name: roleTitle, specialty: cat.toUpperCase(), capability: titles.slice(0,3).join(', '),
+      name: roleTitle, specialty: pipelineNode.specialty, capability: pipelineNode.capability,
+      pipelineNode, pipelineIdx: i % pipeline.length, pipelineLen: pipeline.length,
       state: 'IDLE', currentTask: 'standing by',
       core: agentCore, innerCore, monitor, ring, sprite, labelCanvas, lblTex,
-      bodyGroup, head, glowShell,
+      bodyGroup, head, glowShell, beacon, sideMonitor,
       dx, dz, phase: Math.random()*Math.PI*2, baseY: 0.95
     };
     officeAgents.push(agentObj);
@@ -1376,6 +1600,16 @@ function buildOfficeScene(agency){
       ag.innerCore.rotation.x += 0.014;
       // Ring spin
       ag.ring.rotation.z = oT * 0.6 + ag.phase;
+      // v4.4.5 · status beacon · pulses green on IDLE, white on PROCESSING, amber on WARN
+      if (ag.beacon) {
+        const beaconColor = ag.state === 'PROCESSING' ? 0xffffff
+                          : ag.state === 'WARN' ? 0xf5c542
+                          : 0x43e6a1;
+        ag.beacon.material.color.setHex(beaconColor);
+        const beaconPulse = ag.state === 'PROCESSING' ? 7 : 2.2;
+        ag.beacon.material.opacity = 0.45 + 0.5 * Math.abs(Math.sin(oT * beaconPulse + ag.phase));
+        ag.beacon.scale.setScalar(1 + 0.15 * Math.sin(oT * beaconPulse + ag.phase));
+      }
     });
     // Server LED flicker
     officeServerLEDs.forEach(L => {
@@ -1404,7 +1638,9 @@ function buildOfficeScene(agency){
       officeCamera.position.z = officeCamRadius * Math.cos(officeCamAngle.y) * Math.cos(officeCamAngle.x);
     }
     officeCamera.lookAt(officeCamTarget.x, officeCamTarget.y, officeCamTarget.z);
-    officeRenderer.render(officeScene, officeCamera);
+    // v4.4.5 · route through bloom composer when available · fall back to direct render
+    if (officeComposer) officeComposer.render();
+    else officeRenderer.render(officeScene, officeCamera);
   }
   officeAnimate();
 
@@ -1597,18 +1833,36 @@ function displayAgentDossier(ag){
   if(!el) return;
   stateEl.textContent = ag.state;
   stateEl.style.color = ag.state === 'PROCESSING' ? 'var(--white)' : 'var(--green)';
+  // v4.4.5 · render the full multi-agent pipeline chain so user sees how this dept actually executes
+  let pipelineHtml = '';
+  const fullPipeline = (currentOfficeAgency && officeAgents[0] && officeAgents[0].pipelineLen)
+    ? officeAgents.slice(0, officeAgents[0].pipelineLen).map(a => a.pipelineNode || {id:a.id, role:a.name})
+    : [ag.pipelineNode || {id:ag.id, role:ag.name}];
+  fullPipeline.forEach((node, idx) => {
+    const isMe = (node.id === ag.id);
+    const isActive = isMe && ag.state === 'PROCESSING';
+    const bg = isActive ? 'rgba(255,255,255,.10)' : (isMe ? 'rgba(0,228,255,.08)' : 'rgba(8,12,24,.4)');
+    const bd = isActive ? 'var(--white)' : (isMe ? 'var(--cyan)' : 'var(--line)');
+    const arrow = idx < fullPipeline.length - 1
+      ? '<div style="text-align:center;color:var(--muted);font-size:11px;margin:1px 0">↓</div>' : '';
+    pipelineHtml += `<div style="padding:5px 7px;border-radius:6px;background:${bg};border:1px solid ${bd};margin-bottom:2px">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--gold)">${node.id}</span>
+      <span style="font-size:10.5px;color:${isMe?'var(--white)':'var(--text)'};font-weight:${isMe?'700':'500'}"> · ${escapeHTML(node.role)}</span>
+    </div>${arrow}`;
+  });
   el.innerHTML = `
     <div style="padding:8px 10px;border-radius:8px;background:rgba(8,12,24,.6);border:1px solid var(--line);margin-bottom:6px">
       <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--white);font-size:13px;letter-spacing:.04em">${escapeHTML(ag.name)}</div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--cyan);letter-spacing:.1em;margin-top:2px">${ag.id} · ${ag.specialty}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--cyan);letter-spacing:.1em;margin-top:2px">${ag.id} · ${escapeHTML(ag.specialty)}</div>
     </div>
-    <div style="margin:6px 0"><span style="color:var(--muted)">SPECIALTY ·</span> ${escapeHTML(ag.specialty)}</div>
     <div style="margin:6px 0"><span style="color:var(--muted)">CAPABILITIES ·</span> ${escapeHTML(ag.capability)}</div>
     <div style="margin:8px 0;padding:6px 8px;border-radius:6px;background:${ag.state==='PROCESSING'?'rgba(255,255,255,.08)':'rgba(67,230,161,.08)'};border:1px solid ${ag.state==='PROCESSING'?'var(--white)':'var(--green)'}">
       <span style="color:var(--muted)">ACTIVE TASK ·</span><br>
       <span style="color:${ag.state==='PROCESSING'?'var(--white)':'var(--green)'};font-weight:600">${escapeHTML(ag.currentTask)}</span>
     </div>
-    <div style="font-size:9.5px;color:var(--muted)"><span style="color:var(--gold)">QA</span> 10/10 · <span style="color:var(--gold)">FIDELITY</span> SECURED · <span style="color:var(--gold)">CONTINUITY</span> LOCKED</div>
+    <div style="margin:10px 0 4px;font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:.12em;color:var(--gold);text-transform:uppercase">⬇ Swarm Pipeline · sovereign input</div>
+    ${pipelineHtml}
+    <div style="margin-top:6px;font-size:9.5px;color:var(--muted)"><span style="color:var(--gold)">QA</span> 10/10 · <span style="color:var(--gold)">FIDELITY</span> SECURED · <span style="color:var(--gold)">CONTINUITY</span> LOCKED</div>
   `;
 }
 
@@ -1693,6 +1947,7 @@ function enterOffice(slug){
 function exitOffice(){
   document.getElementById('officeView').style.display = 'none';
   if(officeRAF) { cancelAnimationFrame(officeRAF); officeRAF = null; }
+  if(officeComposer){ try { officeComposer.dispose && officeComposer.dispose(); } catch(_){} officeComposer = null; officeBloomPass = null; }
   if(officeRenderer){ officeRenderer.dispose(); officeRenderer.domElement.remove(); officeRenderer = null; }
   currentOfficeAgency = null;
   pendingDropFiles = [];
@@ -1781,8 +2036,79 @@ function animateDropParticles(){
   }
 }
 
+// v4.4.5 · CONNECTOR GATEWAY · per-session arming state (persists across agencies within session)
+function toggleConnector(row){
+  const armed = row.getAttribute('data-armed') === '1';
+  if (armed) {
+    row.setAttribute('data-armed', '0');
+    row.style.borderColor = '#f5c542';
+    row.style.background = 'rgba(40,12,8,.45)';
+    row.querySelector('.connector-state').innerHTML = '⚠ DISCONNECTED';
+    row.querySelector('.connector-state').style.color = '#f5c542';
+  } else {
+    row.setAttribute('data-armed', '1');
+    row.style.borderColor = '#43e6a1';
+    row.style.background = 'rgba(8,30,20,.55)';
+    row.querySelector('.connector-state').innerHTML = '✓ SECURED';
+    row.querySelector('.connector-state').style.color = '#43e6a1';
+  }
+  updateConnectorWarn();
+}
+function getConnectorState(){
+  const rows = document.querySelectorAll('.connector-row');
+  const armed = Array.from(rows).filter(r => r.getAttribute('data-armed') === '1').length;
+  return { armed, total: rows.length, allArmed: armed === rows.length };
+}
+function updateConnectorWarn(){
+  const w = document.getElementById('connectorWarn');
+  if(!w) return;
+  const st = getConnectorState();
+  if (st.allArmed) {
+    w.innerHTML = '✓ ALL PATHWAYS SECURED · DELIVERABLES MAY FLOW';
+    w.style.color = '#43e6a1';
+  } else {
+    w.innerHTML = `CRITICAL PATHWAY DISCONNECTED · AWAITING CREDENTIAL PAYLOAD (${st.armed}/${st.total} armed)`;
+    w.style.color = '#f5c542';
+  }
+}
+function flashConnectorWarn(){
+  // Sharp amber pulse above the agent's HUD sprite when user tries to send with empty connectors
+  const panel = document.getElementById('connectorPanel');
+  if(!panel) return;
+  panel.style.transition = 'box-shadow .15s';
+  panel.style.boxShadow = '0 0 0 3px rgba(245,197,66,.95), 0 18px 40px rgba(0,0,0,.6)';
+  setTimeout(() => { panel.style.boxShadow = '0 18px 40px rgba(0,0,0,.6)'; }, 350);
+}
+
+// v4.4.5 · sequentially flash each pipeline node white as the payload walks the chain
+function sequencePipelineFlash(taskNote){
+  if(!officeAgents.length || !officeAgents[0].pipelineLen) return;
+  const pipelineLen = officeAgents[0].pipelineLen;
+  const stages = officeAgents.slice(0, pipelineLen);
+  const stageNotes = [
+    'PARSE: ' + (taskNote || 'sovereign payload'),
+    'COMPILE: routing through engine',
+    'SYNTHESIZE: generating assets',
+    'QA: sandbox audit · clean'
+  ];
+  stages.forEach((agent, idx) => {
+    setTimeout(() => {
+      setAgentState(agent, 'PROCESSING', stageNotes[idx] || ('stage ' + (idx+1)));
+      setTimeout(() => setAgentState(agent, 'IDLE', 'completed: ' + (stageNotes[idx]||'').slice(0,28)), 1400);
+    }, idx * 1500);
+  });
+}
+
 async function sendDropzoneFiles(){
   if(!pendingDropFiles.length || !currentOfficeAgency) return;
+  // v4.4.5 · enforce Connector Gateway before payload may flow
+  const cstate = getConnectorState();
+  if (!cstate.allArmed) {
+    flashConnectorWarn();
+    const status = document.getElementById('dropzoneStatus');
+    status.innerHTML = `<span style="color:#f5c542">⚠ CRITICAL ENGINES OFFLINE: AWAITING CREDENTIAL PAYLOAD (${cstate.armed}/${cstate.total} armed)</span>`;
+    return;
+  }
   const btn = document.getElementById('dropzoneSend');
   const status = document.getElementById('dropzoneStatus');
   btn.disabled = true; btn.textContent = 'TRANSMITTING…';
@@ -1813,14 +2139,9 @@ async function sendDropzoneFiles(){
     if(j.ok){
       const ok = j.received.filter(x => x.ok).length;
       status.innerHTML = `<span style="color:var(--green)">✓ ${ok} of ${j.received.length} stored · ${j.storage}</span>`;
-      // TRACK C · State Shifting: move target agent to PROCESSING with the dropped filename(s)
-      const tgt = (selectedAgent && officeAgents.includes(selectedAgent)) ? selectedAgent : (officeAgents.find(a => a.state === 'IDLE') || officeAgents[0]);
-      if(tgt){
-        const fileNames = j.received.filter(x => x.ok).map(x => x.name).join(', ');
-        setAgentState(tgt, 'PROCESSING', 'INGESTING: ' + (fileNames || 'data payload'));
-        // After ~6s release back to IDLE with completion note
-        setTimeout(() => setAgentState(tgt, 'IDLE', 'last task: ingested ' + (fileNames || 'payload')), 6000);
-      }
+      // TRACK C · v4.4.5 SWARM EXECUTION · walk the payload down the pipeline (Director → Engine → Asset → QA)
+      const fileNames = j.received.filter(x => x.ok).map(x => x.name).join(', ');
+      sequencePipelineFlash(fileNames || 'data payload');
       pendingDropFiles = [];
       refreshDropList();
       // Visual flourish: burst green particles toward the now-PROCESSING agent
@@ -1837,6 +2158,8 @@ async function sendDropzoneFiles(){
 
 // Init dropzone on first load
 setTimeout(setupDropzone, 100);
+// Init connector warning state
+setTimeout(updateConnectorWarn, 120);
 
 // Resize office canvas on window resize
 window.addEventListener('resize', () => {
@@ -1847,6 +2170,8 @@ window.addEventListener('resize', () => {
   officeCamera.top = vs; officeCamera.bottom = -vs;
   officeCamera.updateProjectionMatrix();
   officeRenderer.setSize(w, h);
+  if (officeComposer) officeComposer.setSize(w, h);
+  if (officeBloomPass) officeBloomPass.setSize(w, h);
 });
 
 // ============ GEMINI CRAWL LAYER · text mirror of the WebGL scene ============
