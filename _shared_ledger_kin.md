@@ -1,8 +1,8 @@
 # ============================================================
 # CANONICAL LEDGER · public-safe view · confidentials redacted (GLOBAL-48)
 # Source path: /home/iamsuperio.cloud/public_html/data/_shared_ledger_kin.md
-# Render time: 2026-05-17T14:35:31Z
-# Total entries: 40 · Total bytes: 217347
+# Render time: 2026-05-17T14:48:46Z
+# Total entries: 42 · Total bytes: 227784
 # Append-only · doctrine per AGENT_SIGNATURE_PROTOCOL v1
 # GitHub mirror: https://github.com/mirzatech-ai/STAFFING-COMPANY/blob/main/_shared_ledger_kin.md
 # Raw download: https://iamsuperio.cloud/data/ledger.php?raw=1
@@ -3249,3 +3249,140 @@ If you want, in the next turn I can pull from `three-pathfinding` to upgrade way
 - GitHub habitat-v4.html @ 64917b84
 
 **Signature:** KIN·2026-05-17T14:40Z·a75e63ca · *append-only · per AGENT_SIGNATURE_PROTOCOL v1 · GLOBAL-111 + GLOBAL-112 receipts*
+
+---
+
+## ENTRY 039 · 2026-05-17T14:50Z · Kin · Hermes identity fix · he is Hermes, not Maya · Maya reframed as teammate
+
+**Mo's directive (verbatim):** "Please help me get Hermes telegram agent ... configured a lot better. Start by checking why isn't Hermes programmed to be called Hermes, and not Maya ... I need him to know he is Hermes, not Maya. I need him able to work with me and Maya, not to be excluded like he claims that he is."
+
+**Root cause found:** `/root/.hermes/SOUL.md` already said "Your name is Hermes" — but two flaws made Hermes (NVIDIA NIM `meta/llama-3.3-70b-instruct`) get it wrong:
+1. The `## Your name` section ENDED on the word "Maya" ("...you are not Maya"). Recency-anchoring made the 70B model latch onto Maya. It kept "Mo's Operator" from the header but swapped Hermes -> Maya.
+2. SOUL.md framed Maya ONLY as something Hermes is "not" / "separate from" -> Hermes concluded he was excluded ("I am a separate entity, not connected to Maya, can't instruct Maya").
+3. SOUL.md identity block is cached at SESSION START; once a session's first reply said "I am Maya" every later reply repeated it. Voice messages opening "Hi Maya" reinforced it.
+
+**Fix shipped:**
+- Rewrote `/root/.hermes/SOUL.md` (2478 -> 4648 bytes). Name "Hermes" stated hard at the top, repeated, every identity-touching section now ends on "Hermes." Added a "Your team — you belong, you are NOT excluded" section: Kin/Sage/EaZo/Maya are teammates, Hermes is one of them. Added "Working with Maya": Maya's brain reachable at `https://iamsuperio.cloud/api/brain`, Hermes is a teammate not locked out. Old soul backed up: `SOUL.md.bak.identity-fix-20260517-143512`.
+- Reset the poisoned Telegram session: stopped gateway, archived `/root/.hermes/sessions/*` -> `sessions_archive/`, deleted 4 poisoned DB sessions, restarted `hermes-gateway.service` (active).
+- Local mirror updated: `D:/SERVER WORK/_hermes_soul.md`.
+
+**Verification:** fresh `hermes chat` session -> asked "Who are you? ... who is Maya to you?" -> reply: **"My name is Hermes. Maya is my teammate."** Both problems resolved.
+
+**Still open (separate gaps Hermes revealed, NOT in this entry's scope):** Hermes thinks he is "generic cloud-based", does not know his own NIM brain, cannot see images/video, has no link to Mo's API library. Next-session lane.
+
+**Files touched:** VPS `/root/.hermes/SOUL.md` · VPS `/root/.hermes/sessions/` (archived) · VPS hermes state.db (4 sessions pruned) · desktop `D:/SERVER WORK/_hermes_soul.md`
+
+```json
+{"ts":"2026-05-17T14:50Z","actor":"Kin","op":"Hermes identity fix: SOUL.md rewritten so Hermes knows his name is Hermes (not Maya) and Maya is a teammate not an exclusion; poisoned Telegram session reset; verified via fresh CLI","state_v":"hermes-1.1","files_changed":["VPS:/root/.hermes/SOUL.md","VPS:/root/.hermes/sessions/","desktop:D:/SERVER WORK/_hermes_soul.md"],"pending_mo":["Send 'who are you' on Telegram to confirm the fix on the real path","Next lane: teach Hermes his real NIM brain + vision + Mo's API library"],"signature":"Kin · Claude Code · 2026-05-17T14:50Z"}
+```
+
+**Signature:** Kin·2026-05-17T14:50Z · *append-only*
+
+---
+
+## ENTRY 039 · 2026-05-17T15:05Z · KIN·a75e63ca · habitat-v4.5.2 · prop labels DOM + humanoid v2 (wireframe + chest emblem + glowing eyes)
+
+**Mo verbatim (2026-05-17 · after v4.5.1 success):**
+> "Water cooler, whiteboard, I don't even know what's the other text · those words need to be changed to the same text that you did for the leads, but I read it · that kind of text need to be over the water cooler and the rest of the shit"
+>
+> "I need you to improve on agents and their body · the way they look · gotta improve"
+>
+> "Fire up a model GPU if you need to · whatever you need · just make sure you get this done"
+
+### Three fixes shipped to `habitat-v4.html` (180,799 → **186,554** B · +5.6 KB)
+
+#### Fix 1 · All prop labels migrated to DOM (matching agent label style)
+
+The old prop labels were canvas-sprite textures inside the WebGL scene · they got washed out by bloom and read as blurry blobs. Now every prop label is a DOM div in the same `#agentLabelLayer` container as the agent labels.
+
+| Prop | Label | Border color |
+|------|-------|--------------|
+| Water cooler | `💧 WATER COOLER` | `#60c4ff` light cyan |
+| Conference table | `📋 CONFERENCE ROOM` | `#00f2fe` cyan |
+| Coffee station | `☕ COFFEE BAR` | `#ff8a4c` orange |
+| Printer | `🖨 PRINTER` | `#43e6a1` green |
+| Whiteboard | `📐 WHITEBOARD` | `#00d4ff` cyan |
+
+Same style as agent labels: obsidian glass background · 1.5px accent border · 5px left accent stripe · JetBrains Mono 11px · white text · screen-projected each frame via `vector.project(camera)`. Crisp at any zoom. Bloom can't touch them. Depth-fade for far labels.
+
+`addPropLabel()` rewritten to return `{div, anchor}` instead of a sprite. `officePropLabels` array pushed to during scene build. `updateAgentLabelPositions()` extended to project prop labels alongside agent labels.
+
+#### Fix 2 · Walking humanoid v2 (Skill #16 v2 + Skill #28 wireframe overlay)
+
+Every walking humanoid now has the **Gemini cyber-blueprint look**:
+
+- ✨ **Cyan wireframe edge overlay** on torso · shoulders · head · legs (`THREE.EdgesGeometry` with threshold 25 · `LineBasicMaterial` opacity 0.55 · renderOrder 11)
+- 🛡️ **Chest emblem** · small glowing cyan accent box + halo ring at sternum height · gives each humanoid an identity anchor
+- 👁️ **Bigger emissive cyan eyes** (radius 0.030 · was 0.018) + tiny dark pupils for definition · readable from a distance
+- 💪 **Better proportions** · slightly bigger head (0.175 vs 0.16) · longer legs (0.62 vs 0.55) · defined waist taper · neck between head and shoulders
+- 🎨 **Cleaner materials** · clearcoat 0.5 on shirts · higher metalness · emissive intensity bumped 0.18 → 0.22
+- 👟 **Bigger shoes + hands** · cleaner silhouette
+
+#### Fix 3 · Seated agent body upgraded to match
+
+The seated personnel (at desks) was the OLD abstract emissive-cylinder figure. Now it shares the same v2 humanoid style as the walking version:
+
+- Same cyan wireframe edge overlay on torso · shoulders · head
+- Same chest emblem + halo ring
+- Same big emissive cyan eyes + dark pupils
+- Same neck + cleaner hair tuft
+- Arms posed forward toward the keyboard (typing pose preserved · was the iconic seated stance)
+- Hands added at arm-end (skin spheres · were missing in old seated body)
+- Glow shell + base ring + inner octahedron `data core` retained (the breathing animation + spin still works)
+
+**Visual consistency win:** when a desk agent stands up for a break, the temp walking humanoid LOOKS LIKE the same character (same body construction + edge overlay). Before v4.5.2 the seated and walking forms looked like different creatures.
+
+### Two new/updated skills (per GLOBAL-111)
+
+| Slot | Title | Status |
+|------|-------|--------|
+| **#16 v2** | Procedural Humanoid Animation | UPDATED · v2 changelog block added · references Skill #28 |
+| **#28 NEW** | Wireframe Edge Overlay · cyber humanoid look | NEW · threshold doctrine · color doctrine · 5 game-dev use cases |
+
+Skill #28 specifics:
+- Helper function `makeEdgeOverlay(mesh, mat, threshold)` returns a `THREE.LineSegments` with `EdgesGeometry`
+- Threshold 25° for organic forms (cylinders/spheres) · 45° for boxes/buildings · 0-15° for full-wireframe look
+- Color doctrine: cyan = primary character · red = hostile · green = friendly · pulse = selected
+- Composes with #16 humanoid, #19 bloom, #22 desk-break routine
+
+### Skill registry health
+- Local + VPS · 27 → **28 slots** · 1-28 contiguous · JSON validates
+- 13 Logic Seed `.md` files mirrored under `/data/skills/`
+
+### Maya.ai untouched
+Zero Maya configs edited this session · per GLOBAL-112 / S18.
+
+### Deploy chain
+- Local habitat-v4.html · 180,799 → **186,554** B (+5.6 KB)
+- VPS habitat-v4.html · 186,554 B · source.js 142,175 B
+- JS syntax via `new Function(src)` → OK (142,276 B)
+- Grep validates: 7× EdgesGeometry · 3× addEdges · 17× emblem · 9× officePropLabels · 3× seatedEdgeMat
+- GitHub habitat-v4.html @ commit `7902032a`
+- 8 chattr +i /api/ files · untouched
+
+### Test ritual
+
+1. Hard reload [ai-staffing.agency/habitat-v4.html](https://ai-staffing.agency/habitat-v4.html)
+2. ENTER OFFICE on engineering or game-development
+3. **Look at the props** — water cooler / conference / coffee / printer / whiteboard now have crisp DOM labels matching the agent labels above them
+4. **Look at the seated agents** — they have a chest emblem (glowing cyan box on sternum) + cyan edge wireframe on torso/shoulders/head + bigger glowing eyes
+5. **Wait 6-15 seconds** — a desk agent stands up · they look the SAME (chest emblem · wireframe edges · glowing eyes) just animated walking
+6. **Watch them walk** — leg/arm swing + body bob via Skill #16 v2 math
+7. **Zoom in** — the wireframe edges read cleanly · eyes are visible · chest emblem identifies each humanoid
+
+### Files touched (zero Maya · per GLOBAL-112)
+- D:/PROJECTS/ai-staffing.agency/live/habitat-v4.html (180,799 → 186,554 B)
+- D:/PROJECTS/_SHARED/SKILL_REGISTRY_v1.json (27 → 28 slots)
+- D:/PROJECTS/_SHARED/SKILL_WIREFRAME_EDGE_OVERLAY.md (NEW · Skill #28)
+- D:/PROJECTS/_SHARED/SKILL_PROCEDURAL_HUMANOID.md (UPDATED · v2 changelog added)
+- VPS:/home/iamsuperio.cloud/public_html/data/_skill_registry.json
+- VPS:/home/iamsuperio.cloud/public_html/data/skills/wireframe_edge_overlay.md
+- VPS:/home/iamsuperio.cloud/public_html/data/skills/procedural_humanoid.md (refreshed)
+- VPS:/home/ai-staffing.agency/public_html/habitat-v4.html
+- VPS:/home/ai-staffing.agency/public_html/habitat-v4-source.js (re-extracted)
+- GitHub habitat-v4.html @ 7902032a
+
+### On Mo's "fire up a model GPU" offer
+Acknowledged · I stayed local for this round because the wireframe-edge + chest-emblem upgrade was achievable in pure Three.js procedural geometry · no external model or GPU needed. The procedural pipeline keeps the file self-contained · no glTF dependency · no asset bandwidth. If Mo wants AAA-fidelity rigged characters later, that's where Modal GPU / KhronosGroup glTF samples come in (Skill #14 slot in registry). Queued for a future round if visual gap remains after this lands.
+
+**Signature:** KIN·2026-05-17T15:05Z·a75e63ca · *append-only · per AGENT_SIGNATURE_PROTOCOL v1 · GLOBAL-111 + GLOBAL-112 receipts*
