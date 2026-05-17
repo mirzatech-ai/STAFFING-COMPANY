@@ -653,43 +653,248 @@ async function loadAndBuild(){
   // Single shared geometry · per-building material for individual emissive (Gemini directive 2)
   const sharedGeometry = new THREE.BoxGeometry(1.2, 1, 1.2);
 
-  // CANVAS-GENERATED WINDOW-GRID TEXTURE · gives boxes the "skyscraper at night" look
-  // (Gemini directive 2 · glowing window grids via programmatic emissiveMap)
-  function makeWindowTexture(hex){
+  // v4.7.0 · SIMCITY-GRADE PROCEDURAL FACADE (Skill #37)
+  // 256×512 canvas · architectural strips · warm/cool window mix · ground-floor lobby · cornice trim
+  // Returns a different layout per variantIdx so adjacent buildings of same category don't look identical
+  function makeSimCityFacade(catHex, variantIdx){
     const c = document.createElement('canvas');
-    c.width = 128; c.height = 128;
+    c.width = 256; c.height = 512;
     const ctx = c.getContext('2d');
-    // Dark obsidian backdrop
-    ctx.fillStyle = '#050a18';
-    ctx.fillRect(0, 0, 128, 128);
-    // Glowing window grid (8 cols × 10 rows · random pattern · per-window flicker via opacity)
-    const color = '#' + ('000000' + hex.toString(16)).slice(-6);
-    const cols = 8, rows = 10;
-    const cellW = 128/cols, cellH = 128/rows;
-    for(let r = 0; r < rows; r++){
-      for(let cc = 0; cc < cols; cc++){
-        const lit = Math.random();
-        if(lit > 0.18){  // ~82% windows lit
-          ctx.fillStyle = color;
-          ctx.globalAlpha = 0.45 + Math.random()*0.55;
-          ctx.fillRect(cc*cellW + 2.2, r*cellH + 2.5, cellW - 4.4, cellH - 5);
+    const accent = '#' + catHex.toString(16).padStart(6, '0');
+
+    // Dark facade base · varies slightly by variant
+    const baseShades = ['#080d18', '#0a1020', '#0c0e1a', '#0a0e18'];
+    ctx.fillStyle = baseShades[variantIdx % 4];
+    ctx.fillRect(0, 0, 256, 512);
+
+    // Vertical structural mullions (architectural detail · faint dark lines)
+    ctx.strokeStyle = 'rgba(20,28,46,0.7)';
+    ctx.lineWidth = 1.5;
+    for (let v = 0; v <= 5; v++){
+      const vx = v * (256/5);
+      ctx.beginPath(); ctx.moveTo(vx, 16); ctx.lineTo(vx, 480); ctx.stroke();
+    }
+
+    // Window light palette (warm bias · NYC-night vibe)
+    const litPalette = [
+      'rgba(245,214,128,', // warm yellow
+      'rgba(255,181,71,',  // warm amber
+      'rgba(245,210,160,', // soft warm
+      'rgba(255,195,90,',  // amber
+      'rgba(128,212,255,', // cool cyan (15% mix)
+      'rgba(64,96,144,',   // dim blue
+    ];
+    const warmMix = 0.78;  // 78% warm, 22% cool
+
+    // Window grid · 5 cols × 16 rows · cell ~50×30
+    const cols = 5, rows = 16;
+    const cellW = 256 / cols;
+    const cellH = 480 / rows;
+    // Pick 2 setback rows for architectural breaks (per-variant)
+    const setbackA = 4 + (variantIdx % 3);
+    const setbackB = 10 + (variantIdx % 3);
+
+    for (let r = 0; r < rows; r++){
+      // Setback / mech-floor rows (no windows · dark band)
+      if (r === setbackA || r === setbackB){
+        ctx.fillStyle = baseShades[(variantIdx + 1) % 4];
+        ctx.fillRect(0, r * cellH + 16, 256, 6);
+        // Faint horizontal cornice line at setback
+        ctx.fillStyle = accent;
+        ctx.globalAlpha = 0.35;
+        ctx.fillRect(0, r * cellH + 18, 256, 1.5);
+        ctx.globalAlpha = 1;
+        continue;
+      }
+
+      for (let cc = 0; cc < cols; cc++){
+        const wx = cc * cellW + 6;
+        const wy = r * cellH + 20;
+        const ww = cellW - 12;
+        const wh = cellH - 10;
+
+        // Window frame · dark obsidian border
+        ctx.fillStyle = '#03070e';
+        ctx.fillRect(wx - 2, wy - 2, ww + 4, wh + 4);
+
+        // Window state · weighted random
+        const roll = Math.random();
+        let lit = null;
+        if (roll < 0.20) lit = null;   // 20% dark (some offices closed)
+        else if (roll < 0.20 + warmMix * 0.5) lit = litPalette[Math.floor(Math.random()*4)];   // warm 39%
+        else if (roll < 0.20 + warmMix * 0.5 + 0.10) lit = litPalette[4];   // cyan 8%
+        else if (roll < 0.85) lit = litPalette[5];   // dim blue 25%
+        else lit = litPalette[Math.floor(Math.random()*4)];   // remaining warm
+
+        if (lit){
+          const alpha = 0.55 + Math.random() * 0.45;
+          ctx.fillStyle = lit + alpha.toFixed(2) + ')';
+          ctx.fillRect(wx, wy, ww, wh);
+          // Top-edge highlight (light source reflecting off window top)
+          ctx.fillStyle = 'rgba(255,255,255,0.18)';
+          ctx.fillRect(wx, wy, ww, 1.5);
+          // Vertical blind hint (sometimes · half a window darker)
+          if (Math.random() > 0.7){
+            ctx.fillStyle = 'rgba(8,12,24,0.55)';
+            ctx.fillRect(wx + ww*0.4, wy + 1, ww*0.3, wh - 2);
+          }
         }
       }
     }
+
+    // Cornice line at very top (architectural accent · category-colored)
+    ctx.fillStyle = accent;
+    ctx.globalAlpha = 0.85;
+    ctx.fillRect(0, 0, 256, 4);
+    ctx.fillRect(0, 12, 256, 1.5);
     ctx.globalAlpha = 1;
-    // Thin neon stripes across the top + bottom (rim accents)
-    ctx.fillStyle = color;
-    ctx.globalAlpha = 0.8;
-    ctx.fillRect(0, 0, 128, 2);
-    ctx.fillRect(0, 126, 128, 2);
+
+    // Ground floor / lobby (taller · brighter · warm lobby light)
+    ctx.fillStyle = '#02060c';
+    ctx.fillRect(0, 480, 256, 32);
+    const lobbyColor = 'rgba(255,200,120,0.85)';
+    ctx.fillStyle = lobbyColor;
+    // 3 lobby windows · larger than floor windows
+    ctx.fillRect(18, 488, 64, 20);
+    ctx.fillRect(96, 488, 64, 20);
+    ctx.fillRect(174, 488, 64, 20);
+    // Lobby door (slightly darker · center)
+    ctx.fillStyle = '#1a1810';
+    ctx.fillRect(118, 492, 20, 16);
+    // Entry-canopy edge (catcolor-tinted)
+    ctx.fillStyle = accent;
+    ctx.globalAlpha = 0.65;
+    ctx.fillRect(0, 478, 256, 2);
+    ctx.globalAlpha = 1;
+
     const tex = new THREE.CanvasTexture(c);
-    tex.anisotropy = 4;
+    tex.anisotropy = 8;
     return tex;
   }
 
-  // Pre-bake one window-texture per category color (reuse across all buildings of that category)
+  // v4.7.0 · ROOF CLUTTER FACTORY (Skill #38)
+  // For each building > some height: AC units, antenna, beacon, water tank, helipad
+  function createRoofClutter(buildingHeight, accentColor, x, z){
+    const group = new THREE.Group();
+    group.position.set(x, buildingHeight, z);
+    const beacons = [];   // returned for blink animation
+
+    // AC unit · always
+    const ac = new THREE.Mesh(
+      new THREE.BoxGeometry(0.30, 0.10, 0.36),
+      new THREE.MeshStandardMaterial({color: 0x202830, metalness: 0.6, roughness: 0.55})
+    );
+    ac.position.set(-0.32, 0.05, -0.22 + Math.random()*0.12);
+    ac.castShadow = true;
+    group.add(ac);
+    // AC vent (top louvered look)
+    const vent = new THREE.Mesh(
+      new THREE.BoxGeometry(0.20, 0.025, 0.20),
+      new THREE.MeshBasicMaterial({color: 0x0a0e18})
+    );
+    vent.position.set(ac.position.x, 0.115, ac.position.z);
+    group.add(vent);
+
+    // Second AC for taller buildings
+    if (buildingHeight > 1.6){
+      const ac2 = new THREE.Mesh(
+        new THREE.BoxGeometry(0.22, 0.08, 0.28),
+        new THREE.MeshStandardMaterial({color: 0x1a2030, metalness: 0.6, roughness: 0.55})
+      );
+      ac2.position.set(0.28, 0.04, 0.22 + Math.random()*0.10);
+      ac2.castShadow = true;
+      group.add(ac2);
+    }
+
+    // Antenna with blinking beacon · 70% chance on mid+, always on tall
+    if (buildingHeight > 1.5 && (buildingHeight > 2.5 || Math.random() > 0.3)){
+      const antennaH = 0.30 + Math.random() * 0.55;
+      const antenna = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.015, 0.022, antennaH, 6),
+        new THREE.MeshStandardMaterial({color: 0x101820, metalness: 0.9, roughness: 0.2})
+      );
+      const ax = 0.10 + Math.random() * 0.15;
+      const az = 0.18 - Math.random() * 0.10;
+      antenna.position.set(ax, antennaH / 2 + 0.02, az);
+      antenna.castShadow = true;
+      group.add(antenna);
+      // Blinking red beacon at top (aviation-style)
+      const beacon = new THREE.Mesh(
+        new THREE.SphereGeometry(0.038, 10, 10),
+        new THREE.MeshBasicMaterial({color: 0xff3a3a, transparent: true, opacity: 0.95})
+      );
+      beacon.position.set(ax, antennaH + 0.04, az);
+      beacon.userData.isBeacon = true;
+      beacon.userData.blinkPhase = Math.random() * Math.PI * 2;
+      group.add(beacon);
+      beacons.push(beacon);
+    }
+
+    // Water tank · taller buildings only
+    if (buildingHeight > 2.3 && Math.random() > 0.45){
+      const tank = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.14, 0.14, 0.28, 14),
+        new THREE.MeshStandardMaterial({color: 0x9aa2b0, metalness: 0.3, roughness: 0.7})
+      );
+      tank.position.set(0.22 - Math.random() * 0.10, 0.16, -0.28 + Math.random() * 0.06);
+      tank.castShadow = true;
+      group.add(tank);
+      const lid = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.155, 0.155, 0.025, 14),
+        new THREE.MeshStandardMaterial({color: 0x6a7280, metalness: 0.4})
+      );
+      lid.position.set(tank.position.x, 0.31, tank.position.z);
+      group.add(lid);
+    }
+
+    // Helipad on tallest buildings (gold H mark)
+    if (buildingHeight > 3.0 && Math.random() > 0.65){
+      const helipad = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.32, 0.32, 0.018, 18),
+        new THREE.MeshStandardMaterial({color: 0x1a2030, metalness: 0.5, roughness: 0.4})
+      );
+      helipad.position.set(-0.10, 0.035, 0.20);
+      group.add(helipad);
+      const ring = new THREE.Mesh(
+        new THREE.RingGeometry(0.27, 0.30, 24),
+        new THREE.MeshBasicMaterial({color: 0xf5c542, transparent: true, opacity: 0.8, side: THREE.DoubleSide})
+      );
+      ring.position.set(-0.10, 0.046, 0.20);
+      ring.rotation.x = -Math.PI / 2;
+      group.add(ring);
+      // H glyph (two vertical bars + connector)
+      const hMat = new THREE.MeshBasicMaterial({color: 0xf5c542, transparent: true, opacity: 0.92});
+      const bar1 = new THREE.Mesh(new THREE.PlaneGeometry(0.04, 0.18), hMat);
+      bar1.position.set(-0.18, 0.047, 0.20); bar1.rotation.x = -Math.PI/2;
+      group.add(bar1);
+      const bar2 = new THREE.Mesh(new THREE.PlaneGeometry(0.04, 0.18), hMat);
+      bar2.position.set(-0.02, 0.047, 0.20); bar2.rotation.x = -Math.PI/2;
+      group.add(bar2);
+      const bar3 = new THREE.Mesh(new THREE.PlaneGeometry(0.13, 0.04), hMat);
+      bar3.position.set(-0.10, 0.047, 0.20); bar3.rotation.x = -Math.PI/2;
+      group.add(bar3);
+    }
+
+    return {group, beacons};
+  }
+
+  // Legacy alias (some existing code might reference this)
+  function makeWindowTexture(hex){
+    return makeSimCityFacade(hex, Math.floor(Math.random() * 4));
+  }
+
+  // v4.7.0 · Pre-bake 4 SimCity facade variants per category · adjacent buildings of the same category now look different
   const windowTex = {};
-  Object.keys(CAT_COLOR).forEach(k => { windowTex[k] = makeWindowTexture(CAT_COLOR[k]); });
+  Object.keys(CAT_COLOR).forEach(k => {
+    windowTex[k] = [
+      makeSimCityFacade(CAT_COLOR[k], 0),
+      makeSimCityFacade(CAT_COLOR[k], 1),
+      makeSimCityFacade(CAT_COLOR[k], 2),
+      makeSimCityFacade(CAT_COLOR[k], 3)
+    ];
+  });
+  // Beacon registry · populated as buildings spawn roof clutter · animated each frame for the blink
+  const allBeacons = [];
 
   agencies.forEach((a, i) => {
     const row = Math.floor(i / GRID_N);
@@ -702,16 +907,19 @@ async function loadAndBuild(){
     const baseColor = CAT_COLOR[cat];
     const padding = String(a.id||'').startsWith('pad_');
 
-    // GLASS + STEEL (Gemini blueprint · MeshPhysicalMaterial)
+    // v4.7.0 · SimCity facade · pick a deterministic variant per building so it's stable across reloads
+    const facadeVariant = padding ? null : windowTex[cat][(i * 7 + col * 3 + row * 5) % 4];
+    // GLASS + STEEL with SimCity facade · the canvas texture provides BOTH base color (via map) AND emissive (via emissiveMap)
     const mat = new THREE.MeshPhysicalMaterial({
-      color: padding ? 0x1a2238 : 0x0f172a,                    // dark base · neon comes from emissiveMap
-      emissive: baseColor,
-      emissiveMap: padding ? null : windowTex[cat],            // glowing window grid texture
-      emissiveIntensity: padding ? 0 : 0.32,
-      metalness: 0.9,
-      roughness: 0.18,
-      clearcoat: 0.6,
-      clearcoatRoughness: 0.2,
+      color: padding ? 0x1a2238 : 0xffffff,            // white base · facade canvas painted on it via map
+      map: padding ? null : facadeVariant,             // facade as the base color too · NOT just emissive
+      emissive: 0xffffff,                              // neutral emissive · so facade canvas controls hue
+      emissiveMap: padding ? null : facadeVariant,
+      emissiveIntensity: padding ? 0 : 0.85,           // strong emissive so lit windows really glow at night
+      metalness: 0.65,
+      roughness: 0.32,
+      clearcoat: 0.7,
+      clearcoatRoughness: 0.15,
       transparent: padding,
       opacity: padding ? 0.22 : 1
     });
@@ -738,8 +946,39 @@ async function loadAndBuild(){
       const trim = new THREE.Mesh(trimGeo, trimMat);
       trim.position.set(x, height + 0.085, z);
       scene.add(trim);
+
+      // v4.7.0 · ROOF CLUTTER (Skill #38) · AC units · antennas · beacons · water tanks · helipads by tier
+      const clutter = createRoofClutter(height + 0.07, baseColor, x, z);
+      scene.add(clutter.group);
+      clutter.beacons.forEach(b => allBeacons.push(b));
+
+      // v4.7.0 · CROWN TAPER for tall buildings · narrower top mass + own emissive crown for SimCity skyscraper silhouette
+      if (height > 2.5){
+        const crownH = 0.25 + Math.random() * 0.20;
+        const crownGeo = new THREE.BoxGeometry(0.85, crownH, 0.85);
+        const crownMat = new THREE.MeshPhysicalMaterial({
+          color: 0xffffff, map: facadeVariant,
+          emissive: 0xffffff, emissiveMap: facadeVariant, emissiveIntensity: 0.90,
+          metalness: 0.7, roughness: 0.28, clearcoat: 0.7
+        });
+        const crown = new THREE.Mesh(crownGeo, crownMat);
+        crown.position.set(x, height + 0.07 + crownH/2, z);
+        crown.castShadow = true;
+        scene.add(crown);
+        // Crown cap (small steel disc on very tall buildings)
+        if (height > 3.2){
+          const cap = new THREE.Mesh(
+            new THREE.BoxGeometry(0.50, 0.05, 0.50),
+            new THREE.MeshStandardMaterial({color: 0x080d18, metalness: 0.95, roughness: 0.2})
+          );
+          cap.position.set(x, height + 0.07 + crownH + 0.025, z);
+          scene.add(cap);
+        }
+      }
     }
   });
+  // Stash beacon registry on the buildings array for the animator
+  buildings._allBeacons = allBeacons;
 
   // Council Chamber · LOCKED at anchor (Gemini directive 1 · Z-axis constraint)
   // baseY set explicitly · slug='_council' is whitelisted to ignore raise/lower
@@ -1228,6 +1467,18 @@ function animate(){
   if(dataPackets.length) animatePackets();
   // v4.6.0 · D-02 · animate the inter-building couriers along the street network
   if(macroCouriers.length) animateMacroCouriers();
+  // v4.7.0 · BEACON BLINK · aviation-red rooftop beacons pulse every ~1.4s
+  if(buildings._allBeacons && buildings._allBeacons.length){
+    const tBeacon = performance.now() / 1000;
+    buildings._allBeacons.forEach(b => {
+      const phase = b.userData.blinkPhase || 0;
+      // Sharp blink · mostly dim · sin-squared spike
+      const k = Math.abs(Math.sin(tBeacon * 2.3 + phase));
+      const blink = k > 0.85 ? 1.0 : 0.20;
+      b.material.opacity = 0.40 + 0.60 * blink;
+      b.scale.setScalar(0.85 + 0.30 * blink);
+    });
+  }
   if(burstPool.length)   animateBursts();
   renderer.render(scene, camera);
 }
