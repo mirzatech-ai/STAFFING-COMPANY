@@ -340,6 +340,8 @@ body{background:radial-gradient(1400px 900px at 50% -10%,rgba(245,197,66,.05),tr
     <span class="metric-chip" id="chipWorking" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:13px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.25);color:#fff;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em"><b id="chipWorkingN">0</b> Working</span>
     <span class="metric-chip" id="chipMayaLines" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:13px;background:rgba(163,132,255,.10);border:1px solid #a384ff;color:#a384ff;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em">Maya Lines <b style="color:#fff">OPEN</b></span>
     <span class="metric-chip" id="chipPhone" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:13px;background:linear-gradient(135deg,rgba(245,197,66,.18),rgba(205,153,56,.12));border:1px solid var(--gold);color:#fff;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em">☎ +1 (245) 225-1493</span>
+    <!-- v4.6.0 · D-04 · CAPABILITY ASSESSMENT chip · per GLOBAL-113 capability-check mini-doctrine -->
+    <span class="metric-chip" id="chipCapability" style="display:none;align-items:center;gap:5px;padding:5px 11px;border-radius:13px;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em">CAPABILITY</span>
   </div>
   <div id="officeStage" style="position:absolute;inset:0"></div>
 
@@ -421,6 +423,8 @@ body{background:radial-gradient(1400px 900px at 50% -10%,rgba(245,197,66,.05),tr
 <script src="https://cdn.jsdelivr.net/npm/three@0.146.0/examples/js/postprocessing/RenderPass.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.146.0/examples/js/postprocessing/ShaderPass.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.146.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+<!-- v4.6.0 · D-01 · GLTFLoader for RobotExpressive cyber-bot walking workers (Skill #29 implementation · Skill #32 ship) -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.146.0/examples/js/loaders/GLTFLoader.js"></script>
 
 <script>
 /* signed: KIN·2026-05-17T16:18Z·a75e63ca · habitat v4 · REAL Three.js isometric campus
@@ -766,6 +770,10 @@ async function loadAndBuild(){
   // === KINETIC DATA-PACKET TRAFFIC (Gemini directive 3) ===
   // Pool of glowing spheres flowing between random buildings and the Council Chamber
   initDataPackets();
+
+  // v4.6.0 · D-02 · STREET NETWORK + COURIERS (Skill #33)
+  buildStreetNetwork();
+  spawnMacroCouriers();
 }
 
 // PARTICLE TRAFFIC · GEMINI PERF UPGRADE · THREE.Points (single draw call · 28 vertices)
@@ -815,6 +823,99 @@ function initDataPackets(){
   dataPacketPoints = new THREE.Points(dataPacketGeo, mat);
   dataPacketPoints.renderOrder = 999;   // draw last · always on top
   scene.add(dataPacketPoints);
+}
+
+// === v4.6.0 · D-02 · STREET NETWORK + INTER-BUILDING COURIERS (Skill #33) ===
+// Mo: "streets between agencies need to feel alive · couriers in the streets between those agencies"
+// Adds visible aisle strips on the ground in BOTH axes between building rows, plus 12 courier packets
+// that travel between random building pairs · packets pulse · pop on arrival
+const macroCouriers = [];
+const COURIER_COUNT = 12;
+let streetGeo = null, streetMesh = null;
+
+function buildStreetNetwork(){
+  // Build "streets" as a single BufferGeometry of thin glowing strips between building rows
+  const positions = [];
+  // 10×10 buildings · streets run between rows (offset half-spacing) · X-axis streets and Z-axis streets
+  const half = (GRID_N - 1) * SPACING / 2;
+  const lanes = [];
+  for (let i = 0; i <= GRID_N; i++){
+    const offset = (i - GRID_N/2) * SPACING;
+    // X-running street at z = offset
+    lanes.push({type:'x', z: offset, len: GRID_N * SPACING});
+    // Z-running street at x = offset
+    lanes.push({type:'z', x: offset, len: GRID_N * SPACING});
+  }
+  // Render each street as a thin neon strip
+  lanes.forEach(L => {
+    const stripGeo = (L.type === 'x')
+      ? new THREE.PlaneGeometry(L.len, 0.18)
+      : new THREE.PlaneGeometry(0.18, L.len);
+    const stripMat = new THREE.MeshBasicMaterial({color: 0x00f2fe, transparent:true, opacity:0.30});
+    const strip = new THREE.Mesh(stripGeo, stripMat);
+    strip.rotation.x = -Math.PI/2;
+    strip.position.set(L.type === 'z' ? L.x : 0, 0.01, L.type === 'x' ? L.z : 0);
+    scene.add(strip);
+  });
+}
+
+function spawnMacroCouriers(){
+  const sources = buildings.filter(b => b.userData.slug && !b.userData.slug.startsWith('pad_') && b.userData.slug !== '_council');
+  if (sources.length < 2) return;
+  // Shared geometry · cheap
+  const courierGeo = new THREE.SphereGeometry(0.18, 12, 12);
+  for (let i = 0; i < COURIER_COUNT; i++){
+    const a = sources[Math.floor(Math.random() * sources.length)];
+    let b = sources[Math.floor(Math.random() * sources.length)];
+    while (b === a) b = sources[Math.floor(Math.random() * sources.length)];
+    const color = a.userData.baseColor || 0x00f2fe;
+    const mat = new THREE.MeshBasicMaterial({color, transparent:true, opacity:0.95});
+    const trailMat = new THREE.MeshBasicMaterial({color, transparent:true, opacity:0.40});
+    const mesh = new THREE.Mesh(courierGeo, mat);
+    const trail = new THREE.Mesh(new THREE.SphereGeometry(0.28, 10, 10), trailMat);
+    mesh.renderOrder = 800; trail.renderOrder = 799;
+    scene.add(mesh); scene.add(trail);
+    macroCouriers.push({
+      mesh, trail, mat, trailMat,
+      from: a, to: b,
+      progress: Math.random(),
+      speed: 0.0028 + Math.random()*0.0045
+    });
+  }
+}
+
+function animateMacroCouriers(){
+  if (!macroCouriers.length) return;
+  const sources = buildings.filter(b => b.userData.slug && !b.userData.slug.startsWith('pad_') && b.userData.slug !== '_council');
+  macroCouriers.forEach(c => {
+    c.progress += c.speed;
+    if (c.progress >= 1){
+      // Reroute · new from/to pair
+      c.from = c.to;
+      let next = sources[Math.floor(Math.random() * sources.length)];
+      while (next === c.from && sources.length > 1) next = sources[Math.floor(Math.random() * sources.length)];
+      c.to = next;
+      c.progress = 0;
+      c.speed = 0.0028 + Math.random()*0.0045;
+      const newColor = c.from.userData.baseColor || 0x00f2fe;
+      c.mat.color.setHex(newColor);
+      c.trailMat.color.setHex(newColor);
+    }
+    const t = c.progress;
+    const e = t * t * (3 - 2 * t);   // smoothstep
+    const sx = c.from.position.x, sz = c.from.position.z;
+    const dx = c.to.position.x,   dz = c.to.position.z;
+    const px = sx + (dx - sx) * e;
+    const pz = sz + (dz - sz) * e;
+    // Stay LOW on the streets (y around 0.4-1.2) · arc small
+    const py = 0.4 + Math.sin(e * Math.PI) * 0.7;
+    c.mesh.position.set(px, py, pz);
+    c.trail.position.set(px, py - 0.05, pz);
+    // Pulse the packet · brighter in the middle of the trip
+    const pulse = 0.7 + 0.3 * Math.sin(e * Math.PI);
+    c.mat.opacity = pulse;
+    c.trailMat.opacity = 0.40 * pulse;
+  });
 }
 
 function reroutePacket(p){
@@ -1022,8 +1123,16 @@ window.addEventListener('mousemove', e => {
 stageEl.addEventListener('wheel', e => {
   e.preventDefault();
   const delta = e.deltaY > 0 ? 1.08 : 0.92;
-  camera.zoom = Math.max(0.5, Math.min(3, (camera.zoom||1) * delta));
+  camera.zoom = Math.max(0.5, Math.min(4.5, (camera.zoom||1) * delta));
   camera.updateProjectionMatrix();
+  // v4.6.0 · D-03 · ZOOM-INTO-OFFICE · if zoom passes threshold AND mouse is over a building, enter that office
+  // Mo: "I need to be able to zoom into the office directly · without click"
+  if (camera.zoom > 3.6 && hoveredBuilding && hoveredBuilding.userData && hoveredBuilding.userData.slug && !hoveredBuilding.userData.slug.startsWith('pad_') && hoveredBuilding.userData.slug !== '_council'){
+    const slug = hoveredBuilding.userData.slug;
+    // Reset zoom so when the user exits the office they're back at default
+    camera.zoom = 1; camera.updateProjectionMatrix();
+    enterOffice(slug);
+  }
 }, {passive:false});
 
 // Touch support (single-finger drag)
@@ -1079,6 +1188,8 @@ function animate(){
   });
   // Kinetic data-packet traffic (Gemini directive 3)
   if(dataPackets.length) animatePackets();
+  // v4.6.0 · D-02 · animate the inter-building couriers along the street network
+  if(macroCouriers.length) animateMacroCouriers();
   if(burstPool.length)   animateBursts();
   renderer.render(scene, camera);
 }
@@ -1202,6 +1313,91 @@ let officeScene = null, officeCamera = null, officeRenderer = null, officeAgents
 let officeServerLEDs = [];
 let officeComposer = null, officeBloomPass = null;   // v4.4.5 · cinematic post-processing
 let officeWalkers = [], officeOutboundConduit = null, officeProps = [], officePropLabels = [];  // v4.4.7/8/4.5.2 · walkers + dispatch conduit + props + DOM prop labels
+
+// === v4.6.0 · CYBER-ROBOT GLB LOADER (Skill #32 · D-01 ship · per PROJECT_BRIEF) ===
+// Loads three.js RobotExpressive.glb once, caches scene + animation clips
+// Per NPC: clone the cached scene + spawn an AnimationMixer + play one of the named clips
+// Falls back to procedural humanoid (Skill #16 v3) if GLB doesn't load
+let cachedRobot = null, cachedRobotClips = null;
+let robotLoadState = 'idle';   // idle | loading | loaded | failed
+const ROBOT_GLB_URL = 'https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb';
+const officeClock = new THREE.Clock();   // for AnimationMixer.update(delta)
+
+function preloadCyberRobot(){
+  if (robotLoadState !== 'idle') return;
+  robotLoadState = 'loading';
+  if (!THREE.GLTFLoader) { console.warn('[v4.6] GLTFLoader not available · falling back to procedural'); robotLoadState = 'failed'; return; }
+  const loader = new THREE.GLTFLoader();
+  loader.load(ROBOT_GLB_URL,
+    (gltf) => {
+      cachedRobot = gltf.scene;
+      cachedRobotClips = gltf.animations;
+      robotLoadState = 'loaded';
+      console.log('[v4.6] CyberRobot loaded ·', cachedRobotClips.length, 'clips:', cachedRobotClips.map(c=>c.name).join(', '));
+    },
+    undefined,
+    (err) => { console.warn('[v4.6] CyberRobot load failed · using procedural fallback', err); robotLoadState = 'failed'; }
+  );
+}
+preloadCyberRobot();   // kick off as soon as the script loads
+
+// Cyber-tint palette · NOT human skin · matches v4.5.3 cyber-bot palette
+const CYBER_TINT_PALETTE = [0x00d4ff, 0x43e6a1, 0xf5c542, 0xa384ff, 0xff5cc4, 0x4cd9ff, 0x6ee7e7, 0xff8a4c];
+
+// Build a cyber-robot instance · cloned from cache · re-materialed with cyan/holographic + variant tint
+// Returns {mesh, mixer, currentAnim, clips, head, torso} so animator + raycaster still work
+function createCyberRobot(variantIdx, initialAnim, scale){
+  if (!cachedRobot || !cachedRobotClips) return null;
+  // Deep clone the scene (handles skinned meshes correctly in r0.146 GLTFLoader)
+  const mesh = cachedRobot.clone(true);
+  // Walk the clone · rebind skeletons + re-material every mesh
+  const tint = CYBER_TINT_PALETTE[variantIdx % CYBER_TINT_PALETTE.length];
+  const cyberMat = new THREE.MeshPhysicalMaterial({
+    color: tint, emissive: tint, emissiveIntensity: 0.40,
+    metalness: 0.75, roughness: 0.25, clearcoat: 0.85, clearcoatRoughness: 0.15
+  });
+  // Helper · for skinned children we need to clone the material per mesh (avoid shared-state bugs)
+  mesh.traverse(child => {
+    if (child.isMesh || child.isSkinnedMesh) {
+      // Some sub-meshes may benefit from a slightly different tint (eye band etc) · simple approach: tint all
+      child.material = cyberMat.clone();
+      child.castShadow = true;
+    }
+  });
+  const s = scale || 0.50;   // RobotExpressive is ~1m tall · scale 0.50 ≈ matches our seated body ~1.5m
+  mesh.scale.setScalar(s);
+  // Spawn mixer + play initial clip
+  const mixer = new THREE.AnimationMixer(mesh);
+  let currentAnim = initialAnim || 'Walking';
+  const clip = THREE.AnimationClip.findByName(cachedRobotClips, currentAnim);
+  if (clip) { mixer.clipAction(clip).play(); }
+  // Locate the torso + head if present (for raycasting compatibility)
+  let torso = null, head = null;
+  mesh.traverse(child => {
+    if (child.isMesh || child.isSkinnedMesh) {
+      const n = (child.name || '').toLowerCase();
+      if (!torso && (n.includes('torso') || n.includes('body') || n.includes('chest'))) torso = child;
+      if (!head && n.includes('head')) head = child;
+    }
+  });
+  if (!torso) {
+    // Fallback: use the first mesh as torso
+    mesh.traverse(child => { if (!torso && (child.isMesh || child.isSkinnedMesh)) torso = child; });
+  }
+  return {mesh, mixer, currentAnim, clips: cachedRobotClips, head, torso, tint};
+}
+
+function setCyberRobotAnim(robot, animName){
+  if (!robot || !robot.mixer || !robot.clips) return;
+  if (robot.currentAnim === animName) return;
+  const clip = THREE.AnimationClip.findByName(robot.clips, animName);
+  if (!clip) return;
+  // Crossfade for smooth transitions
+  robot.mixer.stopAllAction();
+  const action = robot.mixer.clipAction(clip);
+  action.reset().fadeIn(0.25).play();
+  robot.currentAnim = animName;
+}
 let dispatchActive = false;                            // v4.4.7 · gate for inter-agency packet flight
 
 // === PROCEDURAL HUMANOID FACTORY v3 · v4.5.3 cyber-bot palette per Mo "agents appear African/human, need bot-like" ===
@@ -2185,6 +2381,28 @@ function buildOfficeScene(agency){
   // Title
   document.getElementById('officeTitle').textContent = '🏢 ' + (agency.name || agency.id || agency.slug) + ' · INTERIOR · ' + (agency.role_count||0) + ' STATIONS';
   currentOfficeAgency = agency;
+  // v4.6.0 · D-04 · CAPABILITY ASSESSMENT chip · per GLOBAL-113 capability-check mini-doctrine (Skill #35)
+  // Gauge: BESPOKE (10 named agencies have PIPELINE_BY_SLUG) = covered · CATEGORY-DEFAULT = needs Parliament audit
+  const capChip = document.getElementById('chipCapability');
+  if (capChip) {
+    const slug = (agency.id || agency.slug || '').toLowerCase();
+    const hasBespoke = !!PIPELINE_BY_SLUG[slug] || /game|video|marketing|finance/i.test(slug);
+    if (hasBespoke) {
+      capChip.style.display = 'inline-flex';
+      capChip.style.background = 'rgba(67,230,161,.10)';
+      capChip.style.border = '1px solid var(--green)';
+      capChip.style.color = 'var(--green)';
+      capChip.innerHTML = '✓ CAPABILITY <b style="color:#fff;margin-left:4px">BESPOKE</b>';
+      capChip.title = 'This agency has a custom multi-agent pipeline tailored to its named purpose.';
+    } else {
+      capChip.style.display = 'inline-flex';
+      capChip.style.background = 'rgba(245,197,66,.10)';
+      capChip.style.border = '1px solid var(--gold)';
+      capChip.style.color = 'var(--gold)';
+      capChip.innerHTML = '⚠ CAPABILITY <b style="color:#fff;margin-left:4px">CATEGORY DEFAULT</b>';
+      capChip.title = 'This agency uses the default category pipeline. Parliament audit queued per GLOBAL-113.';
+    }
+  }
 
   // INTER-DESK DATA PACKET TRAFFIC (constant flow · so room never feels static)
   initOfficeBackgroundPackets();
@@ -2236,7 +2454,14 @@ function buildOfficeScene(agency){
             const prop = officeProps[Math.floor(Math.random() * officeProps.length)];
             ag.breakTarget = prop;
             if (ag.bodyGroup) ag.bodyGroup.visible = false;
-            const worker = createProceduralHumanoid(0x00d4ff, ag.variantIdx);
+            // v4.6.0 · prefer GLB cyber-robot if loaded · fall back to procedural humanoid (Skill #29 strategy)
+            let worker = null;
+            if (robotLoadState === 'loaded') {
+              worker = createCyberRobot(ag.variantIdx, 'Walking', 0.50);
+            }
+            if (!worker) {
+              worker = createProceduralHumanoid(0x00d4ff, ag.variantIdx);
+            }
             worker.mesh.position.set(ag.dx, 0, ag.dz + 0.55);
             officeScene.add(worker.mesh);
             ag.breakWorker = worker;
@@ -2250,6 +2475,8 @@ function buildOfficeScene(agency){
         }
       } else if ((ag.breakState === 'walking_to' || ag.breakState === 'walking_back') && ag.breakWorker) {
         const w = ag.breakWorker;
+        // Ensure walking clip if GLB robot
+        if (w.mixer && w.currentAnim !== 'Walking') setCyberRobotAnim(w, 'Walking');
         // Current segment goal = path[breakPathIdx]
         const seg = ag.breakPath && ag.breakPath[ag.breakPathIdx];
         if (!seg) { ag.breakState = (ag.breakState === 'walking_to' ? 'dwelling' : 'seated'); }
@@ -2265,8 +2492,9 @@ function buildOfficeScene(agency){
                 ag.breakState = 'dwelling';
                 ag.breakDwellEnd = now + ag.breakTarget.dwellMs;
                 ag.currentTask = '⌂ ' + ag.breakTarget.name;
-                w.leftLeg.rotation.x = 0; w.rightLeg.rotation.x = 0;
-                w.leftArm.rotation.x = 0; w.rightArm.rotation.x = 0;
+                // v4.6.0 · pose Idle on dwelling for GLB robots · zero limbs for procedural
+                if (w.mixer) setCyberRobotAnim(w, 'Idle');
+                else { w.leftLeg.rotation.x = 0; w.rightLeg.rotation.x = 0; w.leftArm.rotation.x = 0; w.rightArm.rotation.x = 0; }
                 renderAgentLabel(ag);
               } else {
                 // walking_back complete · sit
@@ -2283,22 +2511,28 @@ function buildOfficeScene(agency){
               }
             }
           } else {
-            // Move toward this waypoint
+            // Move toward this waypoint · same translation for both GLB and procedural
             const nx = dx2 / dist, nz = dz2 / dist;
             w.mesh.position.x += nx * 0.045;
             w.mesh.position.z += nz * 0.045;
             w.mesh.rotation.y = Math.atan2(nx, nz);
-            const tt = oT * 4.5 + ag.phase;
-            const swing = Math.sin(tt) * 0.55;
-            w.leftLeg.rotation.x = swing; w.rightLeg.rotation.x = -swing;
-            w.leftArm.rotation.x = -swing*0.7; w.rightArm.rotation.x = swing*0.7;
-            w.mesh.position.y = Math.abs(Math.cos(tt)) * 0.06;
+            // v4.6.0 · GLB robot uses AnimationMixer (handled in global mixer-update block) · procedural uses sin-swing
+            if (!w.mixer) {
+              const tt = oT * 4.5 + ag.phase;
+              const swing = Math.sin(tt) * 0.55;
+              w.leftLeg.rotation.x = swing; w.rightLeg.rotation.x = -swing;
+              w.leftArm.rotation.x = -swing*0.7; w.rightArm.rotation.x = swing*0.7;
+              w.mesh.position.y = Math.abs(Math.cos(tt)) * 0.06;
+            }
           }
         }
       } else if (ag.breakState === 'dwelling' && ag.breakWorker) {
         const w = ag.breakWorker;
-        w.mesh.position.y = Math.sin(oT * 1.3 + ag.phase) * 0.012;
-        w.leftArm.rotation.x = Math.sin(oT * 0.6 + ag.phase) * 0.10;
+        // GLB robot: Idle clip plays from mixer; procedural: hand-rolled sway
+        if (!w.mixer) {
+          w.mesh.position.y = Math.sin(oT * 1.3 + ag.phase) * 0.012;
+          w.leftArm.rotation.x = Math.sin(oT * 0.6 + ag.phase) * 0.10;
+        }
         if (now >= ag.breakDwellEnd) {
           // Reverse the path for walking back
           ag.breakPath = computeOfficePath({x: w.mesh.position.x, z: w.mesh.position.z}, {x: ag.dx, z: ag.dz + 0.55});
@@ -2319,6 +2553,11 @@ function buildOfficeScene(agency){
         L.mesh.material.color.setHex(c);
         L.mesh.material.opacity = 0.6 + Math.random()*0.4;
       }
+    });
+    // v4.6.0 · GLB ROBOT MIXER UPDATE · drives rigged cyber-robot animations (Skill #32)
+    const _delta = officeClock.getDelta();
+    officeAgents.forEach(ag => {
+      if (ag.breakWorker && ag.breakWorker.mixer) ag.breakWorker.mixer.update(_delta);
     });
     // CONSTANT BACKGROUND DATA PACKETS · flowing through the wire conduits
     if(officeBgPackets.length) animateOfficeBgPackets();
@@ -2921,6 +3160,9 @@ function exitOffice(){
   // v4.5.1 · purge DOM agent labels
   const _lblLayer = document.getElementById('agentLabelLayer');
   if (_lblLayer) _lblLayer.innerHTML = '';
+  // v4.6.0 · hide capability chip
+  const _capChip = document.getElementById('chipCapability');
+  if (_capChip) _capChip.style.display = 'none';
   // v4.4.6 · reset connector pill so the next agency starts fresh (panel restores via updateConnectorWarn)
   const pill = document.getElementById('connectorPill');
   if (pill) pill.style.display = 'none';
