@@ -1204,29 +1204,29 @@ let officeComposer = null, officeBloomPass = null;   // v4.4.5 · cinematic post
 let officeWalkers = [], officeOutboundConduit = null, officeProps = [], officePropLabels = [];  // v4.4.7/8/4.5.2 · walkers + dispatch conduit + props + DOM prop labels
 let dispatchActive = false;                            // v4.4.7 · gate for inter-agency packet flight
 
-// === PROCEDURAL HUMANOID FACTORY v2 (Skill #16 v2 · v4.5.2 upgrade per Mo: "improve agents and their body") ===
-// Key v2 changes (Gemini blueprint alignment):
-//   · CYAN WIREFRAME EDGE OVERLAY on torso + head + shoulders (the signature cyber-look from the blueprint)
-//   · CHEST EMBLEM (glowing accent box · gives each humanoid identity)
-//   · GLOWING EYES (emissive · readable from a distance · brighter than dark dots)
-//   · ATHLETIC PROPORTIONS (defined waist · slight chest taper · longer legs)
-//   · FRESNEL RIM via emissive intensity bump on edges
+// === PROCEDURAL HUMANOID FACTORY v3 · v4.5.3 cyber-bot palette per Mo "agents appear African/human, need bot-like" ===
+// v3 changes: REMOVED human skin-tone palette · replaced with cyan/holographic cyber-bot materials
+// All flesh-reading colors gone · the figure now reads as a synthetic agent, not a person
 function createProceduralHumanoid(accentColor, variantIdx){
   const g = new THREE.Group();
-  // 8-color palette · skin tones + clothing
-  const shirtPalette = [0x00d4ff, 0x43e6a1, 0xf5c542, 0xa384ff, 0xff5cc4, 0xff8a4c, 0x4cd9ff, 0xc0c0d8];
-  const pantsPalette = [0x2a3550, 0x1a2030, 0x3a2540, 0x252535, 0x303048, 0x2a3a3a, 0x1f2a3e, 0x382848];
-  const hairPalette  = [0x2a1810, 0x5a3a20, 0x1a1410, 0x8a5520, 0x3a2818, 0x6a4030, 0x4a3018, 0x1f1810];
-  const skinPalette  = [0xf5c79a, 0xd4a07a, 0xa67c5a, 0xe5b07a, 0xc99372, 0x8a6240, 0xefc8a0, 0xb98a64];
-  const shirt = shirtPalette[variantIdx % shirtPalette.length];
-  const pants = pantsPalette[variantIdx % pantsPalette.length];
-  const hair  = hairPalette[variantIdx % hairPalette.length];
-  const skin  = skinPalette[variantIdx % skinPalette.length];
+  // v4.5.3 · CYBER-BOT PALETTE · 8 variants in cyan/violet/teal/silver/holographic tones · ZERO human skin tones
+  const chassisPalette = [0x00d4ff, 0x43e6a1, 0xf5c542, 0xa384ff, 0xff5cc4, 0x4cd9ff, 0x6ee7e7, 0xc0c0d8];   // body chassis (was "shirt")
+  const platingPalette = [0x1a2540, 0x14223a, 0x202848, 0x162035, 0x1c2444, 0x182238, 0x101828, 0x222a48];   // plating (was "pants")
+  const accentTopPalette = [0x00f2fe, 0x43e6a1, 0xf5c542, 0xa384ff, 0xff5cc4, 0x4cd9ff, 0x6ee7e7, 0xff8a4c]; // helmet/visor accent (was "hair")
+  const chassis = chassisPalette[variantIdx % chassisPalette.length];
+  const plating = platingPalette[variantIdx % platingPalette.length];
+  const helmet  = accentTopPalette[variantIdx % accentTopPalette.length];
+  const synthetic = 0xd0d8e8;   // neutral synthetic chassis surface for head/hands (NO skin tone)
 
-  const shirtMat = new THREE.MeshPhysicalMaterial({color: shirt, emissive: shirt, emissiveIntensity: 0.22, metalness:0.25, roughness:0.45, clearcoat:0.5});
-  const pantsMat = new THREE.MeshPhysicalMaterial({color: pants, emissive: shirt, emissiveIntensity: 0.06, metalness:0.35, roughness:0.55});
-  const skinMat  = new THREE.MeshPhysicalMaterial({color: skin,  emissive: skin,  emissiveIntensity: 0.10, metalness:0.1, roughness:0.45});
-  const hairMat  = new THREE.MeshStandardMaterial({color: hair,  metalness:0.20, roughness:0.80});
+  // Cyber-chassis material · high metalness · low roughness · emissive · holographic
+  const shirtMat = new THREE.MeshPhysicalMaterial({color: chassis, emissive: chassis, emissiveIntensity: 0.30, metalness:0.55, roughness:0.30, clearcoat:0.8, clearcoatRoughness:0.15});
+  const pantsMat = new THREE.MeshPhysicalMaterial({color: plating, emissive: chassis, emissiveIntensity: 0.10, metalness:0.65, roughness:0.40});
+  const skinMat  = new THREE.MeshPhysicalMaterial({color: synthetic, emissive: chassis, emissiveIntensity: 0.18, metalness:0.5, roughness:0.25, clearcoat:0.6});
+  const hairMat  = new THREE.MeshPhysicalMaterial({color: helmet, emissive: helmet, emissiveIntensity: 0.35, metalness:0.7, roughness:0.20, clearcoat:0.9});
+  const shirt = chassis;   // legacy var name preserved for compatibility
+  const pants = plating;
+  const hair  = helmet;
+  const skin  = synthetic;
   const edgeMat  = new THREE.LineBasicMaterial({color: 0x00f2fe, transparent:true, opacity:0.55});   // wireframe overlay
 
   // Helper · adds a glowing edge wireframe overlay on top of a mesh (Skill #28)
@@ -1278,22 +1278,34 @@ function createProceduralHumanoid(accentColor, variantIdx){
   headEdges.renderOrder = 11;
   g.add(headEdges);
 
-  // HAIR · larger tuft with shape variation by variant
-  const hairTuft = new THREE.Mesh(new THREE.SphereGeometry(0.185, 16, 12), hairMat);
-  hairTuft.scale.set(1, 0.50, 1);
-  hairTuft.position.y = 1.555;
+  // v4.5.3 · HELMET CAP (was "hair tuft" · cyber-bot has a helmet, not hair) · uses helmet palette
+  const hairTuft = new THREE.Mesh(new THREE.SphereGeometry(0.195, 18, 12), hairMat);
+  hairTuft.scale.set(1, 0.55, 1);
+  hairTuft.position.y = 1.565;
   g.add(hairTuft);
+  // Helmet antenna · cyber-bot ID
+  const antenna = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.015, 0.06, 8), new THREE.MeshBasicMaterial({color: 0x00f2fe}));
+  antenna.position.y = 1.66;
+  g.add(antenna);
+  const antennaTip = new THREE.Mesh(new THREE.SphereGeometry(0.025, 10, 8), new THREE.MeshBasicMaterial({color: 0x00f2fe, transparent:true, opacity:0.85}));
+  antennaTip.position.y = 1.70;
+  g.add(antennaTip);
 
-  // EYES · bigger + emissive cyan (glow read from distance · matches Gemini cyan-wireframe look)
-  const eyeMat = new THREE.MeshBasicMaterial({color: 0x00f2fe, transparent:true, opacity:0.95});
-  const eyeGeom = new THREE.SphereGeometry(0.030, 10, 8);
-  const leftEye = new THREE.Mesh(eyeGeom, eyeMat); leftEye.position.set(-0.06, 1.46, 0.155); g.add(leftEye);
-  const rightEye = new THREE.Mesh(eyeGeom, eyeMat); rightEye.position.set( 0.06, 1.46, 0.155); g.add(rightEye);
-  // Tiny dark pupil dots for definition
-  const pupilMat = new THREE.MeshBasicMaterial({color: 0x0a0e18});
-  const pupilGeo = new THREE.SphereGeometry(0.014, 8, 6);
-  const leftPupil = new THREE.Mesh(pupilGeo, pupilMat); leftPupil.position.set(-0.06, 1.46, 0.182); g.add(leftPupil);
-  const rightPupil = new THREE.Mesh(pupilGeo, pupilMat); rightPupil.position.set( 0.06, 1.46, 0.182); g.add(rightPupil);
+  // v4.5.3 · CYBER VISOR (replaces human-eyes-and-pupils with a single horizontal slit · Mo "bot-like, not human")
+  // Single horizontal glowing strip across the face · reads as Cylon/robot sensor, not eyes
+  const visorMat = new THREE.MeshBasicMaterial({color: 0x00f2fe, transparent:true, opacity:0.95});
+  const visor = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.035, 0.02), visorMat);
+  visor.position.set(0, 1.46, 0.157);
+  g.add(visor);
+  // Visor glow halo (slightly larger plane behind for the bloom hot-spot)
+  const visorGlow = new THREE.Mesh(new THREE.PlaneGeometry(0.24, 0.06), new THREE.MeshBasicMaterial({color: 0x00f2fe, transparent:true, opacity:0.55}));
+  visorGlow.position.set(0, 1.46, 0.153);
+  g.add(visorGlow);
+  // Two tiny inner indicator lights on the visor (read as sensors · gives bot identity)
+  const indMat = new THREE.MeshBasicMaterial({color: 0xffffff});
+  const indGeo = new THREE.BoxGeometry(0.012, 0.012, 0.008);
+  const leftInd = new THREE.Mesh(indGeo, indMat); leftInd.position.set(-0.055, 1.46, 0.168); g.add(leftInd);
+  const rightInd = new THREE.Mesh(indGeo, indMat); rightInd.position.set( 0.055, 1.46, 0.168); g.add(rightInd);
 
   // LEGS · longer + better proportions
   const legGeom = new THREE.CylinderGeometry(0.065, 0.05, 0.62, 10);
@@ -1747,9 +1759,10 @@ function buildOfficeScene(agency){
     const bodyGroup = new THREE.Group();
     bodyGroup.position.set(dx, 0, dz + 0.55);
 
-    const seatedShirtMat = new THREE.MeshPhysicalMaterial({color: accent, emissive: accent, emissiveIntensity: 0.30, metalness:0.30, roughness:0.40, clearcoat:0.6});
-    const seatedSkinMat  = new THREE.MeshPhysicalMaterial({color: 0xf5c79a, emissive: 0xf5c79a, emissiveIntensity: 0.10, metalness:0.10, roughness:0.45});
-    const seatedEdgeMat  = new THREE.LineBasicMaterial({color: 0x00f2fe, transparent:true, opacity:0.55});
+    // v4.5.3 · CYBER-BOT MATERIALS · no human skin tones · synthetic chassis everywhere
+    const seatedShirtMat = new THREE.MeshPhysicalMaterial({color: accent, emissive: accent, emissiveIntensity: 0.35, metalness:0.55, roughness:0.30, clearcoat:0.8, clearcoatRoughness:0.15});
+    const seatedSkinMat  = new THREE.MeshPhysicalMaterial({color: 0xd0d8e8, emissive: accent, emissiveIntensity: 0.20, metalness:0.5, roughness:0.25, clearcoat:0.6});   // synthetic neutral chassis · no skin
+    const seatedEdgeMat  = new THREE.LineBasicMaterial({color: 0x00f2fe, transparent:true, opacity:0.65});
 
     // TORSO (sitting · centered on chair) · tapered cylinder
     const torsoGeoS = new THREE.CylinderGeometry(0.20, 0.24, 0.55, 14);
@@ -1773,12 +1786,13 @@ function buildOfficeScene(agency){
     shouldersEdges.position.copy(shoulders.position);
     bodyGroup.add(shouldersEdges);
 
-    // CHEST EMBLEM
+    // CHEST EMBLEM · v4.5.3 fix · was on the BACK (z=+0.20) · now FRONT facing the desk (z=-0.20)
+    // Mo 2026-05-17: "his head turned to look behind him · eyes on his back, not where his hands are pointing"
     const semblem = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.11, 0.02), new THREE.MeshBasicMaterial({color: 0x00f2fe}));
-    semblem.position.set(0, 1.06, 0.20);
+    semblem.position.set(0, 1.06, -0.20);
     bodyGroup.add(semblem);
     const semblemRing = new THREE.Mesh(new THREE.RingGeometry(0.07, 0.085, 14), new THREE.MeshBasicMaterial({color: 0x00f2fe, transparent:true, opacity:0.6, side:THREE.DoubleSide}));
-    semblemRing.position.set(0, 1.06, 0.21);
+    semblemRing.position.set(0, 1.06, -0.21);
     bodyGroup.add(semblemRing);
 
     // NECK
@@ -1795,21 +1809,32 @@ function buildOfficeScene(agency){
     headEdgesS.position.copy(head.position);
     bodyGroup.add(headEdgesS);
 
-    // HAIR
-    const hairS = new THREE.Mesh(new THREE.SphereGeometry(0.190, 16, 12), new THREE.MeshStandardMaterial({color: 0x3a2818, metalness:0.20, roughness:0.80}));
-    hairS.scale.set(1, 0.50, 1);
-    hairS.position.set(0, 1.565, 0);
-    bodyGroup.add(hairS);
+    // v4.5.3 · HELMET CAP (replaces hair · cyber-bot doesn't have human hair)
+    const helmetS = new THREE.Mesh(new THREE.SphereGeometry(0.195, 18, 12), new THREE.MeshPhysicalMaterial({color: accent, emissive: accent, emissiveIntensity: 0.30, metalness:0.7, roughness:0.20, clearcoat:0.9}));
+    helmetS.scale.set(1, 0.55, 1);
+    helmetS.position.set(0, 1.575, 0);
+    bodyGroup.add(helmetS);
+    // Helmet center antenna (small accent · cyber identifier)
+    const antennaS = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.015, 0.06, 8), new THREE.MeshBasicMaterial({color: 0x00f2fe}));
+    antennaS.position.set(0, 1.66, 0);
+    bodyGroup.add(antennaS);
+    const antennaTipS = new THREE.Mesh(new THREE.SphereGeometry(0.025, 10, 8), new THREE.MeshBasicMaterial({color: 0x00f2fe, transparent:true, opacity:0.85}));
+    antennaTipS.position.set(0, 1.70, 0);
+    bodyGroup.add(antennaTipS);
 
-    // EYES · bigger emissive cyan + dark pupils
-    const eyeMatS = new THREE.MeshBasicMaterial({color: 0x00f2fe});
-    const eyeGeoS = new THREE.SphereGeometry(0.030, 10, 8);
-    const leyeS = new THREE.Mesh(eyeGeoS, eyeMatS); leyeS.position.set(-0.06, 1.47, 0.155); bodyGroup.add(leyeS);
-    const reyeS = new THREE.Mesh(eyeGeoS, eyeMatS); reyeS.position.set( 0.06, 1.47, 0.155); bodyGroup.add(reyeS);
-    const pupGeoS = new THREE.SphereGeometry(0.014, 8, 6);
-    const pupMatS = new THREE.MeshBasicMaterial({color: 0x0a0e18});
-    const lpupS = new THREE.Mesh(pupGeoS, pupMatS); lpupS.position.set(-0.06, 1.47, 0.182); bodyGroup.add(lpupS);
-    const rpupS = new THREE.Mesh(pupGeoS, pupMatS); rpupS.position.set( 0.06, 1.47, 0.182); bodyGroup.add(rpupS);
+    // v4.5.3 · CYBER VISOR (replaces eyes+pupils · matches walking humanoid · faces -Z toward the desk)
+    const visorMatS = new THREE.MeshBasicMaterial({color: 0x00f2fe, transparent:true, opacity:0.95});
+    const seatedVisor = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.035, 0.02), visorMatS);
+    seatedVisor.position.set(0, 1.47, -0.157);
+    bodyGroup.add(seatedVisor);
+    const seatedVisorGlow = new THREE.Mesh(new THREE.PlaneGeometry(0.24, 0.06), new THREE.MeshBasicMaterial({color: 0x00f2fe, transparent:true, opacity:0.55}));
+    seatedVisorGlow.position.set(0, 1.47, -0.153);
+    seatedVisorGlow.rotation.y = Math.PI;   // flip plane so its face shows toward the camera
+    bodyGroup.add(seatedVisorGlow);
+    const seatedIndMat = new THREE.MeshBasicMaterial({color: 0xffffff});
+    const seatedIndGeo = new THREE.BoxGeometry(0.012, 0.012, 0.008);
+    const lindS = new THREE.Mesh(seatedIndGeo, seatedIndMat); lindS.position.set(-0.055, 1.47, -0.168); bodyGroup.add(lindS);
+    const rindS = new THREE.Mesh(seatedIndGeo, seatedIndMat); rindS.position.set( 0.055, 1.47, -0.168); bodyGroup.add(rindS);
 
     // ARMS · angled forward to desk · "typing" pose
     const armGeoS = new THREE.CylinderGeometry(0.055, 0.045, 0.50, 10);
