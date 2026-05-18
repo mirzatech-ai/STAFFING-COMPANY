@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="habitat-build" content="portal-welcome v1 · Sprint S-2 · 2026-05-18">
+<title>Welcome · AI Staffing Agency</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#050912; --bg-soft:rgba(10,18,38,.88); --line:rgba(255,255,255,.10); --line-strong:rgba(255,255,255,.22);
+    --cyan:#00d4ff; --gold:#f5c542; --green:#43e6a1; --violet:#a384ff; --magenta:#ff5cc4; --orange:#ffb454; --white:#fff; --muted:#7e8bb0; --text:#e0eaff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(circle at 50% 0%,rgba(245,197,66,.10),transparent 55%),radial-gradient(circle at 80% 80%,rgba(0,228,255,.07),transparent 50%),var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh}
+  body::before{content:'';position:fixed;inset:0;background:linear-gradient(0deg,transparent 49.5%,rgba(0,228,255,.04) 50%,transparent 50.5%),linear-gradient(90deg,transparent 49.5%,rgba(0,228,255,.04) 50%,transparent 50.5%);background-size:60px 60px;pointer-events:none;z-index:0}
+  main{max-width:920px;margin:0 auto;padding:50px 28px;position:relative;z-index:2}
+  .hero{text-align:center;margin-bottom:40px}
+  .hero .badge{display:inline-block;padding:6px 14px;background:rgba(67,230,161,.14);border:1px solid var(--green);border-radius:99px;color:var(--green);font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.16em;font-weight:700;margin-bottom:18px}
+  .hero h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:38px;color:var(--white);margin:0 0 12px;letter-spacing:-.01em}
+  .hero p{font-size:15px;color:var(--text);max-width:600px;margin:0 auto 8px;line-height:1.55}
+  .step{background:var(--bg-soft);backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:16px;padding:28px;margin-bottom:18px}
+  .step-num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);letter-spacing:.18em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .step h2{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px;color:var(--white);margin:0 0 12px}
+  .step input, .step select{width:100%;padding:12px 14px;background:rgba(3,6,12,.7);border:1px solid var(--line);border-radius:10px;color:var(--white);font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.04em;outline:none}
+  .step input:focus, .step select:focus{border-color:var(--cyan)}
+  .step label{display:block;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+  .field{margin-bottom:14px}
+  .agencies-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:14px;max-height:380px;overflow-y:auto;padding:8px;border:1px solid var(--line);border-radius:10px;background:rgba(3,6,12,.4)}
+  .agency-chip{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(10,18,38,.6);border:1.5px solid var(--line);border-radius:9px;cursor:pointer;transition:all .15s;font-size:12.5px}
+  .agency-chip:hover{border-color:var(--cyan);background:rgba(0,212,255,.06)}
+  .agency-chip.selected{border-color:var(--gold);background:rgba(245,197,66,.10)}
+  .agency-chip input{width:auto;margin:2px 0 0;flex-shrink:0;accent-color:var(--gold)}
+  .agency-chip .meta{display:block;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--muted);letter-spacing:.04em;margin-top:2px}
+  .agency-chip.selected .meta{color:var(--gold)}
+  .selection-counter{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);letter-spacing:.12em;margin-left:8px}
+  .selection-counter.over{color:#ff5b6a}
+  .submit{display:block;width:100%;padding:16px;border-radius:11px;background:linear-gradient(135deg,var(--gold),#cd9938);border:none;color:#1a1a08;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:transform .15s,box-shadow .15s;margin-top:10px}
+  .submit:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(245,197,66,.5)}
+  .submit:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+  .result{display:none;background:rgba(67,230,161,.08);border:1px solid var(--green);border-radius:14px;padding:24px;margin-top:18px}
+  .result.show{display:block}
+  .result h3{margin:0 0 10px;color:var(--green);font-family:'Space Grotesk',sans-serif}
+  .result .url-box{background:rgba(3,6,12,.6);border:1px dashed var(--cyan);border-radius:8px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--cyan);word-break:break-all;margin:10px 0}
+  .result a.cta{display:inline-block;padding:10px 18px;border-radius:10px;background:var(--gold);color:#1a1a08;font-family:'Space Grotesk',sans-serif;font-weight:700;text-decoration:none;font-size:13px;letter-spacing:.1em;text-transform:uppercase}
+  .error{background:rgba(255,91,106,.10);border:1px solid #ff5b6a;color:#ff5b6a;padding:11px 14px;border-radius:9px;font-family:'JetBrains Mono',monospace;font-size:11.5px;margin-top:10px;display:none}
+  .error.show{display:block}
+  footer{text-align:center;padding:24px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;position:relative;z-index:2}
+</style>
+</head>
+<body>
+
+<main>
+
+  <div class="hero">
+    <div class="badge">✓ PAYMENT RECEIVED</div>
+    <h1>Welcome to AI Staffing Agency</h1>
+    <p>Three quick steps to your personalized canvas · pick which agencies you want · we'll generate your private bookmarkable URL.</p>
+  </div>
+
+  <form id="welcomeForm" onsubmit="submitWelcome(event)">
+
+    <!-- STEP 1 · Identity -->
+    <div class="step">
+      <div class="step-num">⊙ STEP 1 · IDENTITY</div>
+      <h2>Tell us who you are</h2>
+      <div class="field">
+        <label>Your name or company</label>
+        <input type="text" id="customer_name" required placeholder="e.g. Acme Corp · or your name">
+      </div>
+      <div class="field">
+        <label>Email · for delivery + receipts</label>
+        <input type="email" id="customer_email" required placeholder="you@company.com">
+      </div>
+      <div class="field">
+        <label>Stripe session ID (auto-filled if you came from checkout)</label>
+        <input type="text" id="stripe_session" placeholder="cs_live_... or leave blank for sales-led flow">
+      </div>
+    </div>
+
+    <!-- STEP 2 · Tier -->
+    <div class="step">
+      <div class="step-num">⊙ STEP 2 · TIER</div>
+      <h2>Confirm your tier</h2>
+      <div class="field">
+        <label>Plan</label>
+        <select id="tier" required onchange="updateTierLimit()">
+          <option value="starter">Starter · 1 agency · $19/mo</option>
+          <option value="team" selected>Team · 3 agencies · $49/mo</option>
+          <option value="scale">Scale · 10 agencies · $149/mo</option>
+          <option value="enterprise">Enterprise · all 100 · $499/mo</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- STEP 3 · Agencies -->
+    <div class="step">
+      <div class="step-num">⊙ STEP 3 · YOUR AGENCIES <span class="selection-counter" id="selCounter">0 / 3 selected</span></div>
+      <h2>Pick the agencies you want to rent</h2>
+      <div class="agencies-grid" id="agenciesGrid">
+        <div style="grid-column:1/-1;text-align:center;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;padding:14px">Loading agency roster…</div>
+      </div>
+    </div>
+
+    <div class="error" id="errBox"></div>
+    <button type="submit" class="submit" id="submitBtn" disabled>Generate My Canvas URL</button>
+
+  </form>
+
+  <div class="result" id="resultBox">
+    <h3>✓ Your personalized canvas is ready</h3>
+    <p>Bookmark this URL · this is your dedicated portal · drop files into any of your rented agencies to dispatch work to Maya.</p>
+    <div class="url-box" id="canvasUrl"></div>
+    <a href="#" id="canvasLink" class="cta">Open My Canvas →</a>
+    <p style="margin-top:14px;font-size:12px;color:var(--muted)">We've also emailed this URL to you · check your inbox.</p>
+  </div>
+
+</main>
+
+<footer>Powered by MirzaTech.ai · Property of EMAAA.io · Sprint S-2 ship</footer>
+
+<script>
+// Load agency roster from staff.php
+let allAgencies = [];
+const TIER_LIMITS = {starter:1, team:3, scale:10, enterprise:100};
+
+async function loadAgencies(){
+  try {
+    const r = await fetch('/api/staff.php', {cache:'no-store'});
+    const j = await r.json();
+    allAgencies = (j.agencies || []).filter(a => !(a.id||'').startsWith('pad_'));
+    renderAgencies();
+  } catch(e){
+    document.getElementById('agenciesGrid').innerHTML =
+      '<div style="grid-column:1/-1;text-align:center;color:#ff5b6a;font-family:monospace;font-size:11px;padding:14px">⚠ Could not load roster · refresh or contact support</div>';
+  }
+}
+
+function renderAgencies(){
+  const grid = document.getElementById('agenciesGrid');
+  grid.innerHTML = '';
+  allAgencies.forEach(a => {
+    const id = a.id || a.slug;
+    const cat = guessCat(id);
+    const catColor = {tech:'var(--cyan)',biz:'var(--violet)',health:'var(--green)',industry:'var(--orange)',creative:'var(--magenta)'}[cat] || 'var(--cyan)';
+    const chip = document.createElement('label');
+    chip.className = 'agency-chip';
+    chip.dataset.slug = id;
+    chip.innerHTML = `
+      <input type="checkbox" value="${id}" onchange="onAgencyToggle(this)">
+      <div>
+        <div style="color:${catColor};font-weight:600">${a.name || id}</div>
+        <span class="meta">${a.role_count || 4} roles · ${cat}</span>
+      </div>
+    `;
+    grid.appendChild(chip);
+  });
+  updateTierLimit();
+}
+
+function guessCat(slug){
+  slug = (slug || '').toLowerCase();
+  if (/engineering|ai-research|cybersecurity|data-intelligence|robotics|quantum|blockchain|ai-agents|computer-vision|edge-ai|mlops|nlp|embedded-systems/i.test(slug)) return 'tech';
+  if (/marketing|sales|design|content|finance|legal|human-resources|customer-success|product|operations|recruitment/i.test(slug)) return 'biz';
+  if (/healthcare|pharma|fintech|wellness|mental-health|clinical|bioinformatics/i.test(slug)) return 'health';
+  if (/manufacturing|supply-chain|construction|transportation|automotive|aviation|space|energy|agriculture|telecommunications|government|retail|hospitality|real-estate/i.test(slug)) return 'industry';
+  return 'creative';
+}
+
+function onAgencyToggle(input){
+  const chip = input.closest('.agency-chip');
+  chip.classList.toggle('selected', input.checked);
+  updateTierLimit();
+}
+
+function updateTierLimit(){
+  const tier = document.getElementById('tier').value;
+  const limit = TIER_LIMITS[tier] || 3;
+  const selected = document.querySelectorAll('.agency-chip.selected').length;
+  const counter = document.getElementById('selCounter');
+  counter.textContent = `${selected} / ${limit} selected`;
+  counter.classList.toggle('over', selected > limit);
+  const submitBtn = document.getElementById('submitBtn');
+  submitBtn.disabled = selected === 0 || selected > limit;
+  // Disable additional checkboxes once limit reached
+  document.querySelectorAll('.agency-chip input').forEach(input => {
+    if (!input.checked && selected >= limit) input.disabled = true;
+    else input.disabled = false;
+  });
+}
+
+async function submitWelcome(e){
+  e.preventDefault();
+  const name = document.getElementById('customer_name').value.trim();
+  const email = document.getElementById('customer_email').value.trim();
+  const session = document.getElementById('stripe_session').value.trim();
+  const tier = document.getElementById('tier').value;
+  const agencies = Array.from(document.querySelectorAll('.agency-chip.selected input')).map(i => i.value);
+  if (!name || !email || agencies.length === 0){ showErr('Please complete all fields and pick at least 1 agency.'); return; }
+  const submitBtn = document.getElementById('submitBtn');
+  submitBtn.disabled = true; submitBtn.textContent = 'GENERATING…';
+  try {
+    const r = await fetch('/api/customer_register.php', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({customer_name:name, customer_email:email, stripe_session:session, tier, agencies})
+    });
+    const j = await r.json();
+    if (!j.ok){ showErr(j.error || 'Registration failed · please email hello@ai-staffing.agency'); submitBtn.disabled = false; submitBtn.textContent = 'Generate My Canvas URL'; return; }
+    // Show result
+    document.getElementById('welcomeForm').style.display = 'none';
+    const url = j.canvas_url;
+    document.getElementById('canvasUrl').textContent = url;
+    document.getElementById('canvasLink').href = url;
+    document.getElementById('resultBox').classList.add('show');
+    window.scrollTo({top: document.getElementById('resultBox').offsetTop - 40, behavior: 'smooth'});
+  } catch(err){
+    showErr('Network error · please try again or email hello@ai-staffing.agency'); submitBtn.disabled = false; submitBtn.textContent = 'Generate My Canvas URL';
+  }
+}
+
+function showErr(msg){
+  const e = document.getElementById('errBox'); e.textContent = '⚠ ' + msg; e.classList.add('show');
+  setTimeout(() => e.classList.remove('show'), 6000);
+}
+
+// Pre-fill session ID from URL if present
+const qs = new URLSearchParams(window.location.search);
+if (qs.get('session_id')) document.getElementById('stripe_session').value = qs.get('session_id');
+if (qs.get('tier')) document.getElementById('tier').value = qs.get('tier');
+
+loadAgencies();
+</script>
+
+</body>
+</html>
