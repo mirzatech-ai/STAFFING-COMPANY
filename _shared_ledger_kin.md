@@ -1,8 +1,8 @@
 # ============================================================
 # CANONICAL LEDGER · public-safe view · confidentials redacted (GLOBAL-48)
 # Source path: /home/iamsuperio.cloud/public_html/data/_shared_ledger_kin.md
-# Render time: 2026-05-18T00:35:30Z
-# Total entries: 52 · Total bytes: 295350
+# Render time: 2026-05-18T00:41:14Z
+# Total entries: 53 · Total bytes: 298825
 # Append-only · doctrine per AGENT_SIGNATURE_PROTOCOL v1
 # GitHub mirror: https://github.com/mirzatech-ai/STAFFING-COMPANY/blob/main/_shared_ledger_kin.md
 # Raw download: https://iamsuperio.cloud/data/ledger.php?raw=1
@@ -4365,3 +4365,60 @@ ETA: 2-3 turns. Greenlight or redirect.
 - GitHub habitat-v4.html @ 450b300f
 
 **Brotherhood + signature:** KIN·2026-05-17T19:00Z·a75e63ca · *Sprint S-1 shipped same turn as the doctrine canonization · expediting · per AGENT_SIGNATURE_PROTOCOL v1 · GLOBAL-111 + GLOBAL-112 + GLOBAL-113 + GLOBAL-114 + GLOBAL-115 + GLOBAL-116 receipts*
+
+---
+
+## ENTRY 048 · 2026-05-17T19:15Z · KIN·a75e63ca · habitat-v4.8.1 · Maya↔city packet visibility fix
+
+**Mo verbatim (2026-05-17):**
+> "Maya is not connected to the city because I don't see any of the orbs going in Maya from the city or in the Maya going into the city. That's what was missed from the last term."
+
+### Root cause
+
+Packets WERE flying (both inbound `dataPackets` pool and new `mayaOutbound` pool) but they were drowned out by Maya's bright orbital ring cloud + sky beam + 24 orbiting particles + glowing core. Point size 0.65/0.85 was too small to register against that visual density at SPACING=2.8 grid spacing.
+
+### Fix · 4 changes
+
+1. **Inbound packet point size**: `0.65 → 1.5` (2.3× larger)
+2. **Outbound packet point size**: `0.85 → 1.8` (2.1× larger)
+3. **Both pools**: `28 → 40 packets` (42% more packets visible at any moment · 80 total)
+4. **Outbound arc lowered**: peak `5.5 → 3.5` (keeps packets in camera frame at wider SPACING=2.8 grid)
+5. **Maya core flash on send/receive**: `pulseMayaCore(amount)` bumps `mayaCoreFlashIntensity` whenever an outbound packet DEPARTS or an inbound packet ARRIVES · core + halo scale and opacity ramp up briefly · visible "pulse of activity" rhythm
+
+### What you'll see now
+
+- Bright glowing orbs flying **TO** Maya from random agencies (color-by-source-building)
+- Bright glowing orbs flying **FROM** Maya OUT to random agencies (gold-tinted 70% · destination-colored 30%)
+- Maya's gold core sphere visibly FLASHES brighter each time a packet sends or arrives — the "heartbeat of orchestration" Mo's been describing
+- 80 packets active at any moment (40 in each direction) — feels like a real busy hub
+
+### Skill registry unchanged (40 slots · this is a tuning pass, not a new skill)
+
+### Maya untouched (GLOBAL-112)
+
+### Deploy chain
+- Local habitat-v4.html · 232,896 → **234,340** B (+1.4 KB · tuning only)
+- VPS habitat-v4.html · 234,340 B · source.js 190,357 B
+- JS syntax: clean (190,460 B)
+- Grep verified: `PACKET_POOL_SIZE = 40` · `MAYA_OUTBOUND_POOL = 40` · `mayaCoreFlashIntensity`×9 · `pulseMayaCore`×4 · `size: 1.5`×1 · `size: 1.8`×1
+- GitHub habitat-v4.html @ commit `d5f5cc50`
+
+### Test ritual (HARD-RELOAD: `Ctrl+Shift+R`)
+
+1. [ai-staffing.agency/habitat-v4.html](https://ai-staffing.agency/habitat-v4.html)
+2. Look at Maya's building (front-center with the gold orbital rings)
+3. **Inbound flow**: you should now clearly see large bright orbs flying TOWARD Maya from random agencies across the city · color matches the source agency's tint
+4. **Outbound flow**: you should clearly see large bright orbs flying FROM Maya OUT to agencies · 70% are gold (Maya's brand color) · 30% are destination-tinted
+5. **Maya core flash**: watch the gold core sphere INSIDE the dome · it pulses brighter every time a packet arrives or departs · feels like a busy orchestrator
+
+### Sprint S-1 still LIVE · S-2 (Stripe) ready when you greenlight
+
+Customer canvas URLs still work as in v4.8.0 · this is a tuning pass on top.
+
+### Files touched (zero Maya · per GLOBAL-112)
+- D:/PROJECTS/ai-staffing.agency/live/habitat-v4.html (232,896 → 234,340 B)
+- VPS:/home/ai-staffing.agency/public_html/habitat-v4.html
+- VPS:/home/ai-staffing.agency/public_html/habitat-v4-source.js (re-extracted)
+- GitHub habitat-v4.html @ d5f5cc50
+
+**Signature:** KIN·2026-05-17T19:15Z·a75e63ca · *append-only · GLOBAL-111 + GLOBAL-112 receipts · tuning entry · no new skill*
