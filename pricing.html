@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="habitat-build" content="pricing v1 · Sprint S-2 · 2026-05-18">
+<title>AI Staffing Agency · Pricing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#050912; --bg-soft:rgba(10,18,38,.88); --line:rgba(255,255,255,.10); --line-strong:rgba(255,255,255,.22);
+    --cyan:#00d4ff; --gold:#f5c542; --green:#43e6a1; --violet:#a384ff; --magenta:#ff5cc4; --white:#fff; --muted:#7e8bb0; --text:#e0eaff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(circle at 50% -20%,rgba(245,197,66,.10),transparent 55%),radial-gradient(circle at 80% 80%,rgba(0,228,255,.07),transparent 50%),var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;line-height:1.5}
+  body::before{content:'';position:fixed;inset:0;background:linear-gradient(0deg,transparent 49.5%,rgba(0,228,255,.04) 50%,transparent 50.5%),linear-gradient(90deg,transparent 49.5%,rgba(0,228,255,.04) 50%,transparent 50.5%);background-size:60px 60px;pointer-events:none;z-index:0}
+  header{padding:24px 32px;display:flex;justify-content:space-between;align-items:center;position:relative;z-index:2}
+  .logo{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px;color:var(--white);letter-spacing:.04em}
+  .logo b{color:var(--cyan)}
+  nav a{color:var(--muted);text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.1em;margin-left:24px;text-transform:uppercase;transition:color .2s}
+  nav a:hover{color:var(--white)}
+  nav a.cta{color:var(--gold);border:1px solid var(--gold);padding:8px 14px;border-radius:8px}
+  main{max-width:1200px;margin:0 auto;padding:60px 32px 80px;position:relative;z-index:2}
+  .hero{text-align:center;margin-bottom:60px}
+  .hero h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:54px;color:var(--white);letter-spacing:-.02em;margin:0 0 16px;line-height:1.1}
+  .hero h1 span{background:linear-gradient(135deg,var(--cyan),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .hero p{font-size:17px;color:var(--text);max-width:680px;margin:0 auto 8px;line-height:1.55}
+  .hero .meta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.16em;text-transform:uppercase;margin-top:12px}
+  .tiers{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:60px}
+  @media(max-width:1024px){.tiers{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:600px){.tiers{grid-template-columns:1fr}}
+  .tier{background:var(--bg-soft);backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:18px;padding:28px 22px;display:flex;flex-direction:column;position:relative;transition:transform .25s,border-color .25s,box-shadow .25s}
+  .tier:hover{transform:translateY(-6px);border-color:var(--line-strong);box-shadow:0 20px 50px rgba(0,0,0,.6)}
+  .tier.featured{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 24px 50px rgba(245,197,66,.18)}
+  .tier.featured::before{content:'MOST POPULAR';position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--gold);color:#1a1a08;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.16em;font-weight:700;padding:5px 12px;border-radius:99px}
+  .tier h3{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px;color:var(--white);margin:0 0 6px;letter-spacing:.04em}
+  .tier .subtitle{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-bottom:20px}
+  .tier .price{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:42px;color:var(--white);line-height:1;margin-bottom:4px}
+  .tier .price .currency{font-size:22px;color:var(--muted);vertical-align:top;margin-right:2px}
+  .tier .price .period{font-size:14px;color:var(--muted);font-weight:500}
+  .tier .agencies{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);letter-spacing:.08em;margin:14px 0 18px}
+  .tier .agencies b{color:var(--white)}
+  .tier ul{list-style:none;padding:0;margin:0 0 26px;flex:1}
+  .tier ul li{padding:7px 0;font-size:13px;color:var(--text);border-bottom:1px dashed rgba(255,255,255,.06);display:flex;align-items:flex-start;gap:8px}
+  .tier ul li::before{content:'✓';color:var(--green);font-weight:700;margin-top:1px}
+  .tier .btn{display:block;text-align:center;padding:13px 16px;border-radius:11px;background:linear-gradient(135deg,var(--cyan),#0098c2);border:none;color:#000a18;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px;letter-spacing:.12em;text-transform:uppercase;text-decoration:none;cursor:pointer;transition:transform .15s,box-shadow .15s}
+  .tier .btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,212,255,.4)}
+  .tier.featured .btn{background:linear-gradient(135deg,var(--gold),#cd9938);color:#1a1a08}
+  .tier.featured .btn:hover{box-shadow:0 10px 24px rgba(245,197,66,.5)}
+  .footnote{text-align:center;margin-top:48px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.06em;line-height:1.7}
+  .footnote a{color:var(--cyan);text-decoration:none}
+  .footnote a:hover{color:var(--white)}
+  .demo-strip{margin-top:54px;padding:24px;border:1px dashed rgba(245,197,66,.4);border-radius:16px;background:rgba(245,197,66,.05);text-align:center}
+  .demo-strip h4{font-family:'Space Grotesk',sans-serif;font-size:14px;color:var(--gold);margin:0 0 8px;letter-spacing:.08em}
+  .demo-strip p{font-size:13px;color:var(--text);margin:0 0 14px}
+  .demo-strip .demo-btn{display:inline-block;padding:9px 18px;border-radius:10px;border:1px solid var(--gold);color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-decoration:none;text-transform:uppercase;transition:all .2s}
+  .demo-strip .demo-btn:hover{background:var(--gold);color:#1a1a08}
+  footer{text-align:center;padding:32px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;position:relative;z-index:2}
+  footer b{color:var(--gold)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">AI Staffing <b>Agency</b></div>
+  <nav>
+    <a href="/habitat-v4.html">Preview Campus</a>
+    <a href="#pricing">Pricing</a>
+    <a href="mailto:hello@ai-staffing.agency" class="cta">Talk to Sales</a>
+  </nav>
+</header>
+
+<main>
+
+  <div class="hero">
+    <h1>Rent your <span>AI Crew</span><br>from our 100-agency campus</h1>
+    <p>Hire pre-built multi-agent AI teams · each agency runs a Director → Engine → Asset → QA pipeline · file drops cascade through the swarm · Maya orchestrates cross-agency dispatch in real time.</p>
+    <p class="meta">100 Agencies · 724 Roles · Maya Lines Open · Live Inter-Agency Routing</p>
+  </div>
+
+  <section class="tiers" id="pricing">
+
+    <!-- TIER 1 · STARTER -->
+    <div class="tier">
+      <h3>Starter</h3>
+      <div class="subtitle">Solo founders · 1 project</div>
+      <div class="price"><span class="currency">$</span>19<span class="period">/mo</span></div>
+      <div class="agencies">⚙ <b>1</b> Agency · pick your specialty</div>
+      <ul>
+        <li>1 specialized agency of your choice</li>
+        <li>4-role multi-agent pipeline</li>
+        <li>Data Carrier · file drops with cascade</li>
+        <li>Maya orchestration · cross-agency dispatch</li>
+        <li>Connector Gateway · API · OAuth · Webhook</li>
+        <li>Email support · 24h response</li>
+      </ul>
+      <a href="https://buy.stripe.com/REPLACE_STARTER_LINK" class="btn" data-tier="starter" target="_blank" rel="noopener">Start with 1 Agency</a>
+    </div>
+
+    <!-- TIER 2 · TEAM (FEATURED) -->
+    <div class="tier featured">
+      <h3>Team</h3>
+      <div class="subtitle">Small teams · 2-5 projects</div>
+      <div class="price"><span class="currency">$</span>49<span class="period">/mo</span></div>
+      <div class="agencies">⚙ <b>3</b> Agencies · cross-discipline crew</div>
+      <ul>
+        <li>3 specialized agencies of your choice</li>
+        <li>12-role multi-agent pipeline</li>
+        <li>Inter-agency dispatch loop (cyan→gold reply)</li>
+        <li>Empire Network Bridge · jump between agencies</li>
+        <li>Capability Assessment HUD</li>
+        <li>Connector Gateway · all 3 types</li>
+        <li>Priority email + chat support · 4h response</li>
+      </ul>
+      <a href="https://buy.stripe.com/REPLACE_TEAM_LINK" class="btn" data-tier="team" target="_blank" rel="noopener">Start with 3 Agencies</a>
+    </div>
+
+    <!-- TIER 3 · SCALE -->
+    <div class="tier">
+      <h3>Scale</h3>
+      <div class="subtitle">Growing companies · 5-15 projects</div>
+      <div class="price"><span class="currency">$</span>149<span class="period">/mo</span></div>
+      <div class="agencies">⚙ <b>10</b> Agencies · full department roster</div>
+      <ul>
+        <li>10 specialized agencies of your choice</li>
+        <li>40-role multi-agent pipelines</li>
+        <li>Council deliberation · 12-seat advisory</li>
+        <li>Verification chain · Anatomy + Compliance audit</li>
+        <li>Consistency Sentinel (for video/game agencies)</li>
+        <li>Dedicated success manager</li>
+        <li>SLA · 1h response · 99.9% uptime</li>
+      </ul>
+      <a href="https://buy.stripe.com/REPLACE_SCALE_LINK" class="btn" data-tier="scale" target="_blank" rel="noopener">Start with 10 Agencies</a>
+    </div>
+
+    <!-- TIER 4 · ENTERPRISE -->
+    <div class="tier">
+      <h3>Enterprise</h3>
+      <div class="subtitle">Whole-stack · all 100 agencies</div>
+      <div class="price"><span class="currency">$</span>499<span class="period">/mo</span></div>
+      <div class="agencies">⚙ <b>100</b> Agencies · full campus access</div>
+      <ul>
+        <li>All 100 agencies + 724 roles</li>
+        <li>Parliament invocation · 24-seat × 5 rounds</li>
+        <li>Board of Directors · 12-seat governance</li>
+        <li>Custom pipelines for any agency</li>
+        <li>White-glove onboarding · 2-week launch</li>
+        <li>Dedicated infrastructure · SOC2 audit logs</li>
+        <li>Custom SLA · phone support · 24/7/365</li>
+      </ul>
+      <a href="mailto:hello@ai-staffing.agency?subject=Enterprise%20Inquiry" class="btn">Contact Sales</a>
+    </div>
+
+  </section>
+
+  <div class="demo-strip">
+    <h4>👀 Want to see what you're buying first?</h4>
+    <p>Walk through the live 3D campus · click any agency · watch the multi-agent pipeline · all 100 agencies are interactive in preview mode.</p>
+    <a href="/habitat-v4.html" class="demo-btn">▸ Open Live Demo</a>
+  </div>
+
+  <div class="footnote">
+    <p>All plans · cancel anytime · no setup fees · price-locked at sign-up · annual prepay saves 20% (contact sales)</p>
+    <p>Need a custom plan for your team? <a href="mailto:hello@ai-staffing.agency">Email Mo directly</a> · we ship custom configs in 48h.</p>
+    <p style="margin-top:18px">After checkout you'll be redirected to <a href="/portal/welcome.html">portal/welcome.html</a> to select which agencies you want · or contact us if you'd rather select first then pay.</p>
+  </div>
+
+</main>
+
+<footer>
+  Powered by <b>MirzaTech.ai</b> · Property of <b>EMAAA.io</b> · 100 Agencies · 724 Roles
+</footer>
+
+</body>
+</html>
