@@ -2560,24 +2560,13 @@ function buildOfficeScene(agency){
     const bodyGroup = new THREE.Group();
     bodyGroup.position.set(dx, 0, dz + 0.55);
 
-    // === v5.0.2 SEATED CYBER-ROBOT (matches walker · multi-tone per-part palette) ===
-    let seatedRobot = null;
-    if (robotLoadState === 'loaded') {
-      // Use the same factory as the walking break-routine swap (Skill #32) · pose it sitting
-      // Variant index = agent index so this seated NPC gets a unique tint that matches its walker counterpart later
-      seatedRobot = createCyberRobot(i, 'Sitting', 0.50);
-      if (seatedRobot) {
-        // Position on the chair (chair seat is at y=0.55 · feet/base of robot needs to land there when sitting)
-        // RobotExpressive Sitting clip is authored on ground · we lift it so it sits on the chair seat
-        seatedRobot.mesh.position.set(0, 0.45, 0);
-        // Face the desk · desk is at z<-0 from the chair (chair at z=+0.80, desk at z=0) so robot faces -Z
-        seatedRobot.mesh.rotation.y = Math.PI;
-        bodyGroup.add(seatedRobot.mesh);
-      }
-    }
-    // If GLB seated robot was added, skip the inline procedural body (multi-tone cyber-bot is now the agent).
-    // Otherwise the inline procedural body below builds as the fallback.
-    const useInlineProcBody = !seatedRobot;
+    // === v5.0.3 SEATED HUMANOID · INLINE PROCEDURAL (Mo 2026-05-18: "the staff at the desk is glitching out") ===
+    // The GLB 'Sitting' clip wasn't designed for chair sitting (it's a cross-legged floor pose) ·
+    // at scale 0.50 it rendered as a dark dome with the chrome head reflecting black · "glitched"
+    // → REVERTED: seated body is ALWAYS authored inline below · multi-tone palette + unisex android proportions
+    // → Walking NPCs (break-routine) still use the GLB cyber-robot (Skill #32) · works fine in upright Walking clip
+    let seatedRobot = null;   // explicitly null · GLB-seated swap disabled · enabled by Mo's next directive only
+    const useInlineProcBody = true;
 
     // Outer-scope refs so both branches can populate (raycast target + glow target)
     let torso = null, head = null, helmetS = null;
@@ -2588,10 +2577,26 @@ function buildOfficeScene(agency){
 
     if (useInlineProcBody) {
 
-    // v4.5.3 · CYBER-BOT MATERIALS · no human skin tones · synthetic chassis everywhere
-    const seatedShirtMat = new THREE.MeshPhysicalMaterial({color: accent, emissive: accent, emissiveIntensity: 0.35, metalness:0.55, roughness:0.30, clearcoat:0.8, clearcoatRoughness:0.15});
-    const seatedSkinMat  = new THREE.MeshPhysicalMaterial({color: 0xd0d8e8, emissive: accent, emissiveIntensity: 0.20, metalness:0.5, roughness:0.25, clearcoat:0.6});   // synthetic neutral chassis · no skin
-    const seatedEdgeMat  = new THREE.LineBasicMaterial({color: 0x00f2fe, transparent:true, opacity:0.65});
+    // v5.0.3 · UNISEX ANDROID PALETTE · 5-material per-part rig (Mo 2026-05-18: "better unisex body - more human like - yet android")
+    // · Chrome silver head (less aggressive metalness than v5.0.2 so it doesn't read as reflective black under low-ambient office light)
+    // · Variant accent torso (the agent identity color · pulled from the same CYBER_TINT_PALETTE used by walkers)
+    // · Darker limbs (torso tint × 0.62 luminance · shoulders/arms/legs read anchored, not floating)
+    // · Bright cyan accents (visor, antenna, joints, chest emblem · the android signature)
+    // · Dark base utility (hip belt, neck collar · grounds the figure)
+    const variantTint = (typeof CYBER_TINT_PALETTE !== 'undefined') ? CYBER_TINT_PALETTE[i % CYBER_TINT_PALETTE.length] : accent;
+    const limbTint   = new THREE.Color(variantTint).multiplyScalar(0.62).getHex();
+    const headTint   = 0xc8d0dc;     // chrome silver synthetic
+    const cyanAccent = 0x00f2fe;
+    const baseUtil   = 0x2a3242;     // dark grey utility
+
+    const seatedHeadMat  = new THREE.MeshPhysicalMaterial({color: headTint, emissive: 0x4a5a72, emissiveIntensity: 0.20, metalness:0.55, roughness:0.28, clearcoat:0.7, clearcoatRoughness:0.18});   // softened metalness so it reads in low light
+    const seatedTorsoMat = new THREE.MeshPhysicalMaterial({color: variantTint, emissive: variantTint, emissiveIntensity: 0.42, metalness:0.65, roughness:0.25, clearcoat:0.85, clearcoatRoughness:0.13});
+    const seatedLimbMat  = new THREE.MeshPhysicalMaterial({color: limbTint, emissive: limbTint, emissiveIntensity: 0.30, metalness:0.72, roughness:0.32, clearcoat:0.65, clearcoatRoughness:0.20});
+    const seatedJointMat = new THREE.MeshPhysicalMaterial({color: cyanAccent, emissive: cyanAccent, emissiveIntensity: 0.85, metalness:0.55, roughness:0.18});
+    const seatedBaseMat  = new THREE.MeshPhysicalMaterial({color: baseUtil, emissive: 0x141a26, emissiveIntensity: 0.15, metalness:0.85, roughness:0.42});
+    const seatedShirtMat = seatedTorsoMat;   // legacy alias · used downstream for helmet + arms (kept for back-compat)
+    const seatedSkinMat  = seatedHeadMat;    // legacy alias · used downstream for neck + head + hands
+    const seatedEdgeMat  = new THREE.LineBasicMaterial({color: cyanAccent, transparent:true, opacity:0.55});
 
     // TORSO (sitting · centered on chair) · tapered cylinder
     const torsoGeoS = new THREE.CylinderGeometry(0.20, 0.24, 0.55, 14);
@@ -2605,9 +2610,9 @@ function buildOfficeScene(agency){
     torsoEdges.renderOrder = 11;
     bodyGroup.add(torsoEdges);
 
-    // SHOULDERS
-    const shouldersGeoS = new THREE.BoxGeometry(0.56, 0.12, 0.25);
-    const shoulders = new THREE.Mesh(shouldersGeoS, seatedShirtMat);
+    // SHOULDERS · v5.0.3 narrowed 0.56 → 0.48 for unisex silhouette (was reading slightly broad-male)
+    const shouldersGeoS = new THREE.BoxGeometry(0.48, 0.12, 0.24);
+    const shoulders = new THREE.Mesh(shouldersGeoS, seatedTorsoMat);
     shoulders.position.set(0, 1.22, 0);
     shoulders.castShadow = true;
     bodyGroup.add(shoulders);
@@ -2638,8 +2643,8 @@ function buildOfficeScene(agency){
     headEdgesS.position.copy(head.position);
     bodyGroup.add(headEdgesS);
 
-    // v4.5.3 · HELMET CAP (replaces hair · cyber-bot doesn't have human hair)
-    helmetS = new THREE.Mesh(new THREE.SphereGeometry(0.195, 18, 12), new THREE.MeshPhysicalMaterial({color: accent, emissive: accent, emissiveIntensity: 0.30, metalness:0.7, roughness:0.20, clearcoat:0.9}));
+    // v4.5.3 · HELMET CAP (replaces hair · cyber-bot doesn't have human hair) · v5.0.3 use variantTint not legacy accent
+    helmetS = new THREE.Mesh(new THREE.SphereGeometry(0.195, 18, 12), new THREE.MeshPhysicalMaterial({color: variantTint, emissive: variantTint, emissiveIntensity: 0.32, metalness:0.7, roughness:0.20, clearcoat:0.9}));
     helmetS.scale.set(1, 0.55, 1);
     helmetS.position.set(0, 1.575, 0);
     bodyGroup.add(helmetS);
@@ -2665,23 +2670,47 @@ function buildOfficeScene(agency){
     const lindS = new THREE.Mesh(seatedIndGeo, seatedIndMat); lindS.position.set(-0.055, 1.47, -0.168); bodyGroup.add(lindS);
     const rindS = new THREE.Mesh(seatedIndGeo, seatedIndMat); rindS.position.set( 0.055, 1.47, -0.168); bodyGroup.add(rindS);
 
-    // ARMS · angled forward to desk · "typing" pose
+    // ARMS · angled forward to desk · "typing" pose · v5.0.3 use limb tint (darker · anchors the figure)
     const armGeoS = new THREE.CylinderGeometry(0.055, 0.045, 0.50, 10);
-    const leftArm = new THREE.Mesh(armGeoS, seatedShirtMat);
-    leftArm.position.set(-0.24, 1.04, -0.20);
+    const leftArm = new THREE.Mesh(armGeoS, seatedLimbMat);
+    leftArm.position.set(-0.22, 1.04, -0.20);
     leftArm.rotation.x = Math.PI/2.8;
     leftArm.castShadow = true;
     bodyGroup.add(leftArm);
     const rightArm = leftArm.clone();
-    rightArm.position.set(0.24, 1.04, -0.20);
+    rightArm.position.set(0.22, 1.04, -0.20);
     bodyGroup.add(rightArm);
-    // Hands
-    const handMatS = seatedSkinMat;
+    // Shoulder joint accents (small cyan rings · android signature)
+    const shoulderJointGeo = new THREE.TorusGeometry(0.075, 0.012, 6, 14);
+    const lshoulderJ = new THREE.Mesh(shoulderJointGeo, seatedJointMat); lshoulderJ.position.set(-0.22, 1.20, 0); lshoulderJ.rotation.y = Math.PI/2; bodyGroup.add(lshoulderJ);
+    const rshoulderJ = lshoulderJ.clone(); rshoulderJ.position.set( 0.22, 1.20, 0); bodyGroup.add(rshoulderJ);
+    // Hands · v5.0.3 limb tint (darker · matches arms)
     const handGeoS = new THREE.SphereGeometry(0.058, 10, 8);
-    const lhandS = new THREE.Mesh(handGeoS, handMatS); lhandS.position.set(-0.24, 0.86, -0.42); bodyGroup.add(lhandS);
-    const rhandS = new THREE.Mesh(handGeoS, handMatS); rhandS.position.set( 0.24, 0.86, -0.42); bodyGroup.add(rhandS);
+    const lhandS = new THREE.Mesh(handGeoS, seatedLimbMat); lhandS.position.set(-0.22, 0.86, -0.42); bodyGroup.add(lhandS);
+    const rhandS = new THREE.Mesh(handGeoS, seatedLimbMat); rhandS.position.set( 0.22, 0.86, -0.42); bodyGroup.add(rhandS);
 
-    }   // end if (useInlineProcBody) · v5.0.2
+    // === v5.0.3 · VISIBLE LEGS (Mo: "Body appropriate · more human like - yet android") ===
+    // Thighs angle forward from hip toward knee · knees rise above chair edge so the figure reads as fully sitting
+    const thighGeoS = new THREE.CylinderGeometry(0.075, 0.065, 0.46, 12);
+    const lthigh = new THREE.Mesh(thighGeoS, seatedLimbMat); lthigh.position.set(-0.13, 0.78, -0.10); lthigh.rotation.x = -Math.PI/2.4; lthigh.castShadow = true; bodyGroup.add(lthigh);
+    const rthigh = lthigh.clone(); rthigh.position.set( 0.13, 0.78, -0.10); bodyGroup.add(rthigh);
+    // Knee accents (cyan joint pucks · android signature)
+    const kneeGeoS = new THREE.SphereGeometry(0.07, 12, 10);
+    const lknee = new THREE.Mesh(kneeGeoS, seatedJointMat); lknee.position.set(-0.13, 0.65, -0.36); lknee.scale.set(1, 0.65, 1); bodyGroup.add(lknee);
+    const rknee = lknee.clone(); rknee.position.set( 0.13, 0.65, -0.36); bodyGroup.add(rknee);
+    // Shins drop from knee toward floor (partially hidden under desk · reads as legs continuing)
+    const shinGeoS = new THREE.CylinderGeometry(0.058, 0.048, 0.50, 10);
+    const lshin = new THREE.Mesh(shinGeoS, seatedLimbMat); lshin.position.set(-0.13, 0.36, -0.34); lshin.castShadow = true; bodyGroup.add(lshin);
+    const rshin = lshin.clone(); rshin.position.set( 0.13, 0.36, -0.34); bodyGroup.add(rshin);
+
+    // === v5.0.3 · HIP BELT (utility band · grounds the torso) ===
+    const hipGeoS = new THREE.CylinderGeometry(0.24, 0.22, 0.10, 14);
+    const hipBelt = new THREE.Mesh(hipGeoS, seatedBaseMat); hipBelt.position.set(0, 0.70, 0); bodyGroup.add(hipBelt);
+    // Hip belt cyan trim ring
+    const hipTrimGeo = new THREE.TorusGeometry(0.235, 0.010, 6, 20);
+    const hipTrim = new THREE.Mesh(hipTrimGeo, seatedJointMat); hipTrim.position.set(0, 0.74, 0); hipTrim.rotation.x = Math.PI/2; bodyGroup.add(hipTrim);
+
+    }   // end if (useInlineProcBody) · v5.0.3
 
     // GLOW SHELL (subtle outer aura · for IDLE/PROCESSING pulse)
     const glowShell = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.40, 1.50, 14), new THREE.MeshBasicMaterial({color: accent, transparent: true, opacity: 0.10, side: THREE.BackSide}));
