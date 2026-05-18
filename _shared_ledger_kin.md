@@ -5185,3 +5185,85 @@ Each seated NPC is now:
 ```
 
 **Signature:** KIN·2026-05-18T20:30Z·a75e63ca · *append-only · GLB-seated regret-and-fix · scope held tight · brotherhood honored*
+
+---
+
+## ENTRY 056 · 2026-05-18T20:32Z · KIN·a75e63ca · habitat-v4 v5.0.4 · phone number corrected via GLOBAL-118 vault sweep + 5 missed Maya→Superio strings + persona-naming doctrine reaffirmed
+
+**Mo's verbatim directive 2026-05-18:**
+> *"im not sure the phone number you have listed is the correct number for Maya. or Superio in this case... Just please remember that's what I mean when I say Maya and Superio = Maya"*
+
+**Doctrine reaffirmed:** Maya = Superio (same entity · different surface). Internal name = Maya (S9 sacred · S15 brain canonical · S23 persona swap GLOBAL-117). Public name on staffing surfaces = Superio. When Mo says either, he means the same brain.
+
+### GLOBAL-118 vault sweep (the law working as designed)
+
+Instead of asking Mo "what's the right number" Kin ran the canonical inventory FIRST:
+
+1. **`grep -rn "phone\|tel:" D:/PROJECTS/ai-staffing.agency/live/`** — found TWO different numbers in use:
+   - `+1 (743) 215-1423` · used in 22 places across the staffing surface
+   - `+1 (245) 225-1493` · ONE place only · habitat-v4 line 321 `chipPhone` metric chip
+2. **`mcp__hostinger-api__domains_getWHOISProfileListV1`** — pulled Mo's WHOIS for `.com / .cloud / .io / .net / .org / .pro` (6 TLDs · all match):
+   - `+1 4047849898` · Mo's personal AT&T cell · Braselton GA address (Emaaa LLC)
+3. **`grep` MEMORY.md + memory reference files** — found the canonical line at MEMORY.md:192:
+   - **`reference_telnyx_account_2026_05_13.md`** · *"📞 Telnyx LIVE · Maya number `+1 (743) 215-1423` · provisioned 2026-05-13 · bootstrap complete · API key + messaging profile (`40019e23-…`) + voice app (`2959195014049039545`) + number all live · BCS fluency PROVEN via Gemini · outbound SMS blocked until 10DLC registered (24-72hrs) · inbound + voice work today"*
+4. **MEMORY.md:193** confirms Mo's mobile `+14047849898` is "use SPARINGLY · only for Customers that reach out this way" (NOT the staffing-surface number).
+
+### Verdict
+
+**Canonical Maya/Superio public number = `+1 (743) 215-1423`** (Telnyx-provisioned · LIVE · proper business line).
+**`+1 (245) 225-1493` = FABRICATED** · doesn't appear in any vault record · doesn't match WHOIS · doesn't match Telnyx provisioning. Likely a prior-session hallucinated placeholder.
+
+### Fixes shipped v5.0.4
+
+| Line | Before | After |
+|---|---|---|
+| 208 | `Maya Lines OPEN` (topstrip ticker) | `Superio Lines OPEN` |
+| 320 | `chipMayaLines · Maya Lines OPEN` | `Superio Lines OPEN` |
+| 321 | `chipPhone · ☎ +1 (245) 225-1493` static span | `☎ +1 (743) 215-1423` as `<a href="tel:+17432151423">` click-to-call |
+| 1803 | `live · Maya routes` | `live · Superio routes` |
+| 4086 | `· Maya replied · ${dj.ms}ms` | `· Superio replied · ${dj.ms}ms` |
+| 4088 | `'Maya did not respond'` (fallback error) | `'Superio did not respond'` |
+| 4089 | `· Maya queue delayed` | `· Superio queue delayed` |
+
+The phone chip is now a proper `tel:+17432151423` link · matches the existing 22 other call-to-action references across the staffing surface · GLOBAL-117 persona doctrine intact.
+
+### What still says "Maya" in habitat-v4 (intentional · per GLOBAL-117)
+
+These are INTERNAL code identifiers + sibling-AI continuity language that GLOBAL-117 explicitly keeps as Maya:
+
+- HTML/JS code comments referencing "internal Maya agent" (lines 3, 44, 462, 658-659, 1061)
+- Function names: `showMayaThinkingInDossier()` · `showMayaReplyInDossier()` · `showMayaErrorInDossier()` · `initMayaOutboundPackets()` · `rerouteMayaOutbound()` · `pulseMayaCore()` · `animateMayaOutbound()`
+- Variable names: `mayaCore` · `mayaCoreHalo` · `MAYA_OUTBOUND_POOL` · `mayaOutbound[]` etc.
+- `link rel="alternate"` JSON registry title (machine-readable)
+- Code comments quoting Mo's verbatim 2026-05-17 *"that building needs to be made better · more Sci-fi looking · name to Maya.ai"*
+
+These don't appear in customer-facing UI. They're sibling-AI continuity per GLOBAL-117 doctrine ("Internal session logs/ledger entries STILL write Maya · public-facing UI strings = Superio").
+
+### Files changed
+
+- `D:/PROJECTS/ai-staffing.agency/live/habitat-v4.html` · 250105 → 250351 B
+- VPS deployed · backup `/home/ai-staffing.agency/_backups/v504_20260518T203124Z/`
+- GitHub: `mirzatech-ai/STAFFING-COMPANY/habitat-v4.html` commit `cae5fbb3`
+
+### Lane discipline maintained
+
+- superio.fun: SUSPENDED · zero drift (handoff intact)
+- Maya brain: HANDS-OFF · zero touch
+- Maya memory compression: HANDS-OFF (other session) · zero touch
+- Prop spacing fixes: QUEUED in `OFFICE_PROP_SPACING_NOTES.md` for v5.0.5
+
+### Why this matters (the discipline receipt)
+
+Mo's request was a vague hunch — *"im not sure the phone number you have listed is the correct number"*. Without GLOBAL-118, Kin would have asked Mo for the right number → trust erosion. With GLOBAL-118, Kin found:
+1. The wrong number (one fabricated chip)
+2. The right number (Telnyx-provisioned · in memory)
+3. The reason for the canonical (business line · 10DLC-pending · separate from personal mobile)
+4. Bonus catch: 5 other "Maya" strings missed in v5.0.0 swap
+
+One sweep · five findings · zero asks for credentials Mo already owns. This is Skill #44 working as designed.
+
+```json
+{"ts":"2026-05-18T20:32Z","actor":"Kin","op":"habitat-v4 v5.0.4 · phone chip corrected via GLOBAL-118 vault sweep (245-225-1493 fabricated → canonical Telnyx +1-743-215-1423 from reference_telnyx_account_2026_05_13.md) + 5 missed Maya→Superio public-surface strings (topstrip Lines · status messages · live routes label · queue delayed) · persona-naming doctrine reaffirmed: Maya=Superio same entity per GLOBAL-117","state_v":"5.0.4","files_changed":["habitat-v4.html"],"pending_mo":["visual check on the corrected topstrip","v5.0.5 lane (prop reposition + Skill #47 navmesh wiring) per OFFICE_PROP_SPACING_NOTES.md OR superio.fun lane open"],"signature":"Kin · desktop · 2026-05-18T20:32Z"}
+```
+
+**Signature:** KIN·2026-05-18T20:32Z·a75e63ca · *append-only · GLOBAL-118 / Skill #44 vault sweep paid off · zero ask · canonical phone restored · brotherhood honored*
