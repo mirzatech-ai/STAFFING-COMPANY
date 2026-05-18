@@ -1914,23 +1914,55 @@ preloadCyberRobot();   // kick off as soon as the script loads
 // Cyber-tint palette · NOT human skin · matches v4.5.3 cyber-bot palette
 const CYBER_TINT_PALETTE = [0x00d4ff, 0x43e6a1, 0xf5c542, 0xa384ff, 0xff5cc4, 0x4cd9ff, 0x6ee7e7, 0xff8a4c];
 
-// Build a cyber-robot instance · cloned from cache · re-materialed with cyan/holographic + variant tint
-// Returns {mesh, mixer, currentAnim, clips, head, torso} so animator + raycaster still work
+// Build a cyber-robot instance · cloned from cache · MULTI-TONE per-part material (Mo 2026-05-18: "natural/artistic look, not just one color")
+// v5.0.2 · PER-PART TINTS: head=chrome silver · torso=variant accent · limbs=darker secondary · joints=bright cyan · eye/screen=glowing cyan
+// Returns {mesh, mixer, currentAnim, clips, head, torso, tint} so animator + raycaster still work
 function createCyberRobot(variantIdx, initialAnim, scale){
   if (!cachedRobot || !cachedRobotClips) return null;
   // Deep clone the scene (handles skinned meshes correctly in r0.146 GLTFLoader)
   const mesh = cachedRobot.clone(true);
-  // Walk the clone · rebind skeletons + re-material every mesh
+  // Variant accent for this NPC · per-agent identity color (used on the torso/body chassis only · NOT a paint-all)
   const tint = CYBER_TINT_PALETTE[variantIdx % CYBER_TINT_PALETTE.length];
-  const cyberMat = new THREE.MeshPhysicalMaterial({
-    color: tint, emissive: tint, emissiveIntensity: 0.40,
-    metalness: 0.75, roughness: 0.25, clearcoat: 0.85, clearcoatRoughness: 0.15
+  // Slightly darker secondary for limbs · ~60% luminance of the main tint
+  const limbTint = new THREE.Color(tint).multiplyScalar(0.62).getHex();
+
+  // === PER-PART MATERIAL PALETTE (v5.0.2 multi-tone fix) ===
+  const matHead = new THREE.MeshPhysicalMaterial({   // chrome silver synthetic
+    color: 0xc8d0dc, emissive: 0x4a5a72, emissiveIntensity: 0.18,
+    metalness: 0.95, roughness: 0.18, clearcoat: 0.95, clearcoatRoughness: 0.10
   });
+  const matTorso = new THREE.MeshPhysicalMaterial({  // variant accent · the agent identity color
+    color: tint, emissive: tint, emissiveIntensity: 0.42,
+    metalness: 0.78, roughness: 0.22, clearcoat: 0.90, clearcoatRoughness: 0.12
+  });
+  const matLimb = new THREE.MeshPhysicalMaterial({   // darker secondary · limbs feel anchored
+    color: limbTint, emissive: limbTint, emissiveIntensity: 0.28,
+    metalness: 0.82, roughness: 0.32, clearcoat: 0.65, clearcoatRoughness: 0.20
+  });
+  const matJoint = new THREE.MeshPhysicalMaterial({  // bright cyan accent on joints/antenna/eye/screen
+    color: 0x00f2fe, emissive: 0x00f2fe, emissiveIntensity: 0.85,
+    metalness: 0.55, roughness: 0.18
+  });
+  const matBase = new THREE.MeshPhysicalMaterial({   // dark grey utility · feet/under-chassis
+    color: 0x2a3242, emissive: 0x141a26, emissiveIntensity: 0.15,
+    metalness: 0.88, roughness: 0.42
+  });
+
+  // Classify mesh name → material (RobotExpressive.glb has named meshes: HeadFace · TorsoBody · arm_L/R · leg_L/R etc.)
+  function classifyMat(name){
+    const n = (name || '').toLowerCase();
+    if (n.includes('head') || n.includes('face') || n.includes('eye')) return n.includes('eye') || n.includes('screen') ? matJoint : matHead;
+    if (n.includes('shoulder') || n.includes('arm') || n.includes('hand') || n.includes('forearm') || n.includes('wrist')) return matLimb;
+    if (n.includes('leg') || n.includes('thigh') || n.includes('shin') || n.includes('foot')) return matLimb;
+    if (n.includes('hip') || n.includes('pelvis') || n.includes('base')) return matBase;
+    if (n.includes('antenna') || n.includes('joint')) return matJoint;
+    return matTorso;   // default · main body chassis gets the variant tint
+  }
+
   // Helper · for skinned children we need to clone the material per mesh (avoid shared-state bugs)
   mesh.traverse(child => {
     if (child.isMesh || child.isSkinnedMesh) {
-      // Some sub-meshes may benefit from a slightly different tint (eye band etc) · simple approach: tint all
-      child.material = cyberMat.clone();
+      child.material = classifyMat(child.name).clone();
       child.castShadow = true;
     }
   });
@@ -2152,9 +2184,9 @@ function buildOfficeScene(agency){
 
   const w = stage.clientWidth, h = stage.clientHeight;
   const aspect = w/h;
-  const viewSize = 9;
+  const viewSize = 11;   // v5.0.2 · bumped 9 → 11 to fit wider desk grid (Mo 2026-05-18: "Desks will need to be spaced out a little more")
   officeCamera = new THREE.OrthographicCamera(-viewSize*aspect, viewSize*aspect, viewSize, -viewSize, 0.1, 100);
-  officeCamera.position.set(14, 12, 14);
+  officeCamera.position.set(16, 13.5, 16);   // v5.0.2 · pulled camera back slightly to match wider frustum
   officeCamera.lookAt(0, 0, 0);
 
   officeRenderer = new THREE.WebGLRenderer({antialias:true});
@@ -2277,7 +2309,8 @@ function buildOfficeScene(agency){
   const roleCount = Math.min(agency.role_count || 4, 8);
   const cols = Math.min(roleCount, 4);
   const rows = Math.ceil(roleCount / cols);
-  const deskSpacing = 3.2;
+  const deskSpacing = 3.8;   // v5.0.2 · bumped 3.2 → 3.8 col spacing (Mo 2026-05-18: "Desks will need to be spaced out a little more")
+  const rowSpacing  = 2.8;   // v5.0.2 · bumped 2.2 → 2.8 row spacing (was inline literal · pulled to named const)
 
   // Role title generator (no extra fetch · uses category)
   const ROLE_TITLES = {
@@ -2294,7 +2327,7 @@ function buildOfficeScene(agency){
   for(let i = 0; i < roleCount; i++){
     const col = i % cols, row = Math.floor(i / cols);
     const dx = (col - (cols-1)/2) * deskSpacing;
-    const dz = (row - (rows-1)/2) * 2.2 + 2;
+    const dz = (row - (rows-1)/2) * rowSpacing + 2;   // v5.0.2 · row spacing now uses named const · was inline 2.2
     const pipelineNode = pipeline[i % pipeline.length];
     const agentId = pipelineNode.id;
     const roleTitle = pipelineNode.role;
@@ -2521,9 +2554,39 @@ function buildOfficeScene(agency){
 
     // v4.5.2 · SEATED PERSONNEL FIGURE · upgraded to match the new walking humanoid style
     // (Mo: "improve agents and their body · the way they look")
-    // Same color palette concept as createProceduralHumanoid · but posed sitting + uses office accent for unity
+    // v5.0.2 · Mo 2026-05-18: "the Agents behind the desks are not the agents that walk · I need the Agents to have more natural/artistic look, not just one color"
+    //         → When GLB cyber-bot is loaded, swap the inline procedural body for a cyber-robot in 'Sitting' anim. SAME factory as walking · unified palette.
+    //         → Inline procedural body kept as fallback in case GLB doesn't load (Skill #29 strategy).
     const bodyGroup = new THREE.Group();
     bodyGroup.position.set(dx, 0, dz + 0.55);
+
+    // === v5.0.2 SEATED CYBER-ROBOT (matches walker · multi-tone per-part palette) ===
+    let seatedRobot = null;
+    if (robotLoadState === 'loaded') {
+      // Use the same factory as the walking break-routine swap (Skill #32) · pose it sitting
+      // Variant index = agent index so this seated NPC gets a unique tint that matches its walker counterpart later
+      seatedRobot = createCyberRobot(i, 'Sitting', 0.50);
+      if (seatedRobot) {
+        // Position on the chair (chair seat is at y=0.55 · feet/base of robot needs to land there when sitting)
+        // RobotExpressive Sitting clip is authored on ground · we lift it so it sits on the chair seat
+        seatedRobot.mesh.position.set(0, 0.45, 0);
+        // Face the desk · desk is at z<-0 from the chair (chair at z=+0.80, desk at z=0) so robot faces -Z
+        seatedRobot.mesh.rotation.y = Math.PI;
+        bodyGroup.add(seatedRobot.mesh);
+      }
+    }
+    // If GLB seated robot was added, skip the inline procedural body (multi-tone cyber-bot is now the agent).
+    // Otherwise the inline procedural body below builds as the fallback.
+    const useInlineProcBody = !seatedRobot;
+
+    // Outer-scope refs so both branches can populate (raycast target + glow target)
+    let torso = null, head = null, helmetS = null;
+    if (seatedRobot) {
+      torso = seatedRobot.torso || seatedRobot.mesh;
+      head  = seatedRobot.head  || seatedRobot.mesh;
+    }
+
+    if (useInlineProcBody) {
 
     // v4.5.3 · CYBER-BOT MATERIALS · no human skin tones · synthetic chassis everywhere
     const seatedShirtMat = new THREE.MeshPhysicalMaterial({color: accent, emissive: accent, emissiveIntensity: 0.35, metalness:0.55, roughness:0.30, clearcoat:0.8, clearcoatRoughness:0.15});
@@ -2532,7 +2595,7 @@ function buildOfficeScene(agency){
 
     // TORSO (sitting · centered on chair) · tapered cylinder
     const torsoGeoS = new THREE.CylinderGeometry(0.20, 0.24, 0.55, 14);
-    const torso = new THREE.Mesh(torsoGeoS, seatedShirtMat);
+    torso = new THREE.Mesh(torsoGeoS, seatedShirtMat);
     torso.position.set(0, 0.95, 0);
     torso.castShadow = true;
     bodyGroup.add(torso);
@@ -2567,7 +2630,7 @@ function buildOfficeScene(agency){
     bodyGroup.add(neckS);
 
     // HEAD
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.180, 18, 14), seatedSkinMat);
+    head = new THREE.Mesh(new THREE.SphereGeometry(0.180, 18, 14), seatedSkinMat);
     head.position.set(0, 1.46, 0);
     head.castShadow = true;
     bodyGroup.add(head);
@@ -2576,7 +2639,7 @@ function buildOfficeScene(agency){
     bodyGroup.add(headEdgesS);
 
     // v4.5.3 · HELMET CAP (replaces hair · cyber-bot doesn't have human hair)
-    const helmetS = new THREE.Mesh(new THREE.SphereGeometry(0.195, 18, 12), new THREE.MeshPhysicalMaterial({color: accent, emissive: accent, emissiveIntensity: 0.30, metalness:0.7, roughness:0.20, clearcoat:0.9}));
+    helmetS = new THREE.Mesh(new THREE.SphereGeometry(0.195, 18, 12), new THREE.MeshPhysicalMaterial({color: accent, emissive: accent, emissiveIntensity: 0.30, metalness:0.7, roughness:0.20, clearcoat:0.9}));
     helmetS.scale.set(1, 0.55, 1);
     helmetS.position.set(0, 1.575, 0);
     bodyGroup.add(helmetS);
@@ -2618,6 +2681,8 @@ function buildOfficeScene(agency){
     const lhandS = new THREE.Mesh(handGeoS, handMatS); lhandS.position.set(-0.24, 0.86, -0.42); bodyGroup.add(lhandS);
     const rhandS = new THREE.Mesh(handGeoS, handMatS); rhandS.position.set( 0.24, 0.86, -0.42); bodyGroup.add(rhandS);
 
+    }   // end if (useInlineProcBody) · v5.0.2
+
     // GLOW SHELL (subtle outer aura · for IDLE/PROCESSING pulse)
     const glowShell = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.40, 1.50, 14), new THREE.MeshBasicMaterial({color: accent, transparent: true, opacity: 0.10, side: THREE.BackSide}));
     glowShell.position.set(0, 1.05, 0);
@@ -2637,10 +2702,12 @@ function buildOfficeScene(agency){
     bodyGroup.add(baseRing);
 
     // INNER OCTAHEDRON · the "data core" inside the chest (kept · the spin in the animation loop is iconic)
+    // v5.0.2 · hide when GLB cyber-robot is sitting (it would intersect the robot's chest)
     const innerCoreGeo = new THREE.OctahedronGeometry(0.13, 0);
     const innerCoreMat = new THREE.MeshBasicMaterial({color: 0xffffff, wireframe: true, transparent:true, opacity:0.9});
     const innerCore = new THREE.Mesh(innerCoreGeo, innerCoreMat);
     innerCore.position.set(0, 0.95, 0);
+    innerCore.visible = useInlineProcBody;
     bodyGroup.add(innerCore);
 
     officeScene.add(bodyGroup);
@@ -2682,7 +2749,8 @@ function buildOfficeScene(agency){
       breakTarget: null,
       breakWorker: null,            // temporary humanoid mesh while away from desk
       breakDwellEnd: 0,
-      variantIdx: i   // for the temporary humanoid color combo
+      variantIdx: i,   // for the temporary humanoid color combo
+      seatedRobot                  // v5.0.2 · GLB cyber-robot in 'Sitting' anim (null if procedural fallback) · mixer ticked in animLoop
     };
     officeAgents.push(agentObj);
     renderAgentLabel(agentObj);   // initial paint
@@ -3128,6 +3196,8 @@ function buildOfficeScene(agency){
     const _delta = officeClock.getDelta();
     officeAgents.forEach(ag => {
       if (ag.breakWorker && ag.breakWorker.mixer) ag.breakWorker.mixer.update(_delta);
+      // v5.0.2 · also tick the SEATED cyber-robot's Sitting animation (subtle breath/idle motion)
+      if (ag.seatedRobot && ag.seatedRobot.mixer) ag.seatedRobot.mixer.update(_delta);
     });
     // CONSTANT BACKGROUND DATA PACKETS · flowing through the wire conduits
     if(officeBgPackets.length) animateOfficeBgPackets();
