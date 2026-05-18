@@ -319,6 +319,8 @@ body{background:radial-gradient(1400px 900px at 50% -10%,rgba(245,197,66,.05),tr
     <span class="metric-chip" id="chipWorking" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:13px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.25);color:#fff;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em"><b id="chipWorkingN">0</b> Working</span>
     <span class="metric-chip" id="chipMayaLines" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:13px;background:rgba(163,132,255,.10);border:1px solid #a384ff;color:#a384ff;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em">Maya Lines <b style="color:#fff">OPEN</b></span>
     <span class="metric-chip" id="chipPhone" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:13px;background:linear-gradient(135deg,rgba(245,197,66,.18),rgba(205,153,56,.12));border:1px solid var(--gold);color:#fff;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em">☎ +1 (245) 225-1493</span>
+    <!-- v4.8.0 · S-1 · TIER BADGE (Skill #40) · OWNER vs CUSTOMER -->
+    <span class="metric-chip" id="chipTier" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:13px;background:rgba(67,230,161,.12);border:1px solid var(--green);color:var(--green);font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em">⚙ <b style="color:#fff">OWNER</b></span>
     <!-- v4.6.0 · D-04 · CAPABILITY ASSESSMENT chip · per GLOBAL-113 capability-check mini-doctrine -->
     <span class="metric-chip" id="chipCapability" style="display:none;align-items:center;gap:5px;padding:5px 11px;border-radius:13px;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em">CAPABILITY</span>
   </div>
@@ -602,6 +604,18 @@ const buildings = [];        // {mesh, slug, agency, cat, state, baseColor}
 let hoveredBuilding = null;
 let workingCount = 0;
 
+// === v4.8.0 · AUTH TIER + CUSTOMER CANVAS (Sprint S-1 · Skill #40 · per GLOBAL-114 customer view doctrine) ===
+// URL params: ?tier=owner (default · all 100 agencies) | ?tier=customer&agencies=slug1,slug2,slug3 (only those + Maya hub)
+// Mo verbatim: "the user only chooses the agency, and the agency talks to Maya · should not see the entire 100 agencies"
+function readAuthTier(){
+  const qs = new URLSearchParams(window.location.search);
+  const tier = (qs.get('tier') || 'owner').toLowerCase();
+  const rented = (qs.get('agencies') || '').split(',').map(s => s.trim()).filter(Boolean);
+  const customerName = qs.get('customer') || '';
+  return {tier, rented, customerName, isCustomer: tier === 'customer'};
+}
+const AUTH = readAuthTier();
+
 async function loadAndBuild(){
   let agencies = [];
   try{
@@ -609,6 +623,14 @@ async function loadAndBuild(){
     const j = await r.json();
     agencies = j.agencies || [];
   }catch(e){ console.warn('staff.php failed', e); }
+
+  // v4.8.0 · CUSTOMER MODE · filter to only the customer's rented agencies + pad the rest
+  if (AUTH.isCustomer && AUTH.rented.length > 0){
+    const rentedSet = new Set(AUTH.rented);
+    const filtered = agencies.filter(a => rentedSet.has(a.id || a.slug));
+    console.log('[v4.8 CUSTOMER MODE] rented:', AUTH.rented, '· matched:', filtered.length, '/', agencies.length);
+    agencies = filtered;
+  }
 
   // Pad to 100 if needed
   while(agencies.length < GRID_N*GRID_N){
@@ -3941,7 +3963,45 @@ function updateCrawlerMirror(){
 setInterval(updateCrawlerMirror, 4000);
 
 // ============ BOOT ============
-loadAndBuild().then(() => setTimeout(updateCrawlerMirror, 800));
+// v4.8.0 · S-1 · CUSTOMER MODE UX (Skill #40)
+// Configure HUD chips / hide owner-only controls / show welcome banner based on AUTH.tier
+function applyAuthTierUX(){
+  const chipTier = document.getElementById('chipTier');
+  const chipAgenciesN = document.querySelector('#chipAgencies b');
+  if (AUTH.isCustomer){
+    // Tier badge: CUSTOMER (gold)
+    if (chipTier){
+      chipTier.style.background = 'rgba(245,197,66,.14)';
+      chipTier.style.borderColor = '#f5c542';
+      chipTier.style.color = '#f5c542';
+      chipTier.innerHTML = '👤 <b style="color:#fff">' + (AUTH.customerName ? AUTH.customerName.toUpperCase() : 'CUSTOMER') + '</b>';
+    }
+    // Agencies count: show ONLY rented count, not 100
+    if (chipAgenciesN) chipAgenciesN.textContent = AUTH.rented.length;
+    // Hide owner-only controls
+    const ownerHideIds = ['rotBtn'];   // RESET CAM stays (useful for customers too) · AUTO-ROTATE + PULSE ALL get hidden
+    const pulseBtn = Array.from(document.querySelectorAll('.controls button')).find(b => b.textContent.includes('PULSE'));
+    if (pulseBtn) pulseBtn.style.display = 'none';
+    const rotBtn = document.getElementById('rotBtn'); if (rotBtn) rotBtn.style.display = 'none';
+    // Add a welcome banner
+    const banner = document.createElement('div');
+    banner.style.cssText = 'position:fixed;top:62px;left:50%;transform:translateX(-50%);z-index:100;padding:10px 18px;background:rgba(8,12,24,.92);border:1px solid var(--gold);border-left-width:5px;border-radius:10px;font-family:"Space Grotesk",sans-serif;font-size:13px;color:#fff;box-shadow:0 10px 32px rgba(0,0,0,.65);letter-spacing:.04em';
+    banner.innerHTML = '👋 <b style="color:var(--gold)">Welcome' + (AUTH.customerName ? ', ' + AUTH.customerName : '') + '</b> · your agencies (<b style="color:var(--gold)">' + AUTH.rented.length + '</b>) are connected to Maya · drop a file into any agency to dispatch';
+    document.body.appendChild(banner);
+    setTimeout(() => { banner.style.transition = 'opacity 1s'; banner.style.opacity = '0'; setTimeout(() => banner.remove(), 1100); }, 5000);
+    console.log('[v4.8 S-1] CUSTOMER MODE active · rented:', AUTH.rented, '· customer:', AUTH.customerName || '(anonymous)');
+  } else {
+    if (chipTier){
+      chipTier.style.background = 'rgba(67,230,161,.12)';
+      chipTier.style.borderColor = '#43e6a1';
+      chipTier.style.color = '#43e6a1';
+      chipTier.innerHTML = '⚙ <b style="color:#fff">OWNER</b>';
+    }
+    console.log('[v4.8 S-1] OWNER MODE · full 100-agency canvas + Parliament/Council/Board access');
+  }
+}
+
+loadAndBuild().then(() => { applyAuthTierUX(); setTimeout(updateCrawlerMirror, 800); });
 </script>
 </body>
 </html>
