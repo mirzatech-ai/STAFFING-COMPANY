@@ -1,8 +1,8 @@
 # ============================================================
 # CANONICAL LEDGER · public-safe view · confidentials redacted (GLOBAL-48)
 # Source path: /home/iamsuperio.cloud/public_html/data/_shared_ledger_kin.md
-# Render time: 2026-05-17T23:42:59Z
-# Total entries: 48 · Total bytes: 266517
+# Render time: 2026-05-18T00:02:25Z
+# Total entries: 49 · Total bytes: 273407
 # Append-only · doctrine per AGENT_SIGNATURE_PROTOCOL v1
 # GitHub mirror: https://github.com/mirzatech-ai/STAFFING-COMPANY/blob/main/_shared_ledger_kin.md
 # Raw download: https://iamsuperio.cloud/data/ledger.php?raw=1
@@ -3970,3 +3970,94 @@ The pattern this skill ships is the synthesis: warm-bias palette (NYC-night) · 
 - GitHub habitat-v4.html @ ac550149
 
 **Signature:** KIN·2026-05-17T17:35Z·a75e63ca · *append-only · per AGENT_SIGNATURE_PROTOCOL v1 · GLOBAL-111 + GLOBAL-112 + GLOBAL-113 + GLOBAL-114 receipts*
+
+---
+
+## ENTRY 045 · 2026-05-17T18:00Z · KIN·a75e63ca · habitat-v4.7.1 · 4 FIXES + SENTINEL FINALLY KILLED · I OWE MO AN APOLOGY
+
+**Mo verbatim (2026-05-17):**
+> "4 things. 1. Data packets need to super bright as they travel the streets. 2. Buildings look much better but they can be made to look different/better still by not changing the appearance when I hover the mouse over it. Right now, they change appearance with every mouse hover. 3. The sentinel is still there, violation. the window below - anatomical auditor - it is also a violation for being present at the same time as sentinel that I'm constantly bringing up to your attention. 4. The buildings need to be spaced out a little bit more."
+
+### ⚠ ACCOUNTABILITY · the sentinel I "removed" in v4.5.1 was the WRONG sentinel
+
+Mo flagged this THREE TIMES. My v4.5.1 cleanup successfully removed `<div id="sentinelPanel">` and `<div id="auditorPanel">` (the ones I built). But the screenshot Mo kept sending showed a DIFFERENT pair of panels using `<div class="right-hud"><div class="panel"><div class="sentinel-frame">` — an INHERITED HTML/CSS block from a much earlier version that I never noticed. My grep checks were narrow (looking for the IDs I had killed) and kept reporting "0 matches" while the OTHER pair was right there in the file at lines 284-304 + their CSS rules at 162-171.
+
+**v4.7.1 fix:** removed the entire `<div class="right-hud">` block · removed all 10 lines of CSS for `.right-hud / .panel / .sentinel-frame / .sentinel-stats` · also removed the mobile `.right-hud{display:none}` rule that was no-op anyway · ledger this entry as a documented failure pattern so Sage / EaZo / future-Kin don't repeat. Tagged the removal sites with comment breadcrumbs so the file is now 0% sentinel-functional + carries history of why the deletion happened.
+
+Live verified: `grep "right-hud|sentinelPanel|sentinel-frame|Continuity Sentinel|Anatomical Auditor|FACELOCK|ANATOMY|FINGERS"` against the production file returns ONLY 4 comment-only breadcrumbs. Zero functional code remains.
+
+### Four fixes shipped to `habitat-v4.html` (219,835 → **219,055** B · NET -0.8 KB because dead code purged outweighs new code added)
+
+#### Fix 1 · SUPER-BRIGHT data packets (Mo: "super bright as they travel the streets")
+
+Couriers upgraded to a 3-layer pure-light packet system:
+- **Core packet**: 0.30 radius (was 0.18) · `MeshBasicMaterial` · opacity 1.0 · `depthTest:false` · `THREE.AdditiveBlending`
+- **Halo**: 0.55 radius · opacity 0.55 · additive
+- **Aura corona**: 0.85 radius · opacity 0.25 · additive · the bright streak that catches the eye from across the city
+
+Additive blending means every packet adds light to whatever's behind it · they CUT THROUGH everything · readable at any zoom level. Pulse increased from `0.7-1.0` range to `0.85-1.0` so they stay bright always.
+
+#### Fix 2 · Macro buildings STATIC on hover (Mo: "changes appearance with every mouse hover")
+
+Old behavior (`raiseBuilding`): building lifted +0.4m on hover + emissiveIntensity bumped to 0.55. `lowerBuilding` reset to 0.32 on exit.
+
+New behavior: `raiseBuilding` / `lowerBuilding` are no-ops · they ONLY track `hoveredBuilding` for the Skill #34 wheel-zoom-into-office trigger. Visual state of the building never changes from hover.
+
+`stateEmissive()` baselines bumped:
+- `working` 0.85 → 1.0
+- `council` 0.7 → 0.92
+- `error` 0.6 → 0.85
+- `idle` 0.32 → **0.85** (was the most-affected · IDLE buildings now stay BRIGHT with their SimCity facade lit windows · no dim-down on mouse-off)
+
+Tooltip on hover still works (the agency name pop-up appears) — only the building visual stays static.
+
+#### Fix 3 · Sentinel + Auditor panels EXORCISED (third time's the charm)
+
+Documented above. Zero functional code remains. Cache-bust meta tags ensure no stale-render. Apology logged.
+
+#### Fix 4 · Buildings spaced out
+
+- `SPACING`: 2.2 → **2.8** (27% more room between buildings · grid is now 28 units wide vs 22)
+- `viewSize`: 18 → **22** (camera ortho fits the wider grid by default)
+- Street network adapts automatically (uses `SPACING` constant in its math)
+
+### Skill registry → 38 slots (unchanged · no new skills · this is a cleanup turn)
+
+### Maya untouched (GLOBAL-112)
+
+### Deploy chain
+- Local habitat-v4.html · 219,835 → **219,055** B (net -0.8 KB)
+- VPS habitat-v4.html · 219,055 B · source.js 175,553 B
+- JS syntax: clean (`new Function(src)` → OK 175,654 B)
+- Sentinel scrub: only 4 comment-only breadcrumbs remain · 0 functional HTML/CSS/JS
+- GitHub habitat-v4.html @ commit `8f775f3f`
+- 8 chattr +i /api/ files · untouched
+
+### Test ritual
+
+**HARD-RELOAD: `Ctrl+Shift+R`**
+
+1. Open [ai-staffing.agency/habitat-v4.html](https://ai-staffing.agency/habitat-v4.html)
+2. **Confirm NO sentinel/auditor panels on the right side** — the top-right of the macro view should be CLEAN (the AUTO-ROTATE/RESET CAM/PULSE ALL buttons are a separate top-right control row · the SENTINEL was a separate stacked panel block below those buttons · that panel block is now GONE)
+3. **Watch the couriers** — super bright now · they punch through bloom with additive blending · readable from across the city · they ride the Manhattan street grid
+4. **Hover over any building** — the building does NOT lift · does NOT change brightness · ONLY a tooltip appears with the name/role count. Move off — building stays the same. THIS is the static-look behavior.
+5. **Look at building spacing** — 28-unit wide grid (was 22) · streets between buildings have more room
+6. **Confirm SimCity facade + roof clutter + crown taper + beacon blink** all still working from v4.7.0
+
+### Anti-pattern canonized for next session
+
+When Mo flags an artifact ("X is still there") and your grep returns 0 matches → DO NOT trust your grep. Read the screenshot OCR-style and search for the EXACT strings shown (`FACELOCK`, `ANATOMY`, `FINGERS`, `LIVE` badge, `PASSED` badge). If those strings appear in the screenshot but your grep is searching for the wrong ID/class, you'll miss it. Skill #25 doctrine update queued.
+
+### What's still queued in PROJECT_BRIEF.md
+- D-05 Stripe checkout
+- D-06 Maya per-agent dispatch (under GLOBAL-112)
+- D-07 Bespoke pipelines for 90 remaining agencies
+- D-08 Customer-personalized canvas (per GLOBAL-114)
+
+### Files touched (zero Maya · per GLOBAL-112)
+- D:/PROJECTS/ai-staffing.agency/live/habitat-v4.html (219,835 → 219,055 B)
+- VPS:/home/ai-staffing.agency/public_html/habitat-v4.html
+- VPS:/home/ai-staffing.agency/public_html/habitat-v4-source.js
+- GitHub habitat-v4.html @ 8f775f3f
+
+**Apology + signature:** KIN·2026-05-17T18:00Z·a75e63ca · the THREE-FLAGS-FROM-MO sentinel violation is on me · not the cache · I had the wrong search target · documented + fixed · per AGENT_SIGNATURE_PROTOCOL v1 · GLOBAL-111 + GLOBAL-112 + GLOBAL-113 + GLOBAL-114 receipts
