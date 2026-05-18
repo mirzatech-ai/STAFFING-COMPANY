@@ -3906,18 +3906,43 @@ async function sendDropzoneFiles(){
     if(j.ok){
       const ok = j.received.filter(x => x.ok).length;
       status.innerHTML = `<span style="color:var(--green)">✓ ${ok} of ${j.received.length} stored · ${j.storage}</span>`;
-      // TRACK C · v4.4.5 SWARM EXECUTION · walk the payload down the pipeline (Director → Engine → Asset → QA)
       const fileNames = j.received.filter(x => x.ok).map(x => x.name).join(', ');
       sequencePipelineFlash(fileNames || 'data payload');
-      // v4.4.7 · INTER-AGENCY DISPATCH · after pipeline cascade completes, fire macro-city packet flight (Skill #18)
-      // The pipeline cascade takes ~6s (4 stages × 1.5s) · fire dispatch right at the QA stage so it overlaps
       setTimeout(() => {
         if (currentOfficeAgency) dispatchToAgency(currentOfficeAgency);
       }, 6200);
       pendingDropFiles = [];
       refreshDropList();
-      // Visual flourish: burst green particles toward the now-PROCESSING agent
       for(let i = 0; i < 3; i++) setTimeout(triggerDropParticles, i*200);
+
+      // v4.9.1 · S-3 · REAL MAYA DISPATCH (Skill #42 · Consumer mode per GLOBAL-112)
+      // Customer mode = call Maya brain for a real reply · owner mode = animation-only (existing demo behavior)
+      if (AUTH.isCustomer && currentOfficeAgency){
+        showMayaThinkingInDossier();
+        const dispatchPayload = {
+          agency_slug: currentOfficeAgency.id || currentOfficeAgency.slug,
+          customer_name: AUTH.customerName || 'Customer',
+          customer_id: new URLSearchParams(window.location.search).get('cid') || '',
+          task_note: document.getElementById('dropzoneNote').value || '',
+          files_meta: j.received.filter(x => x.ok).map(x => ({name: x.name, size: x.bytes || 0, type: x.type || ''}))
+        };
+        try {
+          const dr = await fetch('/api/customer_dispatch.php', {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(dispatchPayload)
+          });
+          const dj = await dr.json();
+          if (dj.ok && dj.reply){
+            showMayaReplyInDossier(dj);
+            status.innerHTML += ` <span style="color:var(--green)">· Maya replied · ${dj.ms}ms</span>`;
+          } else {
+            showMayaErrorInDossier(dj.error || 'Maya did not respond');
+            status.innerHTML += ` <span style="color:var(--gold)">· Maya queue delayed</span>`;
+          }
+        } catch(de){
+          showMayaErrorInDossier('Network error · your files are stored · we will follow up by email');
+        }
+      }
     } else {
       status.innerHTML = `<span style="color:var(--red)">⚠ ${escapeHTML(j.error || 'upload failed')}</span>`;
     }
@@ -3926,6 +3951,51 @@ async function sendDropzoneFiles(){
   } finally {
     btn.disabled = pendingDropFiles.length === 0; btn.textContent = 'SEND TO AGENCY';
   }
+}
+
+// v4.9.1 · Maya-reply renderers (Skill #42)
+function showMayaThinkingInDossier(){
+  const el = document.getElementById('dossierContent');
+  if (!el) return;
+  el.innerHTML = `
+    <div style="padding:12px 14px;border-radius:10px;background:rgba(245,197,66,.08);border:1px solid var(--gold);margin-bottom:10px">
+      <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--gold);font-size:11px;letter-spacing:.16em">⊙ MAYA · ORCHESTRATING</div>
+      <div style="margin-top:8px;font-size:11.5px;color:var(--text);line-height:1.55">
+        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--gold);animation:mayaPulse 1s infinite;margin-right:6px"></span>
+        Reviewing files · briefing the agency pipeline · response in 60-120s
+      </div>
+    </div>
+    <style>@keyframes mayaPulse{0%,100%{opacity:.3}50%{opacity:1}}</style>
+  `;
+  const stateEl = document.getElementById('dossierState'); if (stateEl){ stateEl.textContent = 'DISPATCHING'; stateEl.style.color = 'var(--gold)'; }
+}
+function showMayaReplyInDossier(dj){
+  const el = document.getElementById('dossierContent');
+  if (!el) return;
+  const pipelineHtml = (dj.pipeline || []).map(p => `<div style="padding:4px 8px;border-radius:5px;background:rgba(0,228,255,.06);font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--cyan);margin:2px 0">${escapeHTML(p)}</div>`).join('');
+  el.innerHTML = `
+    <div style="padding:10px 12px;border-radius:9px;background:rgba(67,230,161,.08);border:1px solid var(--green);margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--green);font-size:11px;letter-spacing:.14em">⊙ MAYA · ${escapeHTML(dj.agent || 'Sovereign COO')}</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted)">${dj.ms||0}ms</span>
+      </div>
+      <div style="font-size:12px;color:var(--text);line-height:1.6;white-space:pre-wrap">${escapeHTML(dj.reply || '')}</div>
+    </div>
+    <div style="margin:8px 0 4px;font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:.12em;color:var(--gold);text-transform:uppercase">⬇ Pipeline executing</div>
+    ${pipelineHtml}
+  `;
+  const stateEl = document.getElementById('dossierState'); if (stateEl){ stateEl.textContent = 'REPLY SECURED'; stateEl.style.color = 'var(--green)'; }
+}
+function showMayaErrorInDossier(msg){
+  const el = document.getElementById('dossierContent');
+  if (!el) return;
+  el.innerHTML = `
+    <div style="padding:10px 12px;border-radius:9px;background:rgba(245,197,66,.08);border:1px solid var(--gold);margin-bottom:10px">
+      <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--gold);font-size:11px;letter-spacing:.14em;margin-bottom:6px">⊙ MAYA · QUEUED</div>
+      <div style="font-size:12px;color:var(--text);line-height:1.55">${escapeHTML(msg)}</div>
+      <div style="margin-top:8px;font-size:10.5px;color:var(--muted)">Your files are stored. We will reach out by email shortly.</div>
+    </div>
+  `;
 }
 
 // Init dropzone on first load
