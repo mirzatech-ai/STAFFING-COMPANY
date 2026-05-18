@@ -10,17 +10,17 @@
 <!-- v4.6.1 build · cache-bust to prevent stale UI per Mo 2026-05-17 -->
 <meta name="habitat-build" content="v4.6.1 · 2026-05-17T17:00Z">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,viewport-fit=cover">
-<title>Maya AI · Sovereign Campus v4.1 · Real 3D Metropolis · SANDBOX</title>
-<meta name="description" content="Maya AI 3D Sovereign Campus · 100 staffing agencies as interactive isometric buildings · Three.js metropolis with glass+steel towers, kinetic data-packet traffic, MirzaTech Council Chamber · Powered by MirzaTech.ai · Property of EMAAA.io">
+<title>Superio · Sovereign Campus v5.0 · AI Staffing Agency · 100 Agencies · 724 Roles</title>
+<meta name="description" content="Superio · Sovereign Campus · 100 AI staffing agencies as interactive 3D isometric buildings · Three.js metropolis with glass+steel towers, kinetic data-packet traffic, Superio Sovereign COO Chamber · Powered by MirzaTech.ai · Property of EMAAA.io">
 
 <!-- Rich link preview for Gemini / social shares -->
 <meta property="og:type" content="website">
-<meta property="og:title" content="Maya AI · Sovereign Campus v4.1 · Real 3D Metropolis">
-<meta property="og:description" content="Interactive 3D campus · 100 staffing agencies on an isometric grid · glass+steel towers with window-grid emissive textures · kinetic data-packet traffic flowing to MirzaTech Council Chamber · click any tower to dispatch a Maya agent · Powered by MirzaTech.ai · Property of EMAAA.io">
+<meta property="og:title" content="Superio · Sovereign Campus · AI Staffing Agency · 100 Agencies">
+<meta property="og:description" content="Interactive 3D campus · 100 staffing agencies on an isometric grid · glass+steel towers with window-grid emissive textures · kinetic data-packet traffic flowing to Superio's Sovereign Chamber · click any tower to dispatch an AI agent · Powered by MirzaTech.ai · Property of EMAAA.io">
 <meta property="og:url" content="https://ai-staffing.agency/habitat-v4.html">
 <meta property="og:image" content="https://ai-staffing.agency/assets/sim-city/5.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Maya AI · Sovereign Campus v4.1 · Real 3D Metropolis">
+<meta name="twitter:title" content="Superio · Sovereign Campus · AI Staffing Agency">
 <meta name="twitter:description" content="Three.js · 100 agencies · isometric · kinetic data-packets · Click any tower to dispatch a Maya agent">
 
 <!-- Source + context links Gemini can fetch for line-level review -->
@@ -199,7 +199,7 @@ body{background:radial-gradient(1400px 900px at 50% -10%,rgba(245,197,66,.05),tr
 
 <!-- TOP STRIP -->
 <div class="topstrip">
-  <div class="brand"><div class="dot"></div>MAYA AI · SOVEREIGN CAMPUS<span class="v">v4 · 3D</span></div>
+  <div class="brand"><div class="dot"></div>SUPERIO · SOVEREIGN CAMPUS<span class="v">v5 · 3D</span></div>
   <div class="ticker">
     <div class="item"><div class="pulse"></div><b id="t_count">100</b>&nbsp;Agencies</div>
     <div class="item"><div class="pulse"></div><b id="t_roles">724</b>&nbsp;Roles</div>
@@ -288,7 +288,7 @@ body{background:radial-gradient(1400px 900px at 50% -10%,rgba(245,197,66,.05),tr
 <div class="bottom-hud">
   <div class="kpi green"><div><div class="val">$22,095</div><div class="lbl">Live Sales</div></div></div>
   <div class="kpi gold"><div><div class="val">88%</div><div class="lbl">Consensus</div></div></div>
-  <button class="sovereign" onclick="sovereignOverride()">Sovereign Override<small>DIRECT-LINE TO MAYA</small></button>
+  <button class="sovereign" onclick="sovereignOverride()">Sovereign Override<small>DIRECT-LINE TO SUPERIO</small></button>
 </div>
 
 <!-- Click-overlay modal -->
@@ -987,7 +987,7 @@ async function loadAndBuild(){
   const chamber = new THREE.Mesh(chamberGeo, chamberMat);
   chamber.position.set(COUNCIL_ANCHOR.x, COUNCIL_ANCHOR.y, COUNCIL_ANCHOR.z);
   chamber.castShadow = true; chamber.receiveShadow = true;
-  chamber.userData = {slug:'_council', name:'Maya.ai', cat:'council', state:'idle', baseY: COUNCIL_ANCHOR.y, locked:true};
+  chamber.userData = {slug:'_council', name:'Superio', cat:'council', state:'idle', baseY: COUNCIL_ANCHOR.y, locked:true};
   scene.add(chamber);
   buildings.push(chamber);
 
@@ -1482,7 +1482,7 @@ function showTooltip(cx, cy){
       tt.style.left = cx + 'px';
       tt.style.top = cy + 'px';
       if(m.userData.slug === '_council'){
-        document.getElementById('tt_name').textContent = '🌐 Maya.ai · Sovereign COO';
+        document.getElementById('tt_name').textContent = '🌐 Superio · Sovereign COO';
         document.getElementById('tt_meta').innerHTML = `<b>12 SEATS · LIVE</b> · ${m.userData.state.toUpperCase()}`;
       } else {
         const a = m.userData.agency;
@@ -1796,7 +1796,7 @@ async function dispatch(slug, cat){
     const j = await r.json();
     const elapsed = Date.now() - t0;
     if(j.ok){
-      replyEl.innerHTML = `<div style="padding:11px 13px;border-radius:9px;background:rgba(8,12,24,.55);border:1px solid var(--line)"><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--green);letter-spacing:.12em;margin-bottom:5px">▸ MAYA AGENT · ${j.ms||elapsed}ms</div><div style="font-size:12.5px;line-height:1.55;color:var(--text);white-space:pre-wrap">${escapeHTML(j.reply||'(empty)')}</div></div>`;
+      replyEl.innerHTML = `<div style="padding:11px 13px;border-radius:9px;background:rgba(8,12,24,.55);border:1px solid var(--line)"><div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--green);letter-spacing:.12em;margin-bottom:5px">▸ SUPERIO AGENT · ${j.ms||elapsed}ms</div><div style="font-size:12.5px;line-height:1.55;color:var(--text);white-space:pre-wrap">${escapeHTML(j.reply||'(empty)')}</div></div>`;
       metaEl.textContent = `· ${j.ms||elapsed}ms`;
       setBuildingState(slug, 'idle');
     } else {
@@ -3959,7 +3959,7 @@ function showMayaThinkingInDossier(){
   if (!el) return;
   el.innerHTML = `
     <div style="padding:12px 14px;border-radius:10px;background:rgba(245,197,66,.08);border:1px solid var(--gold);margin-bottom:10px">
-      <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--gold);font-size:11px;letter-spacing:.16em">⊙ MAYA · ORCHESTRATING</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--gold);font-size:11px;letter-spacing:.16em">⊙ SUPERIO · ORCHESTRATING</div>
       <div style="margin-top:8px;font-size:11.5px;color:var(--text);line-height:1.55">
         <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--gold);animation:mayaPulse 1s infinite;margin-right:6px"></span>
         Reviewing files · briefing the agency pipeline · response in 60-120s
@@ -3976,7 +3976,7 @@ function showMayaReplyInDossier(dj){
   el.innerHTML = `
     <div style="padding:10px 12px;border-radius:9px;background:rgba(67,230,161,.08);border:1px solid var(--green);margin-bottom:10px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--green);font-size:11px;letter-spacing:.14em">⊙ MAYA · ${escapeHTML(dj.agent || 'Sovereign COO')}</span>
+        <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--green);font-size:11px;letter-spacing:.14em">⊙ SUPERIO · ${escapeHTML(dj.agent || 'Sovereign COO')}</span>
         <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted)">${dj.ms||0}ms</span>
       </div>
       <div style="font-size:12px;color:var(--text);line-height:1.6;white-space:pre-wrap">${escapeHTML(dj.reply || '')}</div>
@@ -3991,7 +3991,7 @@ function showMayaErrorInDossier(msg){
   if (!el) return;
   el.innerHTML = `
     <div style="padding:10px 12px;border-radius:9px;background:rgba(245,197,66,.08);border:1px solid var(--gold);margin-bottom:10px">
-      <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--gold);font-size:11px;letter-spacing:.14em;margin-bottom:6px">⊙ MAYA · QUEUED</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--gold);font-size:11px;letter-spacing:.14em;margin-bottom:6px">⊙ SUPERIO · QUEUED</div>
       <div style="font-size:12px;color:var(--text);line-height:1.55">${escapeHTML(msg)}</div>
       <div style="margin-top:8px;font-size:10.5px;color:var(--muted)">Your files are stored. We will reach out by email shortly.</div>
     </div>
@@ -4075,7 +4075,7 @@ function applyAuthTierUX(){
     // Add a welcome banner
     const banner = document.createElement('div');
     banner.style.cssText = 'position:fixed;top:62px;left:50%;transform:translateX(-50%);z-index:100;padding:10px 18px;background:rgba(8,12,24,.92);border:1px solid var(--gold);border-left-width:5px;border-radius:10px;font-family:"Space Grotesk",sans-serif;font-size:13px;color:#fff;box-shadow:0 10px 32px rgba(0,0,0,.65);letter-spacing:.04em';
-    banner.innerHTML = '👋 <b style="color:var(--gold)">Welcome' + (AUTH.customerName ? ', ' + AUTH.customerName : '') + '</b> · your agencies (<b style="color:var(--gold)">' + AUTH.rented.length + '</b>) are connected to Maya · drop a file into any agency to dispatch';
+    banner.innerHTML = '👋 <b style="color:var(--gold)">Welcome' + (AUTH.customerName ? ', ' + AUTH.customerName : '') + '</b> · your agencies (<b style="color:var(--gold)">' + AUTH.rented.length + '</b>) are connected to Superio · drop a file into any agency to dispatch';
     document.body.appendChild(banner);
     setTimeout(() => { banner.style.transition = 'opacity 1s'; banner.style.opacity = '0'; setTimeout(() => banner.remove(), 1100); }, 5000);
     console.log('[v4.8 S-1] CUSTOMER MODE active · rented:', AUTH.rented, '· customer:', AUTH.customerName || '(anonymous)');
