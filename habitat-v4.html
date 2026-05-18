@@ -312,7 +312,7 @@ body{background:radial-gradient(1400px 900px at 50% -10%,rgba(245,197,66,.05),tr
     </div>
     <div id="officeTitle" style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--white);font-size:14px;letter-spacing:.06em"></div>
     <!-- v4.5.0 · TOP STATUS BAR METRIC CHIPS (Skill #24 · matches Gemini blueprint) -->
-    <span class="metric-chip" id="chipVersion" style="display:inline-flex;align-items:center;padding:5px 11px;border-radius:13px;background:rgba(245,197,66,.12);border:1px solid var(--gold);color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;font-weight:600">v4.5.0</span>
+    <span class="metric-chip" id="chipVersion" style="display:inline-flex;align-items:center;padding:5px 11px;border-radius:13px;background:rgba(245,197,66,.12);border:1px solid var(--gold);color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;font-weight:600">v5.1.0</span>
     <span class="metric-chip" id="chipAgencies" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:13px;background:rgba(0,212,255,.10);border:1px solid var(--cyan);color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em"><b style="color:#fff">100</b> Agencies</span>
     <span class="metric-chip" id="chipRoles" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:13px;background:rgba(67,230,161,.10);border:1px solid var(--green);color:var(--green);font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em"><b style="color:#fff">724</b> Roles</span>
     <span class="metric-chip" id="chipCouncil" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:13px;background:rgba(245,197,66,.10);border:1px solid var(--gold);color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em">Council <b style="color:#fff">99%</b></span>
@@ -407,6 +407,10 @@ body{background:radial-gradient(1400px 900px at 50% -10%,rgba(245,197,66,.05),tr
 <script src="https://cdn.jsdelivr.net/npm/three@0.146.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
 <!-- v4.6.0 · D-01 · GLTFLoader for RobotExpressive cyber-bot walking workers (Skill #29 implementation · Skill #32 ship) -->
 <script src="https://cdn.jsdelivr.net/npm/three@0.146.0/examples/js/loaders/GLTFLoader.js"></script>
+<!-- v5.1.0 · SkeletonUtils · REQUIRED for correctly cloning the rigged RobotExpressive GLB.
+     Plain .clone(true) breaks the animation rig: cloned nodes never receive the clip, every body part
+     collapses to origin → chrome blob. SkeletonUtils.clone() preserves the rig so AnimationMixer works. -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.146.0/examples/js/utils/SkeletonUtils.js"></script>
 
 <!-- ════════════════════════════════════════════════════════════════════════════════
      v5.0.1 · D-18 · Mo's 2026-05-18 directive · heavy-duty 3D graphics imports
@@ -1920,17 +1924,22 @@ const CYBER_TINT_PALETTE = [0x00d4ff, 0x43e6a1, 0xf5c542, 0xa384ff, 0xff5cc4, 0x
 // Returns {mesh, mixer, currentAnim, clips, head, torso, tint} so animator + raycaster still work
 function createCyberRobot(variantIdx, initialAnim, scale){
   if (!cachedRobot || !cachedRobotClips) return null;
-  // Deep clone the scene (handles skinned meshes correctly in r0.146 GLTFLoader)
-  const mesh = cachedRobot.clone(true);
+  // v5.1.0 · SkeletonUtils.clone preserves the RobotExpressive rig so the AnimationMixer drives the clone.
+  // Plain .clone(true) leaves cloned nodes un-animated → all 19 body parts collapse to origin (the "chrome blob" bug).
+  const mesh = (THREE.SkeletonUtils && THREE.SkeletonUtils.clone)
+    ? THREE.SkeletonUtils.clone(cachedRobot)
+    : cachedRobot.clone(true);
   // Variant accent for this NPC · per-agent identity color (used on the torso/body chassis only · NOT a paint-all)
   const tint = CYBER_TINT_PALETTE[variantIdx % CYBER_TINT_PALETTE.length];
   // Slightly darker secondary for limbs · ~60% luminance of the main tint
   const limbTint = new THREE.Color(tint).multiplyScalar(0.62).getHex();
 
-  // === PER-PART MATERIAL PALETTE (v5.0.2 multi-tone fix) ===
-  const matHead = new THREE.MeshPhysicalMaterial({   // chrome silver synthetic
-    color: 0xc8d0dc, emissive: 0x4a5a72, emissiveIntensity: 0.18,
-    metalness: 0.95, roughness: 0.18, clearcoat: 0.95, clearcoatRoughness: 0.10
+  // === PER-PART MATERIAL PALETTE (v5.0.2 multi-tone fix · v5.1.0 head metalness softened 0.95→0.60) ===
+  // v5.1.0: 0.95 metalness rendered the head near-black under low office ambient · 0.60 + raised emissive
+  // keeps the chrome read while staying lit. The v5.0.5 per-agent hero point lights finish the job.
+  const matHead = new THREE.MeshPhysicalMaterial({   // brushed-chrome synthetic · lit-friendly
+    color: 0xd4dce8, emissive: 0x5a6a86, emissiveIntensity: 0.30,
+    metalness: 0.60, roughness: 0.30, clearcoat: 0.80, clearcoatRoughness: 0.16
   });
   const matTorso = new THREE.MeshPhysicalMaterial({  // variant accent · the agent identity color
     color: tint, emissive: tint, emissiveIntensity: 0.42,
@@ -2606,20 +2615,95 @@ function buildOfficeScene(agency){
     const bodyGroup = new THREE.Group();
     bodyGroup.position.set(dx, 0, dz + 0.55);
 
-    // === v5.0.3 SEATED HUMANOID · INLINE PROCEDURAL (Mo 2026-05-18: "the staff at the desk is glitching out") ===
-    // The GLB 'Sitting' clip wasn't designed for chair sitting (it's a cross-legged floor pose) ·
-    // at scale 0.50 it rendered as a dark dome with the chrome head reflecting black · "glitched"
-    // → REVERTED: seated body is ALWAYS authored inline below · multi-tone palette + unisex android proportions
-    // → Walking NPCs (break-routine) still use the GLB cyber-robot (Skill #32) · works fine in upright Walking clip
-    let seatedRobot = null;   // explicitly null · GLB-seated swap disabled · enabled by Mo's next directive only
-    const useInlineProcBody = true;
+    // === v5.1.0 · SEATED HUMANOID · CAPSULE-BUILT (Mo 2026-05-18: "use good characters · real not primitives · maximum effort") ===
+    // Root cause of every prior miss: the RobotExpressive GLB collapses to a chrome blob under multi-instance
+    // cloning + software rendering (verified via browser screenshot). Flat cylinders read as primitives.
+    // → This figure is built from CapsuleGeometry — smooth rounded organic limbs, NOT flat-ended cylinders —
+    //   posed properly seated at the workstation. Multi-tone android palette. Verified by screenshot + iterated.
+    const variantTint = (typeof CYBER_TINT_PALETTE !== 'undefined') ? CYBER_TINT_PALETTE[i % CYBER_TINT_PALETTE.length] : accent;
+    const limbTint = new THREE.Color(variantTint).multiplyScalar(0.58).getHex();
+    const matHeadS  = new THREE.MeshPhysicalMaterial({color:0xd6dde8, emissive:0x5a6580, emissiveIntensity:0.26, metalness:0.5, roughness:0.34, clearcoat:0.7, clearcoatRoughness:0.2});
+    const matTorsoS = new THREE.MeshPhysicalMaterial({color:variantTint, emissive:variantTint, emissiveIntensity:0.38, metalness:0.5, roughness:0.36, clearcoat:0.55});
+    const matLimbS  = new THREE.MeshPhysicalMaterial({color:limbTint, emissive:limbTint, emissiveIntensity:0.24, metalness:0.55, roughness:0.42});
+    const matJointS = new THREE.MeshBasicMaterial({color:0x00f2fe});
+    const matDarkS  = new THREE.MeshPhysicalMaterial({color:0x2a3242, metalness:0.65, roughness:0.5});
 
-    // Outer-scope refs so both branches can populate (raycast target + glow target)
-    let torso = null, head = null, helmetS = null;
-    if (seatedRobot) {
-      torso = seatedRobot.torso || seatedRobot.mesh;
-      head  = seatedRobot.head  || seatedRobot.mesh;
+    // helper · a smooth capsule limb oriented to span from p0 → p1
+    function limbCapsule(mat, radius, p0, p1){
+      const v0 = new THREE.Vector3(p0[0],p0[1],p0[2]);
+      const v1 = new THREE.Vector3(p1[0],p1[1],p1[2]);
+      const len = v0.distanceTo(v1);
+      const geo = new THREE.CapsuleGeometry(radius, Math.max(0.02, len - radius*2), 4, 12);
+      const m = new THREE.Mesh(geo, mat);
+      m.castShadow = true;
+      m.position.copy(v0).add(v1).multiplyScalar(0.5);
+      m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), v1.clone().sub(v0).normalize());
+      return m;
     }
+
+    // PELVIS · seated base · v5.1.0-iter3 slimmed (was chunky-pawn)
+    const pelvis = new THREE.Mesh(new THREE.CapsuleGeometry(0.115,0.12,4,12), matTorsoS);
+    pelvis.position.set(0,0.67,0.02); pelvis.rotation.z = Math.PI/2; pelvis.castShadow = true; bodyGroup.add(pelvis);
+    // WAIST joint · slim cyan band where torso meets pelvis
+    const waist = new THREE.Mesh(new THREE.CapsuleGeometry(0.098,0.045,3,12), matJointS);
+    waist.position.set(0,0.77,-0.01); waist.rotation.z = Math.PI/2; bodyGroup.add(waist);
+    // TORSO · slim + tall capsule · slight forward working lean (iter3 · radius 0.150→0.122)
+    const torsoMesh = new THREE.Mesh(new THREE.CapsuleGeometry(0.122,0.50,7,18), matTorsoS);
+    torsoMesh.position.set(0,1.04,-0.06); torsoMesh.rotation.x = -0.15; torsoMesh.castShadow = true; bodyGroup.add(torsoMesh);
+    // CHEST emblem · cyan disc
+    const emblem = new THREE.Mesh(new THREE.CircleGeometry(0.05,20), matJointS);
+    emblem.position.set(0,1.07,-0.22); emblem.rotation.x = -0.15; bodyGroup.add(emblem);
+    // NECK · clear separation between torso and head
+    const neck = new THREE.Mesh(new THREE.CapsuleGeometry(0.05,0.08,3,10), matDarkS);
+    neck.position.set(0,1.30,-0.085); bodyGroup.add(neck);
+    // HEAD · rounded chrome cranium · v5.1.0 with a real face structure
+    const headMesh = new THREE.Mesh(new THREE.SphereGeometry(0.142,24,20), matHeadS);
+    headMesh.position.set(0,1.44,-0.09); headMesh.castShadow = true; bodyGroup.add(headMesh);
+    // FACE PLATE · darker angled panel on the front · gives the head a "face" not a blank ball
+    const facePlate = new THREE.Mesh(new THREE.SphereGeometry(0.118,20,16, Math.PI*0.5, Math.PI, Math.PI*0.18, Math.PI*0.64), matDarkS);
+    facePlate.position.set(0,1.44,-0.105); facePlate.rotation.y = Math.PI; bodyGroup.add(facePlate);
+    // VISOR · bright cyan eye-band across the face plate · the figure's "expression"
+    const visor = new THREE.Mesh(new THREE.CapsuleGeometry(0.032,0.135,3,12), matJointS);
+    visor.position.set(0,1.45,-0.205); visor.rotation.z = Math.PI/2; bodyGroup.add(visor);
+    // JAW · subtle chin taper below the visor
+    const jaw = new THREE.Mesh(new THREE.CapsuleGeometry(0.055,0.04,3,10), matHeadS);
+    jaw.position.set(0,1.36,-0.16); jaw.rotation.z = Math.PI/2; bodyGroup.add(jaw);
+    // CROWN sensor fin · reads as "android" · catches the hero light
+    const crown = new THREE.Mesh(new THREE.CapsuleGeometry(0.028,0.10,3,10), matJointS);
+    crown.position.set(0,1.57,-0.07); crown.rotation.x = 0.3; bodyGroup.add(crown);
+    // EAR pods · small cyan discs at the head sides · android signature
+    [-1,1].forEach(function(s){
+      const ear = new THREE.Mesh(new THREE.CylinderGeometry(0.038,0.038,0.03,12), matJointS);
+      ear.position.set(s*0.142,1.44,-0.09); ear.rotation.z = Math.PI/2; bodyGroup.add(ear);
+    });
+    // SHOULDERS · iter3 · narrower + smaller
+    [-1,1].forEach(function(s){
+      const sh = new THREE.Mesh(new THREE.SphereGeometry(0.07,16,14), matTorsoS);
+      sh.position.set(s*0.155,1.26,-0.075); sh.castShadow = true; bodyGroup.add(sh);
+    });
+    // ARMS · upper + forearm angled to the desk (typing posture) · iter3 slimmer
+    [-1,1].forEach(function(s){
+      bodyGroup.add(limbCapsule(matLimbS,0.042,[s*0.155,1.26,-0.075],[s*0.205,0.98,-0.26]));
+      bodyGroup.add(limbCapsule(matLimbS,0.038,[s*0.205,0.98,-0.26],[s*0.18,0.85,-0.50]));
+      const elbow = new THREE.Mesh(new THREE.SphereGeometry(0.044,14,12), matJointS);
+      elbow.position.set(s*0.205,0.98,-0.26); bodyGroup.add(elbow);
+      const hand = new THREE.Mesh(new THREE.SphereGeometry(0.05,14,12), matHeadS);
+      hand.position.set(s*0.18,0.84,-0.52); hand.castShadow = true; bodyGroup.add(hand);
+    });
+    // LEGS · thigh forward (seated) + shin down to the floor · iter3 slimmer
+    [-1,1].forEach(function(s){
+      bodyGroup.add(limbCapsule(matLimbS,0.058,[s*0.085,0.63,0.06],[s*0.10,0.59,-0.42]));
+      bodyGroup.add(limbCapsule(matLimbS,0.05,[s*0.10,0.59,-0.42],[s*0.10,0.11,-0.37]));
+      const knee = new THREE.Mesh(new THREE.SphereGeometry(0.056,12,10), matJointS);
+      knee.position.set(s*0.10,0.59,-0.42); bodyGroup.add(knee);
+      const foot = new THREE.Mesh(new THREE.BoxGeometry(0.10,0.05,0.21), matDarkS);
+      foot.position.set(s*0.10,0.045,-0.30); foot.castShadow = true; bodyGroup.add(foot);
+    });
+
+    // raycast + glow targets (capsule meshes · no GLB)
+    let torso = torsoMesh, head = headMesh, helmetS = null;
+    let seatedRobot = null;            // no GLB seated robot · field kept null for agentObj + mixer-tick safety
+    const useInlineProcBody = false;   // legacy inline cylinder body below is now DEAD CODE · capsule build above supersedes it
 
     if (useInlineProcBody) {
 
@@ -2758,9 +2842,10 @@ function buildOfficeScene(agency){
 
     }   // end if (useInlineProcBody) · v5.0.3
 
-    // GLOW SHELL (subtle outer aura · for IDLE/PROCESSING pulse)
-    const glowShell = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.40, 1.50, 14), new THREE.MeshBasicMaterial({color: accent, transparent: true, opacity: 0.10, side: THREE.BackSide}));
-    glowShell.position.set(0, 1.05, 0);
+    // v5.1.0 · GLOW SHELL REMOVED — it wrapped every figure in an ugly translucent "specimen jar".
+    // The figure stands on its own · floor pad + state lighting carry the IDLE/PROCESSING cue instead.
+    const glowShell = new THREE.Object3D();   // inert placeholder · keeps downstream refs (agentObj.glowShell) safe
+    glowShell.visible = false;
     bodyGroup.add(glowShell);
 
     // v4.5.4 · DATA-PAD PROJECTION at agent's feet (floor projection · cyber identifier)
