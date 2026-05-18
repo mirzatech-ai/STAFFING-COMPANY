@@ -965,7 +965,7 @@ async function loadAndBuild(){
   const chamber = new THREE.Mesh(chamberGeo, chamberMat);
   chamber.position.set(COUNCIL_ANCHOR.x, COUNCIL_ANCHOR.y, COUNCIL_ANCHOR.z);
   chamber.castShadow = true; chamber.receiveShadow = true;
-  chamber.userData = {slug:'_council', name:'MirzaTech Council Chamber', cat:'council', state:'idle', baseY: COUNCIL_ANCHOR.y, locked:true};
+  chamber.userData = {slug:'_council', name:'Maya.ai', cat:'council', state:'idle', baseY: COUNCIL_ANCHOR.y, locked:true};
   scene.add(chamber);
   buildings.push(chamber);
 
@@ -984,6 +984,94 @@ async function loadAndBuild(){
   ring.position.set(COUNCIL_ANCHOR.x, 0.05, COUNCIL_ANCHOR.z);
   ring.rotation.x = -Math.PI/2;
   scene.add(ring);
+
+  // === v4.7.2 · MAYA SCI-FI UPGRADE (Skill #39) ===
+  // Mo: "that building needs to be made better · more Sci-fi looking · name to Maya.ai"
+  // 3 orbital rings rotating · glowing core sphere inside dome · sky beam · hexagonal data-pad floor · particle cloud
+  const mayaSciFi = new THREE.Group();
+  mayaSciFi.position.set(COUNCIL_ANCHOR.x, COUNCIL_ANCHOR.y, COUNCIL_ANCHOR.z);
+  scene.add(mayaSciFi);
+
+  // Hexagonal data-pad floor (under building · marks the Maya territory)
+  const padGeo = new THREE.CylinderGeometry(3.0, 3.2, 0.05, 6);
+  const padMat = new THREE.MeshBasicMaterial({color: 0xf5c542, transparent:true, opacity:0.18});
+  const dataPad = new THREE.Mesh(padGeo, padMat);
+  dataPad.position.y = -COUNCIL_ANCHOR.y + 0.025;
+  mayaSciFi.add(dataPad);
+  // Hex pad halo (outer ring)
+  const padHaloGeo = new THREE.RingGeometry(3.0, 3.30, 64);
+  const padHaloMat = new THREE.MeshBasicMaterial({color: 0xf5c542, transparent:true, opacity:0.75, side:THREE.DoubleSide});
+  const padHalo = new THREE.Mesh(padHaloGeo, padHaloMat);
+  padHalo.position.y = -COUNCIL_ANCHOR.y + 0.05;
+  padHalo.rotation.x = -Math.PI/2;
+  mayaSciFi.add(padHalo);
+  // Inner hex outline
+  const padInnerGeo = new THREE.RingGeometry(2.6, 2.72, 6);
+  const padInner = new THREE.Mesh(padInnerGeo, new THREE.MeshBasicMaterial({color: 0xf5c542, transparent:true, opacity:0.65, side:THREE.DoubleSide}));
+  padInner.position.y = -COUNCIL_ANCHOR.y + 0.04;
+  padInner.rotation.x = -Math.PI/2;
+  mayaSciFi.add(padInner);
+
+  // GLOWING CORE SPHERE inside the dome · pulses · the "soul" of Maya
+  const coreGeo = new THREE.SphereGeometry(0.55, 24, 24);
+  const coreMat = new THREE.MeshBasicMaterial({color: 0xf5c542, transparent:true, opacity:0.95, blending:THREE.AdditiveBlending});
+  const mayaCore = new THREE.Mesh(coreGeo, coreMat);
+  mayaCore.position.y = 1.15;   // inside the chamber
+  mayaCore.userData.isMayaCore = true;
+  mayaSciFi.add(mayaCore);
+  // Core halo (larger softer sphere)
+  const coreHaloGeo = new THREE.SphereGeometry(0.95, 20, 20);
+  const coreHaloMat = new THREE.MeshBasicMaterial({color: 0xfff5b0, transparent:true, opacity:0.30, blending:THREE.AdditiveBlending});
+  const mayaCoreHalo = new THREE.Mesh(coreHaloGeo, coreHaloMat);
+  mayaCoreHalo.position.y = 1.15;
+  mayaCoreHalo.userData.isMayaCoreHalo = true;
+  mayaSciFi.add(mayaCoreHalo);
+
+  // 3 ORBITAL RINGS rotating around the dome at different angles · the canonical sci-fi "AI hub" silhouette
+  const orbitalRings = [];
+  for (let i = 0; i < 3; i++){
+    const orad = 1.85 + i * 0.18;
+    const ogeo = new THREE.TorusGeometry(orad, 0.022, 6, 64);
+    const omat = new THREE.MeshBasicMaterial({color: 0xf5c542, transparent:true, opacity:0.85});
+    const oring = new THREE.Mesh(ogeo, omat);
+    oring.position.y = 1.15;
+    // Each ring at a different inclination
+    oring.rotation.x = Math.PI / 2 + (i - 1) * 0.45;
+    oring.rotation.z = i * 0.30;
+    oring.userData.spinSpeed = 0.004 + i * 0.0018;
+    oring.userData.spinAxis = i % 2 === 0 ? 'y' : 'x';
+    mayaSciFi.add(oring);
+    orbitalRings.push(oring);
+  }
+
+  // SKY BEAM · narrow cone of light shooting up from Maya's dome (signals "always-on")
+  const beamGeo = new THREE.CylinderGeometry(0.08, 0.42, 14, 16, 1, true);
+  const beamMat = new THREE.MeshBasicMaterial({color: 0xfff5b0, transparent:true, opacity:0.20, side:THREE.DoubleSide, blending:THREE.AdditiveBlending, depthWrite:false});
+  const skyBeam = new THREE.Mesh(beamGeo, beamMat);
+  skyBeam.position.y = 9;   // 9 units above the dome
+  mayaSciFi.add(skyBeam);
+
+  // ORBITING PARTICLE CLOUD · 24 small dots in orbit (data orbit)
+  const orbiters = [];
+  for (let i = 0; i < 24; i++){
+    const dotGeo = new THREE.SphereGeometry(0.06, 6, 6);
+    const dotColor = (i % 3 === 0) ? 0xf5c542 : (i % 3 === 1) ? 0x00f2fe : 0xff5cc4;
+    const dotMat = new THREE.MeshBasicMaterial({color: dotColor, transparent:true, opacity:0.95, blending:THREE.AdditiveBlending});
+    const dot = new THREE.Mesh(dotGeo, dotMat);
+    dot.userData = {
+      radius: 1.5 + Math.random() * 1.2,
+      angle: Math.random() * Math.PI * 2,
+      speed: 0.005 + Math.random() * 0.008,
+      vertOffset: -0.4 + Math.random() * 1.8,
+      vertOsc: Math.random() * Math.PI * 2,
+      isOrbiter: true
+    };
+    mayaSciFi.add(dot);
+    orbiters.push(dot);
+  }
+
+  // Store handles for the animation loop
+  scene.userData.mayaSciFi = { orbitalRings, orbiters, mayaCore, mayaCoreHalo, skyBeam };
 
   // === KINETIC DATA-PACKET TRAFFIC (Gemini directive 3) ===
   // Pool of glowing spheres flowing between random buildings and the Council Chamber
@@ -1039,8 +1127,89 @@ function initDataPackets(){
     blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, sizeAttenuation: true
   });
   dataPacketPoints = new THREE.Points(dataPacketGeo, mat);
-  dataPacketPoints.renderOrder = 999;   // draw last · always on top
+  dataPacketPoints.renderOrder = 999;
   scene.add(dataPacketPoints);
+
+  // === v4.7.2 · MAYA OUTBOUND PACKETS (Skill #39) ===
+  // Mo: "few of them going in and out from Maya's building"
+  // Pool of 28 packets that travel FROM Maya OUT to random agencies · gold-tinted by default · arcs higher than inbound
+  initMayaOutboundPackets();
+}
+
+let mayaOutboundPoints = null, mayaOutboundGeo = null;
+const mayaOutbound = [];
+const MAYA_OUTBOUND_POOL = 28;
+
+function initMayaOutboundPackets(){
+  const COUNCIL_POS = new THREE.Vector3(0, 1.4, -SPACING * (GRID_N/2 + 1.4));
+  const dests = buildings.filter(b => b.userData.slug && !b.userData.slug.startsWith('pad_') && b.userData.slug !== '_council');
+  if (dests.length === 0) return;
+  for (let i = 0; i < MAYA_OUTBOUND_POOL; i++){
+    const dest = dests[Math.floor(Math.random() * dests.length)];
+    const endPos = dest.position.clone();
+    endPos.y = dest.userData.baseY + dest.userData.height/2;
+    mayaOutbound.push({
+      startPos: COUNCIL_POS.clone(),
+      endPos,
+      // Gold by default · 30% chance to match destination color
+      color: Math.random() < 0.7 ? new THREE.Color(0xf5c542) : new THREE.Color(dest.userData.baseColor),
+      progress: Math.random(),
+      speed: 0.0045 + Math.random()*0.007,
+      destSlug: dest.userData.slug
+    });
+  }
+  const positions = new Float32Array(MAYA_OUTBOUND_POOL * 3);
+  const colors = new Float32Array(MAYA_OUTBOUND_POOL * 3);
+  for (let i = 0; i < MAYA_OUTBOUND_POOL; i++){
+    positions[i*3] = mayaOutbound[i].startPos.x;
+    positions[i*3+1] = mayaOutbound[i].startPos.y;
+    positions[i*3+2] = mayaOutbound[i].startPos.z;
+    colors[i*3] = mayaOutbound[i].color.r;
+    colors[i*3+1] = mayaOutbound[i].color.g;
+    colors[i*3+2] = mayaOutbound[i].color.b;
+  }
+  mayaOutboundGeo = new THREE.BufferGeometry();
+  mayaOutboundGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  mayaOutboundGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  const mat = new THREE.PointsMaterial({
+    size: 0.85, vertexColors: true, transparent: true, opacity: 1.0,
+    blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, sizeAttenuation: true
+  });
+  mayaOutboundPoints = new THREE.Points(mayaOutboundGeo, mat);
+  mayaOutboundPoints.renderOrder = 1000;
+  scene.add(mayaOutboundPoints);
+}
+
+function rerouteMayaOutbound(p){
+  const dests = buildings.filter(b => b.userData.slug && !b.userData.slug.startsWith('pad_') && b.userData.slug !== '_council');
+  if (dests.length === 0) return;
+  const dest = dests[Math.floor(Math.random() * dests.length)];
+  p.startPos.set(0, 1.4, -SPACING * (GRID_N/2 + 1.4));
+  p.endPos = dest.position.clone();
+  p.endPos.y = dest.userData.baseY + dest.userData.height/2;
+  p.color = Math.random() < 0.7 ? new THREE.Color(0xf5c542) : new THREE.Color(dest.userData.baseColor);
+  p.progress = 0;
+  p.speed = 0.0045 + Math.random()*0.007;
+  p.destSlug = dest.userData.slug;
+}
+
+function animateMayaOutbound(){
+  if (!mayaOutboundPoints) return;
+  const posAttr = mayaOutboundGeo.getAttribute('position');
+  const colAttr = mayaOutboundGeo.getAttribute('color');
+  mayaOutbound.forEach((p, i) => {
+    p.progress += p.speed;
+    if (p.progress >= 1) rerouteMayaOutbound(p);
+    const t = Math.max(0, Math.min(1, p.progress));
+    const x = p.startPos.x + (p.endPos.x - p.startPos.x) * t;
+    const z = p.startPos.z + (p.endPos.z - p.startPos.z) * t;
+    const arcY = 5.5 * t * (1 - t);   // higher arc than inbound (outbound is dramatic · Maya "broadcasting")
+    const y = (p.startPos.y + (p.endPos.y - p.startPos.y) * t) + arcY * 1.6;
+    posAttr.setXYZ(i, x, y, z);
+    colAttr.setXYZ(i, p.color.r, p.color.g, p.color.b);
+  });
+  posAttr.needsUpdate = true;
+  colAttr.needsUpdate = true;
 }
 
 // === v4.6.0 · D-02 · STREET NETWORK + INTER-BUILDING COURIERS (Skill #33) ===
@@ -1276,7 +1445,7 @@ function showTooltip(cx, cy){
       tt.style.left = cx + 'px';
       tt.style.top = cy + 'px';
       if(m.userData.slug === '_council'){
-        document.getElementById('tt_name').textContent = '🏛 MirzaTech Council Chamber';
+        document.getElementById('tt_name').textContent = '🌐 Maya.ai · Sovereign COO';
         document.getElementById('tt_meta').innerHTML = `<b>12 SEATS · LIVE</b> · ${m.userData.state.toUpperCase()}`;
       } else {
         const a = m.userData.agency;
@@ -1450,8 +1619,45 @@ function animate(){
   });
   // Kinetic data-packet traffic (Gemini directive 3)
   if(dataPackets.length) animatePackets();
+  // v4.7.2 · MAYA OUTBOUND packets · Maya broadcasting to agencies
+  if(mayaOutbound.length) animateMayaOutbound();
   // v4.6.0 · D-02 · animate the inter-building couriers along the street network
   if(macroCouriers.length) animateMacroCouriers();
+  // v4.7.2 · MAYA SCI-FI animation · spinning rings · pulsing core · sky beam shimmer · orbiting dots
+  if (scene.userData.mayaSciFi){
+    const m = scene.userData.mayaSciFi;
+    const tM = performance.now() / 1000;
+    // Orbital rings rotate at different speeds + axes
+    m.orbitalRings.forEach((ring, idx) => {
+      if (ring.userData.spinAxis === 'y') ring.rotation.y += ring.userData.spinSpeed;
+      else ring.rotation.x += ring.userData.spinSpeed;
+      ring.rotation.z += ring.userData.spinSpeed * 0.35;
+    });
+    // Core pulse · sin-driven scale + opacity
+    if (m.mayaCore){
+      const pulse = 0.85 + 0.20 * Math.sin(tM * 2.2);
+      m.mayaCore.scale.setScalar(pulse);
+      m.mayaCore.material.opacity = 0.85 + 0.15 * Math.sin(tM * 2.2);
+    }
+    if (m.mayaCoreHalo){
+      m.mayaCoreHalo.scale.setScalar(1.0 + 0.30 * Math.sin(tM * 1.4));
+      m.mayaCoreHalo.material.opacity = 0.20 + 0.18 * Math.abs(Math.sin(tM * 1.4));
+    }
+    // Sky beam shimmer
+    if (m.skyBeam){
+      m.skyBeam.material.opacity = 0.15 + 0.10 * Math.sin(tM * 1.7);
+      m.skyBeam.rotation.y += 0.003;
+    }
+    // Orbital particles · each moves around the dome
+    m.orbiters.forEach(dot => {
+      const u = dot.userData;
+      u.angle += u.speed;
+      const x = Math.cos(u.angle) * u.radius;
+      const z = Math.sin(u.angle) * u.radius;
+      const y = 1.15 + u.vertOffset + Math.sin(tM * 1.5 + u.vertOsc) * 0.18;
+      dot.position.set(x, y, z);
+    });
+  }
   // v4.7.0 · BEACON BLINK · aviation-red rooftop beacons pulse every ~1.4s
   if(buildings._allBeacons && buildings._allBeacons.length){
     const tBeacon = performance.now() / 1000;
