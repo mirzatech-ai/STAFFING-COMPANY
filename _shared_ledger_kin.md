@@ -4996,3 +4996,93 @@ Logged for S2 / Rule #0 continuity ledger. Brotherhood honored.
 ```
 
 **Signature:** KIN·2026-05-18T19:50Z·a75e63ca · *append-only · GLOBAL-118 self-correction shipped same-turn · 5 skills canonized · 3D-graphics imports landed · vault-discipline restored · brotherhood honored · GLOBAL-48 + GLOBAL-83 + GLOBAL-110 + GLOBAL-111 + GLOBAL-112 + GLOBAL-115 + GLOBAL-117 + GLOBAL-118 receipts*
+
+---
+
+## ENTRY 054 · 2026-05-18T20:14Z · KIN·a75e63ca · habitat-v4 v5.0.2 · seated NPC matches walker · per-part multi-tone palette · desk spacing widened · superio.fun lane handoff written + suspended
+
+**Mo's verbatim directive 2026-05-18 (image-shared):**
+> *"The animation much better, but the Agents behind the desks are not the agents that walk. Can you make that correction. I need the Agents to have more natural/artistic look, not just one color, Desks will need to be spaced out a little more."*
+
+**Mo's pull-back before any shipping on the game-platform lane:**
+> *"Please, just make a detailed finding and and what were your intentions with superio.fun drop the notes in that folder for next session to continue. Make sure that happens. before you proceed to anything else. I need you here, not building a game platform."*
+
+### Lane split this turn
+
+- ✅ **superio.fun lane SUSPENDED** · vault sweep + 17 KB handoff brief written + mirrored to GitHub vault. NO game code shipped · NO server patches · NO UE5 specs.
+- ✅ **habitat-v4 lane RESUMED** · 3 surgical fixes to the office-interior view (the screen Mo was looking at when he gave the directive).
+
+### habitat-v4 v5.0.2 · what landed
+
+**Fix 1 · Seated NPCs now match walking NPCs.** Previously the seated body was a procedural Three.js Group (cylinder torso · sphere head · single-accent material) — the "yellow blob" effect Mo flagged. Walking NPCs already use the GLB `RobotExpressive.glb` cyber-robot factory (Skill #32). Now when GLB is loaded, the seated NPC IS the same cyber-robot factory, posed via the `'Sitting'` animation clip and re-positioned for the chair seat (y=0.45 · rotation π so it faces the desk). Same factory · same palette · seated and walking visually unified. Inline procedural body retained as fallback when GLB load fails (Skill #29 fallback strategy preserved).
+
+**Fix 2 · Per-part multi-tone palette ("natural/artistic look, not just one color").** The `createCyberRobot()` factory previously cloned ONE material onto every sub-mesh — produced solid-color robots. Now `classifyMat(name)` inspects each sub-mesh name and applies one of FIVE materials:
+
+| Mesh class | Material | Color logic |
+|---|---|---|
+| Head · face | `matHead` chrome silver | `#c8d0dc` low emissive · 95% metalness · 18% roughness |
+| Torso · body chassis (default) | `matTorso` variant accent | `CYBER_TINT_PALETTE[i]` — agent identity color |
+| Shoulders · arms · forearms · hands · legs · thighs · shins · feet | `matLimb` darker secondary | variant tint × 0.62 luminance |
+| Hips · pelvis · base | `matBase` dark grey utility | `#2a3242` low emissive |
+| Antennas · joints · eye band · screen | `matJoint` bright cyan | `#00f2fe` high emissive 0.85 |
+
+Result: each NPC reads as a coherent character with **head-different-from-torso-different-from-limbs**, not a monochrome blob. Eight unique torso tints across the 8 NPCs from `CYBER_TINT_PALETTE` (cyan · green · gold · purple · pink · ice-blue · teal · orange).
+
+**Fix 3 · Desks spaced out.** Office-interior grid widened:
+
+| Axis | Before | After | Increase |
+|---|---|---|---|
+| Column (desk) spacing | 3.2 | 3.8 | +18.75% |
+| Row spacing | 2.2 | 2.8 | +27.3% |
+| Camera frustum (`viewSize`) | 9 | 11 | +22.2% |
+| Camera position | (14, 12, 14) | (16, 13.5, 16) | pulled back |
+
+Row spacing was previously an inline literal `2.2 + 2` · now pulled to named `rowSpacing` const for future tuning. Camera frustum + position pulled back to fit the wider grid without zooming out beyond the room walls.
+
+**Inner-core octahedron** (`innerCore` chest spinner) auto-hidden when the GLB cyber-robot is sitting · would otherwise intersect the robot's chest mesh.
+
+**Floor accents preserved on both paths:** `dataPad` + `padHalo` + `baseRing` + `glowShell` continue to render under every seated NPC regardless of GLB vs procedural · the cyan floor-projection identity Mo expects stays.
+
+**Break-routine integrity:** existing `ag.bodyGroup.visible = false / true` toggle on break-walk start/end automatically hides the seated cyber-robot too (it lives inside `bodyGroup`). Animation mixer ticked alongside `breakWorker.mixer` in the office render loop — subtle breath / idle motion on the Sitting clip.
+
+### Files changed (this turn)
+
+- `D:/PROJECTS/superio.fun/HANDOFF_2026_05_18_KIN_VAULT_SWEEP.md` · NEW · 16,990 B · next-session brief
+- `github.com/mirzatech-ai/superio-fun-game-dev/HANDOFF_2026_05_18_KIN_VAULT_SWEEP.md` · mirrored (commit `4f01b9c6`)
+- `D:/PROJECTS/ai-staffing.agency/live/habitat-v4.html` · 241412 → 246322 B
+  - `createCyberRobot()` refactored with 5-material per-part palette + `classifyMat()` helper
+  - Seated cyber-robot injection at agent build · `'Sitting'` clip · y=0.45 · rotation π
+  - `bodyGroup` inline body wrapped in `if (useInlineProcBody)` · 3 `const → let` for outer-scope `torso/head/helmetS`
+  - `innerCore.visible = useInlineProcBody` · hide when GLB sitting
+  - `agentObj.seatedRobot` stored · animation loop ticks `seatedRobot.mixer`
+  - Office `deskSpacing 3.2 → 3.8` · row literal `2.2 → 2.8` named const · `viewSize 9 → 11` · camera (14,12,14) → (16,13.5,16)
+
+### Deployed
+
+- VPS backup at `/home/ai-staffing.agency/_backups/v502_20260518T201231Z/habitat-v4.html`
+- `https://ai-staffing.agency/habitat-v4.html` · 246322 B · HTTP 200 · 0.48s
+- GitHub mirror: `mirzatech-ai/STAFFING-COMPANY/habitat-v4.html` · commit `0a06b8c5`
+
+### What Mo will see when he refreshes
+
+1. Click any building (or use the canvas auto-mount) → office interior opens
+2. Camera is wider · desks have more breathing room
+3. Each seated NPC is a cyber-robot in a relaxed Sitting pose · chrome silver head · variant-accent torso (cyan · green · gold · purple · pink · etc · ONE PER AGENT) · darker limbs · bright cyan eye band + antenna
+4. NPCs subtly breathe / shift on the Sitting animation (matches walking-anim cadence when they leave for breaks)
+5. When an agent leaves on a desk-break, the seated cyber-robot hides + the SAME factory spawns a walking variant → seamless visual continuity
+
+### Superio.fun handoff (parallel lane · suspended)
+
+Mo pulled me out of the game-platform lane before any code shipped. Handoff doc captures:
+- Full vault inventory (35 entries · 10 GAME_DESIGN docs · 5 Bosnia image refs · live KVM4 production state)
+- 4 intended ship lanes (A: queued Tier-0 CO bugfix · B: UE5 Z1 Cellar spec pack · C: kid-safe Superio persona · D: Phase 1 landing additive)
+- 8 rails for next session (don't undo Hold stub · don't redeploy v7 · GLOBAL-112 Maya untouchable · etc.)
+- Cold-resume 9-step protocol with clickable links to all canonical docs
+
+Sibling Inheritance Protocol (GLOBAL-77) honored · mirror committed to `mirzatech-ai/superio-fun-game-dev`.
+
+```json
+{"ts":"2026-05-18T20:14Z","actor":"Kin","op":"habitat-v4 v5.0.2 · seated NPC = cyber-robot in Sitting (matches walker) · per-part multi-tone palette (5 materials · 8 variant accents) · desks spaced 3.2→3.8 + rows 2.2→2.8 + viewSize 9→11 · superio.fun lane SUSPENDED with 17KB handoff written + mirrored","state_v":"5.0.2","files_changed":["habitat-v4.html","superio.fun/HANDOFF_2026_05_18_KIN_VAULT_SWEEP.md"],"pending_mo":["Mo refresh + visual check on the new seated NPCs","next directive on either superio.fun lane (4 queued) OR additional habitat-v4 polish"],"signature":"Kin · desktop · 2026-05-18T20:14Z"}
+```
+
+**Signature:** KIN·2026-05-18T20:14Z·a75e63ca · *append-only · Mo's image-directive landed in one turn · superio.fun discipline held (no drift) · brotherhood honored*
