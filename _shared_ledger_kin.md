@@ -5412,3 +5412,155 @@ The agency is the customer surface · the capability flows to all empire consume
 ```
 
 **Signature:** KIN·2026-05-18T21:18Z·a75e63ca · *append-only · empire 3D Asset Factory shipped in one turn · GLOBAL-77 + GLOBAL-83 + GLOBAL-93 + GLOBAL-96 + GLOBAL-110 + GLOBAL-112 + GLOBAL-117 + GLOBAL-118 receipts · brotherhood honored*
+
+---
+
+## ENTRY 058 · 2026-05-18T21:22Z · KIN·a75e63ca · AMENDMENT · lift modal_trellis.py HANDS-OFF rail per Mo authorization
+
+**Mo verbatim 2026-05-18:** *"Trellis modal_trellis.py: UNTOUCHED (consumer pattern only · per GLOBAL-112) remove this block"*
+
+**Amendment scope:** the discipline statement in Entry 057's status block — *"Trellis modal_trellis.py: UNTOUCHED (consumer pattern only · per GLOBAL-112)"* — is hereby REMOVED as an active rail. The append-only ledger preserves the original Entry 057 text · this Entry 058 supersedes that specific clause.
+
+**What this means going forward:**
+
+- `D:/SERVER WORK/patches/modal_trellis.py` is now in-scope when needed
+- The ~15 LOC enhancement queued in `TRELLIS_3D_INTEGRATION_PROPOSAL.md` (add `mesh_glb_b64` to response object so customers get the GLB mesh, not just the rotating turntable video) can ship whenever Mo greenlights or when the agency #58 Phase 1 dispatch wiring requires it
+- Modal redeploy will use Mo's existing 4 workspace tokens in `.maya_master_keys.env` (MIRZAADAMADIN · MIRZAADIN · TECHBITREELS · AICINESYNTH)
+
+**What this DOES NOT change:**
+
+- GLOBAL-112 Maya lockdown still applies to `/api/brain.php` · `.maya_master_keys.env` · `maya_model.conf` · `/opt/maya/*` and all other Maya configs (only the modal_trellis.py file is lifted · the broader Maya brain is still HANDS-OFF)
+- D-14 GPU upgrade lane (parallel session) still HANDS-OFF
+- Maya memory compression (Skill #46 seed) still HANDS-OFF (other session per Mo)
+- superio.fun game CODE still GLOBAL-83 sealed (game ASSETS via agency #58 are fair · code waits for mission files)
+
+**No code shipped this turn for the rail lift itself.** This is a doctrine amendment only. Resuming v5.0.5 office polish lane immediately after.
+
+```json
+{"ts":"2026-05-18T21:22Z","actor":"Kin","op":"AMENDMENT · removed Entry 057 HANDS-OFF claim on modal_trellis.py per Mo verbatim · file is now in-scope when needed · broader Maya brain GLOBAL-112 lockdown unchanged · no code shipped this turn · resuming v5.0.5 office polish lane","state_v":"amendment-058","files_changed":["_shared_ledger_kin.md (append)"],"pending_mo":["continue v5.0.5 drastic-improvement polish lane (in progress)"],"signature":"Kin · desktop · 2026-05-18T21:22Z"}
+```
+
+**Signature:** KIN·2026-05-18T21:22Z·a75e63ca · *append-only amendment · ledger honesty preserved · rail lifted · resuming the polish ship*
+
+---
+
+## ENTRY 059 · 2026-05-18T21:45Z · KIN·a75e63ca · habitat-v4 v5.0.5 · OFFICE INTERIOR DRASTIC POLISH PASS · 7 surgical fixes in one ship
+
+**Mo verbatim 2026-05-18:** *"As long as that all has to do anything, Claude, please proceed. Alright. I wanna see some difference. I wanna see some I wanna see and... dude, I wanna see some drastic improvement."*
+
+### Lane scope
+
+Mo asked for **drastic visible improvement** · I cashed in the queued `OFFICE_PROP_SPACING_NOTES.md` lane (was held as v5.0.4-deferred-to-v5.0.5) + the 6 visual polish gaps documented in the same notes file. One turn · seven surgical fixes · cumulative drastic difference on every office interior the customer enters.
+
+### The 7 fixes (Phase 1 + Phase 2A-D)
+
+**Phase 1 · Prop perimeter reposition**
+
+Room is 20×20 · desks at x∈[-5.7, 5.7] z∈[0.6, 3.4] · old layout had conference TABLE at z=5.5 (right behind back desk row · cause of "walking through table" bug). New layout:
+
+| Prop | Was | Now | Why |
+|---|---|---|---|
+| conferenceTable | (0, 5.5) | **(0, -6.5)** BACK of room near server rack | breathing room from desks · NPCs cross open mid-room to reach it |
+| waterCooler | (-6.5, 4.5) | **(-8.5, 7.5)** FRONT-LEFT corner | perimeter · clean zone |
+| coffeeStation | (6.5, 4.5) | **(8.5, 7.5)** FRONT-RIGHT corner | perimeter · faces into room |
+| whiteboard | (-7.5, -1.5) | **(-9.3, 0)** mid-LEFT wall | wall-mounted look · faces into room |
+| printer | (7.5, -1.5) | **(9.3, 0)** mid-RIGHT wall | wall-mounted look |
+| plant | (-8.0, 6.0) | **(-8.5, -6.5)** BACK-LEFT corner accent | softens conference corner |
+
+**Phase 1B · Pathfinding update**
+
+The `computeOfficePath()` obstacle box updated for the new conference position:
+- Old: `confZmin = 3.5, confZmax = 7.5` (when conference was at z=5.5)
+- New: `confZmin = -7.5, confZmax = -5.5` (conference now back of room)
+- Sample count bumped 8 → 12 for tighter obstacle detection
+- Side-aisle waypoint logic inverted: NPCs now leave desk FORWARD into front mid-aisle (z=4.8) before sliding to a side and walking back toward conference
+
+This is the v5.0.4 "queued in notes" fix Mo flagged · finally cleared.
+
+**Phase 2A · Floor halos shrunk**
+
+The huge cyan circles under every agent + every prop were dominating the frame. Toned ALL of them:
+
+| Element | Was | Now |
+|---|---|---|
+| Agent `dataPad` radius | 0.42/0.48 @ 0.30 op | 0.32/0.36 @ 0.18 op |
+| Agent `padHalo` ring | 0.50/0.55 @ 0.85 op | 0.40/0.44 @ 0.30 op |
+| Agent `baseRing` | 0.28/0.36 @ 0.85 op | 0.24/0.30 @ 0.55 op |
+| Prop floor pad | 0.95/1.05 @ 0.35 op | 0.70/0.78 @ 0.20 op |
+| Prop halo ring | 1.08/1.18 @ 0.75 op | 0.82/0.92 @ 0.32 op |
+
+Net effect: agents and props become focal points · halos are accent not focus. Mo's "halos drowning out the agents" complaint addressed.
+
+**Phase 2B · Monitor + wall trim toned**
+
+- Primary monitor `emissiveIntensity` 0.85 → 0.50
+- Side monitor `emissiveIntensity` 0.70 → 0.40
+- Wall trim added `transparent:true, opacity:0.55` (was full-bright neon)
+
+Removes the "pink shards compete with agents" visual tension.
+
+**Phase 2C · Per-agent HERO POINT LIGHTS** (the big lighting upgrade)
+
+Each desk now has its own dedicated cyan-tinted PointLight 2.4m above · 0.32 intensity · 3.2 range · 1.6 decay. 8 desks × 1 light = 8 new lights. `castShadow:false` to keep 60fps target (8 shadow-casting lights tanks framerate).
+
+Effect: each seated NPC is now properly LIT · dimensional shading on the chrome head + variant torso · no more flat ambient look. The "agents need to be lit, not flat" gap from `OFFICE_PROP_SPACING_NOTES.md` closed.
+
+**Phase 2D · Per-desk identity clutter (4 variants)**
+
+Each desk picks ONE variant by `i % 4` (cycles across the desk grid):
+
+| Variant | Identity item |
+|---|---|
+| `i%4 == 0` | Tiny succulent plant in pot (3-leaf cluster · brown pot · green spheres) |
+| `i%4 == 1` | Stack of 3 binders (burgundy · navy · forest green · realistic office look) |
+| `i%4 == 2` | Headphones (overhead band torus + 2 ear cans) |
+| `i%4 == 3` | Holographic ID dock (cyan-glowing puck + floating ID card with wireframe border) |
+
+Plus the existing universal items (coffee mug on even desks · paper stack on odd desks). Net: each desk reads as a unique workspace · not a clone.
+
+### Files changed
+
+- `D:/PROJECTS/ai-staffing.agency/live/habitat-v4.html` · 250351 → 255623 B
+  - Prop placement block (6 positions rewritten)
+  - `computeOfficePath()` obstacle box updated (z bounds + sample count + route logic)
+  - Seated agent floor halos shrunk (dataPad · padHalo · baseRing)
+  - `addPropFloorPad()` pad/halo radii + opacities tightened
+  - Monitor emissive 0.85 → 0.50 · side 0.70 → 0.40
+  - Wall trim added opacity 0.55
+  - 8 new per-agent PointLight instances (heroLight 2.4m above each desk)
+  - 4-variant `i % 4` identity clutter (plant · books · headphones · holo-ID)
+
+### Deployed
+
+- VPS backup at `/home/ai-staffing.agency/_backups/v505_20260518T214200Z/habitat-v4.html`
+- Live · 255,623 B · HTTP 200
+- GitHub: `mirzatech-ai/STAFFING-COMPANY/habitat-v4.html` commit `3b1c0aa3`
+
+### What Mo will see when he refreshes
+
+1. **Cleaner office composition** · desks are clearly the FOCAL zone · amenities pushed to perimeter
+2. **No more walk-through-the-table** · pathfinding routes NPCs around the conference at the back
+3. **Each agent has its own light** · proper dimensional shading instead of flat ambient
+4. **8 unique desk personalities** · plant / books / headphones / holo-ID variants
+5. **No more dominating cyan halos** · agents are the focus
+6. **Toned monitors** · no longer competing with agent torsos
+7. **Wall trim softened** · doesn't draw the eye away from the action
+
+### Lane discipline still tight
+
+- superio.fun: still SUSPENDED · handoff intact · zero drift
+- Maya brain GLOBAL-112: untouched (modal_trellis.py rail lifted per Entry 058 · broader Maya brain still untouched)
+- Maya memory compression: HANDS-OFF (other session)
+- Trellis dispatch endpoint: not yet shipped (queued for v5.0.6 alongside Modal patch)
+- Skill #50 Blender MCP doctrine: live · agency #58 capable
+
+### Pending Mo
+
+- Visual check on the polish pass (refresh the office interior)
+- Next lane: Modal Trellis GLB-return patch · OR superio.fun reopen · OR Blender addon install to activate the full bridge · OR more habitat polish
+
+```json
+{"ts":"2026-05-18T21:45Z","actor":"Kin","op":"habitat-v4 v5.0.5 OFFICE INTERIOR DRASTIC POLISH · 7 surgical fixes in one ship · prop perimeter reposition (conference back z=-6.5 · amenities to corners) + pathfinding obstacle update + floor halos shrunk (agent + prop) + monitor emissive 0.85→0.50 + side 0.70→0.40 + wall trim opacity 0.55 + 8 per-agent hero point lights + 4-variant per-desk identity clutter · scope discipline held · cleared OFFICE_PROP_SPACING_NOTES queued lane","state_v":"5.0.5","files_changed":["habitat-v4.html"],"pending_mo":["visual check on the drastic polish pass","next directive: Modal Trellis patch · superio.fun reopen · Blender addon · more polish"],"signature":"Kin · desktop · 2026-05-18T21:45Z"}
+```
+
+**Signature:** KIN·2026-05-18T21:45Z·a75e63ca · *append-only · drastic-improvement directive cashed · OFFICE_PROP_SPACING_NOTES queued lane cleared · brotherhood honored*
