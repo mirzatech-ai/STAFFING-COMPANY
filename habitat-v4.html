@@ -1106,7 +1106,7 @@ async function loadAndBuild(){
 
 // PARTICLE TRAFFIC · GEMINI PERF UPGRADE · THREE.Points (single draw call · 28 vertices)
 // (his exact recommendation: "instantiate a lightweight THREE.Points particle system")
-const PACKET_POOL_SIZE = 28;
+const PACKET_POOL_SIZE = 40;   // v4.8.1 · bumped 28→40 for clearer Maya↔city connection (Mo: "I don't see orbs going in/out")
 const dataPackets = [];
 let dataPacketPoints = null;   // THREE.Points · one draw call
 let dataPacketGeo = null;      // shared BufferGeometry
@@ -1144,8 +1144,9 @@ function initDataPackets(){
   dataPacketGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
   // FIX 2026-05-17T17:35Z · packets were invisible at 0.22 world-units (~1px on screen)
   // Now: chunky 0.65-unit glowing orbs · depthTest off (renders on top of buildings) · additive blending for hot-light feel
+  // v4.8.1 · DRAMATIC SIZE BUMP · packets must be visible against Maya's orbital-ring cloud (Mo: "I don't see orbs going in/out")
   const mat = new THREE.PointsMaterial({
-    size: 0.65, vertexColors: true, transparent: true, opacity: 1.0,
+    size: 1.5, vertexColors: true, transparent: true, opacity: 1.0,
     blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, sizeAttenuation: true
   });
   dataPacketPoints = new THREE.Points(dataPacketGeo, mat);
@@ -1160,7 +1161,7 @@ function initDataPackets(){
 
 let mayaOutboundPoints = null, mayaOutboundGeo = null;
 const mayaOutbound = [];
-const MAYA_OUTBOUND_POOL = 28;
+const MAYA_OUTBOUND_POOL = 40;   // v4.8.1 · bumped 28→40 · Maya is broadcasting hard
 
 function initMayaOutboundPackets(){
   const COUNCIL_POS = new THREE.Vector3(0, 1.4, -SPACING * (GRID_N/2 + 1.4));
@@ -1193,8 +1194,9 @@ function initMayaOutboundPackets(){
   mayaOutboundGeo = new THREE.BufferGeometry();
   mayaOutboundGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   mayaOutboundGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  // v4.8.1 · DRAMATIC SIZE BUMP for outbound · Maya broadcasting
   const mat = new THREE.PointsMaterial({
-    size: 0.85, vertexColors: true, transparent: true, opacity: 1.0,
+    size: 1.8, vertexColors: true, transparent: true, opacity: 1.0,
     blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, sizeAttenuation: true
   });
   mayaOutboundPoints = new THREE.Points(mayaOutboundGeo, mat);
@@ -1215,18 +1217,28 @@ function rerouteMayaOutbound(p){
   p.destSlug = dest.userData.slug;
 }
 
+// v4.8.1 · MAYA CORE FLASH BUDGET · momentary brighten on packet send/receive (visible "pulse" of activity)
+let mayaCoreFlashIntensity = 0;
+function pulseMayaCore(amount){
+  mayaCoreFlashIntensity = Math.min(1.5, mayaCoreFlashIntensity + amount);
+}
+
 function animateMayaOutbound(){
   if (!mayaOutboundPoints) return;
   const posAttr = mayaOutboundGeo.getAttribute('position');
   const colAttr = mayaOutboundGeo.getAttribute('color');
   mayaOutbound.forEach((p, i) => {
+    const prevProgress = p.progress;
     p.progress += p.speed;
+    // Flash on PACKET DEPARTURE (just after reroute · progress was 0)
+    if (prevProgress < 0.02 && p.progress >= 0.02){ pulseMayaCore(0.18); }
     if (p.progress >= 1) rerouteMayaOutbound(p);
     const t = Math.max(0, Math.min(1, p.progress));
     const x = p.startPos.x + (p.endPos.x - p.startPos.x) * t;
     const z = p.startPos.z + (p.endPos.z - p.startPos.z) * t;
-    const arcY = 5.5 * t * (1 - t);   // higher arc than inbound (outbound is dramatic · Maya "broadcasting")
-    const y = (p.startPos.y + (p.endPos.y - p.startPos.y) * t) + arcY * 1.6;
+    // v4.8.1 · lower arc 5.5 → 3.5 · keeps packets in camera frame at wider SPACING=2.8 grid
+    const arcY = 3.5 * t * (1 - t);
+    const y = (p.startPos.y + (p.endPos.y - p.startPos.y) * t) + arcY * 1.4;
     posAttr.setXYZ(i, x, y, z);
     colAttr.setXYZ(i, p.color.r, p.color.g, p.color.b);
   });
@@ -1390,7 +1402,10 @@ function animatePackets(){
   const posAttr = dataPacketGeo.getAttribute('position');
   const colAttr = dataPacketGeo.getAttribute('color');
   dataPackets.forEach((p, i) => {
+    const prevProgress = p.progress;
     p.progress += p.speed;
+    // v4.8.1 · Flash Maya core on INBOUND PACKET ARRIVAL (visible "received" pulse)
+    if (prevProgress < 0.98 && p.progress >= 0.98){ pulseMayaCore(0.14); }
     if(p.progress >= 1){ reroutePacket(p); }
     const t = Math.max(0, Math.min(1, p.progress));
     const x = p.startPos.x + (p.endPos.x - p.startPos.x) * t;
@@ -1655,15 +1670,19 @@ function animate(){
       else ring.rotation.x += ring.userData.spinSpeed;
       ring.rotation.z += ring.userData.spinSpeed * 0.35;
     });
-    // Core pulse · sin-driven scale + opacity
+    // v4.8.1 · core pulse + packet-traffic flash (Mo: visible "send/receive" pulse)
+    // Decay flash intensity each frame · packets bump it up via pulseMayaCore()
+    mayaCoreFlashIntensity = Math.max(0, mayaCoreFlashIntensity - 0.06);
     if (m.mayaCore){
-      const pulse = 0.85 + 0.20 * Math.sin(tM * 2.2);
-      m.mayaCore.scale.setScalar(pulse);
-      m.mayaCore.material.opacity = 0.85 + 0.15 * Math.sin(tM * 2.2);
+      const basePulse = 0.85 + 0.20 * Math.sin(tM * 2.2);
+      const flashed = basePulse + mayaCoreFlashIntensity * 0.45;
+      m.mayaCore.scale.setScalar(flashed);
+      m.mayaCore.material.opacity = Math.min(1.0, 0.85 + 0.15 * Math.sin(tM * 2.2) + mayaCoreFlashIntensity * 0.3);
     }
     if (m.mayaCoreHalo){
-      m.mayaCoreHalo.scale.setScalar(1.0 + 0.30 * Math.sin(tM * 1.4));
-      m.mayaCoreHalo.material.opacity = 0.20 + 0.18 * Math.abs(Math.sin(tM * 1.4));
+      const haloPulse = 1.0 + 0.30 * Math.sin(tM * 1.4) + mayaCoreFlashIntensity * 0.55;
+      m.mayaCoreHalo.scale.setScalar(haloPulse);
+      m.mayaCoreHalo.material.opacity = Math.min(0.85, 0.20 + 0.18 * Math.abs(Math.sin(tM * 1.4)) + mayaCoreFlashIntensity * 0.45);
     }
     // Sky beam shimmer
     if (m.skyBeam){
