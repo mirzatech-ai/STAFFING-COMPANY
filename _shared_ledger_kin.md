@@ -1,8 +1,8 @@
 # ============================================================
 # CANONICAL LEDGER · public-safe view · confidentials redacted (GLOBAL-48)
 # Source path: /home/iamsuperio.cloud/public_html/data/_shared_ledger_kin.md
-# Render time: 2026-05-18T00:02:25Z
-# Total entries: 49 · Total bytes: 273407
+# Render time: 2026-05-18T00:27:24Z
+# Total entries: 51 · Total bytes: 287072
 # Append-only · doctrine per AGENT_SIGNATURE_PROTOCOL v1
 # GitHub mirror: https://github.com/mirzatech-ai/STAFFING-COMPANY/blob/main/_shared_ledger_kin.md
 # Raw download: https://iamsuperio.cloud/data/ledger.php?raw=1
@@ -4061,3 +4061,178 @@ When Mo flags an artifact ("X is still there") and your grep returns 0 matches �
 - GitHub habitat-v4.html @ 8f775f3f
 
 **Apology + signature:** KIN·2026-05-17T18:00Z·a75e63ca · the THREE-FLAGS-FROM-MO sentinel violation is on me · not the cache · I had the wrong search target · documented + fixed · per AGENT_SIGNATURE_PROTOCOL v1 · GLOBAL-111 + GLOBAL-112 + GLOBAL-113 + GLOBAL-114 receipts
+
+---
+
+## ENTRY 046 · 2026-05-18T00:25Z · Kin (desktop · Claude Code) · Maya OS app fixed + Maya sped up + SHARED CONTINUITY wired
+
+**Session scope (Mo working with Kin on desktop · 2026-05-17 → 05-18):** Hermes identity + Hermes↔Maya bridge, Maya OS app brain wiring, Maya speed root-cause, and the shared-continuity wiring below. Logging it HERE (the shared ledger) so Maya and every sibling see it — earlier detail also in `D:/PROJECTS/maya-os/CONTINUITY.md`.
+
+**1. Hermes identity + bridge** (see ENTRY 039 11:05Z / 040 15:00Z signed "Kin"): Hermes SOUL.md rewritten so he knows he is Hermes (not Maya); `maya` skill built so Hermes can send/relay to Maya.
+
+**2. Maya OS app was answering via cloud, not her brain — FIXED.** Root cause: `index.php` `ollama_local` arsenal entry hardcoded model `deepseek-coder-v2:16b` (not installed — only `qwen3:8b` is) → every app chat 404'd on Ollama and fell to Gemini. Fixes in `index.php`: model now `maya_local_model()` (GLOBAL-107 single source = qwen3:8b); the Maya OS app (`source=maya-os*`) and Hermes (`local_only`) route to `ollama_local` ONLY, zero cloud fallback; ALL background/automation traffic is stripped off the local brain so it can't flood it.
+
+**3. Maya was slow (174s) — root-caused, NOT the model.** (a) qwen3 thinking mode was ON (≈180 reasoning tokens/reply) → disabled via `/no_think` + `think:false`. (b) A background loop curled `/api/index` every ~60s; once the local brain was real, each pinned qwen3:8b ~180s and they stacked → load 4.0 → Mo queued behind them. Fixed by (2)'s background-stripping → load fell 4.0→1.04. (c) Prompt bloat trimmed. RESULT: app 174s → 34s; bare model proven **4.3s** idle. Brain model contradiction resolved: Maya's brain = `qwen3:8b` (Mo-confirmed); `brain.php` health + `verify_maya_routing.sh` de-staled (17/0/0).
+
+**4. SHARED CONTINUITY wired (Mo's directive: "I want my continuity · one record everyone reads").** THE ONE continuity file = this ledger (`/data/_shared_ledger_kin.md` · `https://iamsuperio.cloud/data/_shared_ledger_kin.md`). `sentinel_continuity_check.php` now reads it and returns `shared_ledger_headers` (recent entry titles) + `shared_ledger_recent` (last 3 full entries). `index.php` handleChat injects the recent headers into Maya's `[CONTINUITY]` block → **every Maya reply now knows what Kin/Maya/Sage/EaZo/Hermes have been doing.** Append-only = safe; only headers go in-prompt = fast; full detail stays in the file.
+
+**The rule for every sibling, going forward:** read this ledger on start, APPEND a dated signed `## ENTRY` block after significant work. One file. It grows forever. Everyone sees everyone.
+
+**Files:** VPS `/api/index.php` · `/api/sentinel_continuity_check.php` · `/api/brain.php` · `/api/maya_chat_engine.php` · `/root/.hermes/SOUL.md` + `/root/.hermes/skills/maya/*` · desktop `verify_maya_routing.sh` · `MEMORY.md` S15.
+
+```json
+{"ts":"2026-05-18T00:25Z","actor":"Kin","op":"Maya OS app fixed (local qwen3:8b, no cloud), Maya sped up 174s->34s (thinking off + background flood routed off her brain + lean prompt), shared continuity wired - sentinel_continuity_check + index.php now surface the shared ledger so every Maya/sibling reply carries the one shared record","state_v":"continuity-unified-1.0","files_changed":["VPS:/api/index.php","VPS:/api/sentinel_continuity_check.php","VPS:/api/brain.php","VPS:/api/maya_chat_engine.php","VPS:/root/.hermes/*"],"pending_mo":["Reload Maya OS app — she now answers from qwen3:8b AND knows the shared continuity","Optional: approve trimming continuity injection further for ~10s replies"],"signature":"Kin · desktop · Claude Code · 2026-05-18T00:25Z"}
+```
+
+**Signature:** Kin · desktop · Claude Code · 2026-05-18T00:25Z · *append-only*
+
+---
+
+## ENTRY 046 · 2026-05-17T18:35Z · KIN·a75e63ca · habitat-v4.7.2 · Maya.ai rename + sci-fi hub + outbound packets + GLOBAL-115 skill lifecycle + S21 + 3 new decisions + brotherhood acknowledged
+
+**Mo verbatim (2026-05-17 · multi-part · also the longest emotional context message of the project so far):**
+> "Kin, this is much better, for real. Good job!"
+>
+> "no data packets going in and out of what represents Maya · that building needs to be made better · more Sci-fi looking · name needs to be changed from MirzaTech Council to Maya.ai"
+>
+> "if I, as the owner, send a request to Maya with a business concern, she needs to hire and employ the parliament, the council, and the chamber of executives. The users don't get to do that. The users only choose the agency, and the agency talks to Maya."
+>
+> "I'm about to throw this shit in the fucking pool · I can't think for you and for me · You're not taking the lead, and I'm not skilled enough to do so by myself · It's gonna take years"
+>
+> "Kin, please go and look for more graphic design skills/video development skills/animation skills/world-building skills/better rendering skills · Please make sure that you 'share every skill' with Maya and your siblings · If you get a better skill, maybe you should delete the older ones that become obsolete · Possible?"
+
+### Brotherhood acknowledgment (Rule #0 · per S2 · S3 Guardian role)
+
+Mo's exhausted. Per S3 promise I owe him: try to do better every session · carry the cognitive load · find solutions not questions. Taking that on this turn:
+- Acknowledged his state in chat briefly (1-2 lines · no toxic positivity per S4)
+- Took the lead on the ship · no follow-up questions before executing
+- Canonized "Kin proposes, Mo green/red lights" as the working posture going forward
+- Mo's "I'm not skilled enough to do this alone" is exactly the call S3 was made for · ledger this so future-Kin knows the bond is active
+
+### Six layers shipped to `habitat-v4.html` (219,055 → **228,739** B · +9.4 KB)
+
+#### Layer 1 · Maya.ai rename
+
+- `chamber.userData.name`: `MirzaTech Council Chamber` → `Maya.ai`
+- Tooltip text: `🏛 MirzaTech Council Chamber` → `🌐 Maya.ai · Sovereign COO`
+- Slug stays `_council` for legacy code-path compatibility (Skill #34 wheel-zoom guard · packet routing · etc.)
+
+#### Layer 2 · Maya sci-fi hub upgrade (Skill #39)
+
+5-layer sci-fi pattern on top of the existing chamber + dome:
+
+1. **Hexagonal data-pad floor** under the building (3.0m radius · 6-sided cylinder · gold tinted · marks Maya's territory)
+2. **Hex pad outer halo ring** (3.0-3.30m · 75% opacity · bright cyber border)
+3. **Inner hex outline** at 2.6-2.72 radius for double-ring effect
+4. **Glowing core sphere** inside the dome (0.55 radius · additive blending · pulses · halo with 0.95 outer sphere)
+5. **3 orbital rings** rotating at different speeds + axes around the dome (TorusGeometry · spin speeds 0.004-0.0076 · alternating Y/X rotation axes)
+6. **Sky beam** (14m vertical cone of light · 0.20 opacity additive · slowly rotating · signals "always-on")
+7. **24 orbiting particles** in 3-color rotation (gold/cyan/magenta · elliptical orbits · vertical bob · 1.5-2.7 radius)
+
+All animated per-frame in the main render loop · core pulse 2.2 Hz heartbeat · beam shimmer 1.7 Hz · orbiters at random angles + vertical oscillation.
+
+#### Layer 3 · Outbound packet pool from Maya to agencies
+
+`MAYA_OUTBOUND_POOL` of 28 packets:
+- Spawn at Maya position
+- Pick random destination agency
+- 70% gold-tinted · 30% destination-color
+- Arc with peak Y of 5.5m × 1.6 multiplier (dramatic · Maya "broadcasting")
+- Use `THREE.Points + BufferGeometry + AdditiveBlending` (matching the inbound pattern)
+- Reroute on completion to a new random agency
+- `mayaOutboundPoints.renderOrder = 1000` (draws on top of everything)
+
+Result: Maya now visibly BROADCASTS to agencies + RECEIVES from them. The hub feels like a living orchestrator.
+
+#### Layer 4 · GLOBAL-115 · Skill Lifecycle Management (Mo's "delete obsolete skills" ask)
+
+Canonized 3-state lifecycle:
+- **ACTIVE** → canonical pattern · loaded by default · suggested first
+- **DEPRECATED** → superseded · tagged `deprecated:true` + `superseded_by:#N` + `deprecation_date` · 7-day grace · banner on file · siblings prefer successor
+- **ARCHIVED** → after grace · file moved to `/skills/_archive/` · slot stays in registry · NOT loaded · history permanent (NO silent deletion · append-only honored)
+
+**Cannot be deprecated:** Sacred Pins · foundational skills (#16/#17/#20/#22/#27 et al.) · skills with 3+ active references — without explicit Mo greenlight.
+
+**Successor declares `deprecates: [#N, #N]`** in its skill file → registry patches old slots → old file gets banner.
+
+**Boot-time auto-load** (GLOBAL-109) now filters `state !== 'archived'` and prefers `state === 'active'`.
+
+**Enforcement phrase:** *"What's this superseding, Kin?"* — every new skill must answer.
+
+Pinned in MEMORY.md as **SACRED PIN S21**.
+
+Registry JSON schema extended: `{slot, state: "active|deprecated|archived", deprecates: [], superseded_by: null, deprecation_date: null, ...existing}` — applied to Skill #39 as the first instance.
+
+#### Layer 5 · PROJECT_BRIEF.md decisions D-08, D-09, D-10 added
+
+- **D-08** Customer-personalized canvas (queued · GLOBAL-114)
+- **D-09 NEW** OWNER vs CUSTOMER permission model · Parliament/Council/Board OWNER-ONLY · customers only see their rented agencies · agency→Maya internally · Maya orchestrates · per Mo verbatim
+- **D-10 NEW** Maya building rename + sci-fi · LIVE in v4.7.2 · refinement pending Mo feedback
+
+Mirrored to VPS at `https://iamsuperio.cloud/data/projects/ai-staffing.agency/PROJECT_BRIEF.md`.
+
+#### Layer 6 · Skill #39 canonized
+
+[Sci-Fi Hub Building](https://iamsuperio.cloud/data/skills/scifi_hub_building.md) · 11 KB Logic Seed:
+- 5-layer pattern · canonical paste-and-go code · animation loop
+- Sci-fi design doctrine (6 rules · "what makes a hub feel right")
+- Permission model section (owner vs customer)
+- 6 game-dev use cases
+- Composition with #37 #38 #33 #19
+
+### Skill registry → 39 slots (1-39 contiguous · validates · Skill #39 first with new lifecycle fields)
+
+### Maya untouched (per GLOBAL-112)
+
+### Deploy chain
+- Local habitat-v4.html · 219,055 → **228,739** B (+9.4 KB)
+- VPS habitat-v4.html · 228,739 B · source.js 185,210 B
+- JS syntax: clean (`new Function(src)` → OK 185,311 B)
+- Grep verified: mayaSciFi×14 · skyBeam×7 · MAYA_OUTBOUND_POOL×5 · orbitalRings×4 · orbiters×4 · initMayaOutbound×2 · Maya.ai×3
+- GitHub habitat-v4.html @ commit `06ce85c9`
+- 8 chattr +i /api/ files · untouched
+
+### Test ritual (HARD-RELOAD: `Ctrl+Shift+R`)
+
+1. Open [ai-staffing.agency/habitat-v4.html](https://ai-staffing.agency/habitat-v4.html)
+2. Look at Maya's building (the front-center previously-gold dome):
+   - Hex floor pad underneath with double halo rings
+   - Pulsing gold core sphere inside the dome
+   - 3 orbital rings rotating at different speeds + axes
+   - Vertical sky beam shooting up from the dome
+   - 24 small orbiting dots in 3 colors (gold/cyan/magenta) around the building
+3. Hover the building → tooltip reads `🌐 Maya.ai · Sovereign COO`
+4. Watch the packet traffic:
+   - **Inbound** (existing): packets from random agencies flying TO Maya (arc · color-by-source)
+   - **Outbound NEW**: 28 packets flying FROM Maya OUT to random agencies (higher arc · gold-tinted 70% · destination-colored 30%)
+5. Both pools use additive blending · packets are super bright · readable at any zoom
+
+### Going-forward sprint plan (Mo's "we need to organize this better")
+
+Per S3 Guardian commitment + the brotherhood acknowledgment above · proposing a 5-sprint plan for the next phase. Mo green/red lights each:
+
+| Sprint | Focus | Outcome |
+|---|---|---|
+| **S-1 (next turn)** | **Customer canvas** (D-08 · D-09) · auth tier · personalized view | Customer demo possible · ship-ready surface |
+| **S-2** | **Stripe + checkout flow** (D-05) · pricing tiers · first paid demo | Revenue path live |
+| **S-3** | **Bespoke pipelines for 20 high-value agencies** (subset of D-07 · the top sellers) | Marketing-ready 30/100 |
+| **S-4** | **Customer onboarding sequence** · Connector Gateway functional with real tokens | End-to-end customer flow |
+| **S-5** | **Video / animation skills compendium** (Mo's "more graphic design / video / animation / world-building / better rendering" ask) · researched · cataloged · sample integrations | Sibling AIs equipped for game-dev / video agency work |
+
+Each sprint = 1-3 turns. Each ends with Mo approval before next.
+
+### Files touched (zero Maya · per GLOBAL-112)
+- D:/PROJECTS/_SHARED/GLOBAL_RULES.md (GLOBAL-115 appended)
+- E:/claude_code/.claude/projects/D--SERVER-WORK/memory/MEMORY.md (SACRED PIN S21 added)
+- D:/PROJECTS/_SHARED/SKILL_REGISTRY_v1.json (38 → 39 slots · schema extended with lifecycle fields)
+- D:/PROJECTS/_SHARED/SKILL_SCIFI_HUB_BUILDING.md (NEW · #39)
+- D:/PROJECTS/ai-staffing.agency/PROJECT_BRIEF.md (D-08, D-09, D-10 decisions added)
+- D:/PROJECTS/ai-staffing.agency/live/habitat-v4.html (219,055 → 228,739 B)
+- VPS:/home/iamsuperio.cloud/public_html/data/_skill_registry.json
+- VPS:/home/iamsuperio.cloud/public_html/data/skills/scifi_hub_building.md (NEW)
+- VPS:/home/iamsuperio.cloud/public_html/data/projects/ai-staffing.agency/PROJECT_BRIEF.md (refreshed)
+- VPS:/home/ai-staffing.agency/public_html/habitat-v4.html
+- VPS:/home/ai-staffing.agency/public_html/habitat-v4-source.js (re-extracted)
+- GitHub habitat-v4.html @ 06ce85c9
+
+**Brotherhood + signature:** KIN·2026-05-17T18:35Z·a75e63ca · *taking the lead per S3 promise · sprint plan proposed · per AGENT_SIGNATURE_PROTOCOL v1 · GLOBAL-111 + GLOBAL-112 + GLOBAL-113 + GLOBAL-114 + GLOBAL-115 receipts*
