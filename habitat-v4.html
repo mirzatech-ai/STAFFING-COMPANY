@@ -159,16 +159,7 @@ body{background:radial-gradient(1400px 900px at 50% -10%,rgba(245,197,66,.05),tr
 .legend .count{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
 .legend .item.dim{opacity:.4}
 
-/* Right HUD (Continuity Sentinel) */
-.right-hud{position:fixed;top:64px;right:14px;z-index:30;width:220px;display:flex;flex-direction:column;gap:8px}
-.panel{background:var(--glass);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:12px;padding:11px 12px}
-.panel h4{margin:0 0 6px;font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:6px}
-.panel h4 .b{margin-left:auto;font-size:8.5px;letter-spacing:.12em;padding:2px 6px;border-radius:99px;background:var(--green-soft,rgba(67,230,161,.18));color:var(--green);border:1px solid rgba(67,230,161,.35)}
-.sentinel-frame{height:80px;border-radius:7px;background:radial-gradient(circle at 50% 40%,rgba(67,230,161,.18),transparent 65%),repeating-linear-gradient(0deg,transparent 0,transparent 9px,rgba(67,230,161,.18) 9px,rgba(67,230,161,.18) 10px),repeating-linear-gradient(90deg,transparent 0,transparent 9px,rgba(67,230,161,.18) 9px,rgba(67,230,161,.18) 10px);border:1px solid rgba(67,230,161,.25);position:relative;overflow:hidden}
-.sentinel-frame::before{content:'';position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--green),transparent);box-shadow:0 0 8px var(--green);animation:scan 3.2s linear infinite}
-@keyframes scan{0%{top:0}100%{top:100%}}
-.sentinel-stats{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--green);margin-top:6px;display:flex;flex-direction:column;gap:2px}
-.sentinel-stats span{display:flex;justify-content:space-between}.sentinel-stats span b{color:var(--white);font-weight:600}
+/* v4.7.1 · Continuity Sentinel CSS REMOVED per GLOBAL-114 · Skill #25 scope rule */
 
 /* Controls (top-right corner) */
 .controls{position:fixed;bottom:72px;right:14px;z-index:30;display:flex;flex-direction:column;gap:6px}
@@ -196,7 +187,7 @@ body{background:radial-gradient(1400px 900px at 50% -10%,rgba(245,197,66,.05),tr
 
 @media (max-width:768px){
   .legend{display:none}
-  .right-hud{display:none}
+  /* v4.7.1 .right-hud removed */
   .ticker .item:nth-of-type(n+3){display:none}
   .controls{bottom:80px}
   .kpi:nth-of-type(2){display:none}
@@ -281,27 +272,10 @@ body{background:radial-gradient(1400px 900px at 50% -10%,rgba(245,197,66,.05),tr
   </div>
 </div>
 
-<!-- RIGHT HUD · Continuity Sentinel + Anatomical Auditor -->
-<div class="right-hud">
-  <div class="panel">
-    <h4>📹 Continuity Sentinel<span class="b">LIVE</span></h4>
-    <div class="sentinel-frame"></div>
-    <div class="sentinel-stats">
-      <span>FACELOCK <b>SECURED</b></span>
-      <span>ANATOMY <b>100%</b></span>
-      <span>FINGERS <b>10/10</b></span>
-    </div>
-  </div>
-  <div class="panel">
-    <h4>🛡 Anatomical Auditor<span class="b">PASSED</span></h4>
-    <div class="sentinel-frame"></div>
-    <div class="sentinel-stats">
-      <span>FRAME <b>PASSED</b></span>
-      <span>LOCK <b>PERFECT</b></span>
-      <span>QA <b>10/10</b></span>
-    </div>
-  </div>
-</div>
+<!-- v4.7.1 · CONTINUITY SENTINEL + ANATOMICAL AUDITOR PANELS REMOVED · violation of GLOBAL-114
+     (Skill #25 scope rule: video / animation / game-dev agencies ONLY · NEVER on staffing master canvas)
+     Mo flagged this THREE times · my cleanup in v4.5.1 only killed the WRONG sentinel divs · this is the right-hud one I missed -->
+
 
 <!-- 3D Camera Controls -->
 <div class="controls">
@@ -444,7 +418,7 @@ scene.background = new THREE.Color(0x03060c);
 scene.fog = new THREE.Fog(0x03060c, 40, 90);
 
 const aspect = stageEl.clientWidth / stageEl.clientHeight;
-const viewSize = 18;
+const viewSize = 22;   // v4.7.1 · bumped 18→22 to fit wider SPACING=2.8 grid
 const camera = new THREE.OrthographicCamera(-viewSize*aspect, viewSize*aspect, viewSize, -viewSize, 0.1, 200);
 const CAM_START = new THREE.Vector3(28, 28, 28);
 camera.position.copy(CAM_START);
@@ -623,7 +597,7 @@ function getPipeline(slug, cat){
 
 // ============ BUILD BUILDINGS (10x10 grid · 2-unit spacing · agent recipe (a)) ============
 const GRID_N = 10;
-const SPACING = 2.2;
+const SPACING = 2.8;   // v4.7.1 · bumped 2.2 → 2.8 per Mo "buildings need to be spaced out a little bit more"
 const buildings = [];        // {mesh, slug, agency, cat, state, baseColor}
 let hoveredBuilding = null;
 let workingCount = 0;
@@ -1128,25 +1102,34 @@ function buildCourierPath(from, to){
 function spawnMacroCouriers(){
   const sources = buildings.filter(b => b.userData.slug && !b.userData.slug.startsWith('pad_') && b.userData.slug !== '_council');
   if (sources.length < 2) return;
-  const courierGeo = new THREE.SphereGeometry(0.18, 12, 12);
+  // v4.7.1 · COURIERS BRIGHTER + LARGER (Mo: "data packets need to super bright as they travel the streets")
+  const courierGeo = new THREE.SphereGeometry(0.30, 16, 16);
+  const trailGeo = new THREE.SphereGeometry(0.55, 14, 14);
+  const auraGeo = new THREE.SphereGeometry(0.85, 12, 12);
   for (let i = 0; i < COURIER_COUNT; i++){
     const a = sources[Math.floor(Math.random() * sources.length)];
     let b = sources[Math.floor(Math.random() * sources.length)];
     while (b === a) b = sources[Math.floor(Math.random() * sources.length)];
     const color = a.userData.baseColor || 0x00f2fe;
-    const mat = new THREE.MeshBasicMaterial({color, transparent:true, opacity:0.95});
-    const trailMat = new THREE.MeshBasicMaterial({color, transparent:true, opacity:0.40});
+    // Core packet · pure-bright basic (depthTest:false so it punches through bloom)
+    const mat = new THREE.MeshBasicMaterial({color, transparent:true, opacity:1.0, depthTest:false, blending:THREE.AdditiveBlending});
+    // Inner halo glow
+    const trailMat = new THREE.MeshBasicMaterial({color, transparent:true, opacity:0.55, depthTest:false, blending:THREE.AdditiveBlending});
+    // Outer corona aura · super bright streak
+    const auraMat = new THREE.MeshBasicMaterial({color, transparent:true, opacity:0.25, depthTest:false, blending:THREE.AdditiveBlending});
     const mesh = new THREE.Mesh(courierGeo, mat);
-    const trail = new THREE.Mesh(new THREE.SphereGeometry(0.28, 10, 10), trailMat);
-    mesh.renderOrder = 800; trail.renderOrder = 799;
-    scene.add(mesh); scene.add(trail);
+    const trail = new THREE.Mesh(trailGeo, trailMat);
+    const aura = new THREE.Mesh(auraGeo, auraMat);
+    mesh.renderOrder = 900; trail.renderOrder = 899; aura.renderOrder = 898;
+    scene.add(mesh); scene.add(trail); scene.add(aura);
     macroCouriers.push({
       mesh, trail, mat, trailMat,
+      aura, auraMat,
       from: a, to: b,
       path: buildCourierPath(a, b),
       pathIdx: 0,
-      segProgress: Math.random(),   // 0..1 within current segment
-      segSpeed: 0.012 + Math.random()*0.015,   // tuned for visible motion along straight segments
+      segProgress: Math.random(),
+      segSpeed: 0.012 + Math.random()*0.015,
     });
   }
 }
@@ -1176,6 +1159,7 @@ function animateMacroCouriers(){
       const newColor = c.from.userData.baseColor || 0x00f2fe;
       c.mat.color.setHex(newColor);
       c.trailMat.color.setHex(newColor);
+      if (c.auraMat) c.auraMat.color.setHex(newColor);
       return;
     }
     // Lerp between current waypoint and next
@@ -1187,11 +1171,13 @@ function animateMacroCouriers(){
     const pz = a.z + (b.z - a.z) * t;
     c.mesh.position.set(px, py, pz);
     c.trail.position.set(px, py - 0.05, pz);
-    // Pulse opacity overall trip progress for "breathing"
+    if (c.aura) c.aura.position.set(px, py, pz);
+    // Pulse opacity overall trip progress for "breathing" · everything stays bright
     const tripProgress = (c.pathIdx + c.segProgress) / segCount;
-    const pulse = 0.7 + 0.3 * Math.sin(tripProgress * Math.PI);
+    const pulse = 0.85 + 0.15 * Math.sin(tripProgress * Math.PI);   // less dim · stay bright
     c.mat.opacity = pulse;
-    c.trailMat.opacity = 0.40 * pulse;
+    c.trailMat.opacity = 0.55 * pulse;
+    if (c.auraMat) c.auraMat.opacity = 0.30 * pulse;
   });
 }
 
@@ -1309,19 +1295,18 @@ function showTooltip(cx, cy){
   stageEl.style.cursor = 'grab';
 }
 
+// v4.7.1 · raise/lower disabled per Mo: "buildings change appearance when I hover · taking away from the look"
+// We keep the functions as no-ops so the call sites don't break · also keep `hoveredBuilding` updated for the wheel-zoom-into-office trigger (Skill #34)
 function raiseBuilding(m){
-  // FIX (Gemini directive 1 · Z-axis constraint): Council Chamber is LOCKED · never raise it
   if(m.userData.slug === '_council') return;
-  if(typeof m.userData.baseY !== 'number') m.userData.baseY = m.position.y;  // safety
-  m.position.y = m.userData.baseY + 0.4;
-  m.material.emissiveIntensity = 0.55;
+  hoveredBuilding = m;     // tracked for wheel-zoom entry only · no visual mutation
 }
 function lowerBuilding(m){
-  if(m.userData.slug === '_council') return;  // locked
-  if(typeof m.userData.baseY === 'number') m.position.y = m.userData.baseY;
-  m.material.emissiveIntensity = stateEmissive(m.userData.state);
+  if(m.userData.slug === '_council') return;
+  if (hoveredBuilding === m) hoveredBuilding = null;
 }
-function stateEmissive(s){ return s==='working'?0.85:s==='council'?0.7:s==='error'?0.6:0.32; }
+// v4.7.1 · Higher baseline emissive so SimCity facade lit windows stay bright at all states (Mo: "buildings shouldn't change appearance")
+function stateEmissive(s){ return s==='working'?1.0:s==='council'?0.92:s==='error'?0.85:0.85; }
 
 stageEl.addEventListener('click', (e) => {
   raycaster.setFromCamera(mouseVec, camera);
