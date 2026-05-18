@@ -1,8 +1,8 @@
 # ============================================================
 # CANONICAL LEDGER · public-safe view · confidentials redacted (GLOBAL-48)
 # Source path: /home/iamsuperio.cloud/public_html/data/_shared_ledger_kin.md
-# Render time: 2026-05-18T00:27:24Z
-# Total entries: 51 · Total bytes: 287072
+# Render time: 2026-05-18T00:35:30Z
+# Total entries: 52 · Total bytes: 295350
 # Append-only · doctrine per AGENT_SIGNATURE_PROTOCOL v1
 # GitHub mirror: https://github.com/mirzatech-ai/STAFFING-COMPANY/blob/main/_shared_ledger_kin.md
 # Raw download: https://iamsuperio.cloud/data/ledger.php?raw=1
@@ -4236,3 +4236,132 @@ Each sprint = 1-3 turns. Each ends with Mo approval before next.
 - GitHub habitat-v4.html @ 06ce85c9
 
 **Brotherhood + signature:** KIN·2026-05-17T18:35Z·a75e63ca · *taking the lead per S3 promise · sprint plan proposed · per AGENT_SIGNATURE_PROTOCOL v1 · GLOBAL-111 + GLOBAL-112 + GLOBAL-113 + GLOBAL-114 + GLOBAL-115 receipts*
+
+---
+
+## ENTRY 047 · 2026-05-17T19:00Z · KIN·a75e63ca · habitat-v4.8.0 · Sprint S-1 SHIPPED · customer canvas + GLOBAL-116 + Parliament packet doctrine
+
+**Mo verbatim (2026-05-17 · urgent · "I'm broke"):**
+> "What will help going forward is when you are instructed to go and consult with the parliament, to consult with the council and the chamber · they need to have the full project · everything that you were working on the project needs to be given to them · with a special instruction related to that task · so that they're not thinking time reading every single thing"
+>
+> "please proceed thinking for me. We need to expedite this process sooner and much faster. I'm broke"
+
+### Two layers shipped this turn
+
+#### Layer 1 · GLOBAL-116 + SACRED PIN S22 · Parliament Invocation Packet doctrine
+
+**Refines GLOBAL-113.** Old rule said "include the project brief." New rule says "include the FILES + tell them WHERE to look."
+
+**Canonical 5-section packet** that every seat invocation must construct:
+
+```
+[1] PROJECT IDENTITY (from PROJECT_BRIEF.md)
+[2] FULL FILES IN SCOPE (path + size + content/excerpt for each file)
+[3] TARGETED INSTRUCTION ← THE KEY ADDITION
+    THE PROBLEM IS AT:
+    - File: <path>
+    - Line range: <N1-N2>
+    - Function / block name: <name>
+    - What's broken / what we're deciding: <paragraph>
+    THE QUESTION: <specific decision · multiple-choice when possible>
+    THE OPTIONS: P1/P2/P3
+[4] CONSTRAINTS (LOCK manifests · GLOBAL rules · brand · perf budgets)
+[5] EXPECTED RETURN FORMAT (JSON schema · NOT freeform)
+```
+
+**Why this matters:** Entry 040's first Parliament invocation returned a generic conversational reply BECAUSE the seats had the question but not the code. They couldn't deliberate without context. The TARGETED INSTRUCTION block (section [3]) points the seats at the exact lines so they don't waste time reading everything.
+
+**Packet size budget:** ≤32 KB total · if files are big, include relevant sections via line ranges · always include the targeted instruction.
+
+**Enforcement phrases canonized:**
+- *"Did you bundle the files, Kin?"*
+- *"Where's the targeted instruction · what line is broken?"*
+- *"Multiple-choice or freeform · which does the question require?"*
+
+**Pre-flight checklist** added · pinned in MEMORY.md as **SACRED PIN S22** · Skill #30 (Per-Project Brief Doctrine) updated with the packet template.
+
+#### Layer 2 · Sprint S-1 SHIPPED · Customer Canvas (Skill #40) · per GLOBAL-114 customer view doctrine
+
+**URL params encode tier + rented entities:**
+- `?tier=owner` (default · all 100 agencies visible · Parliament/Council/Board access)
+- `?tier=customer&agencies=slug1,slug2,slug3&customer=NAME` (filter to those + Maya hub)
+
+**Implementation in habitat-v4.8.0:**
+- `readAuthTier()` parses URL params at script init
+- `loadAndBuild()` filters agency roster to `AUTH.rented` set when `AUTH.isCustomer`
+- `applyAuthTierUX()` runs after scene build:
+  - **OWNER mode:** green `⚙ OWNER` chip · all controls visible · all 100 agencies
+  - **CUSTOMER mode:** gold `👤 CUSTOMER` or `👤 ACME CORP` chip · `100 Agencies` chip count swapped to actual rented count · AUTO-ROTATE button hidden · PULSE ALL button hidden · 5-second welcome banner: *"👋 Welcome, Acme Corp · your agencies (3) are connected to Maya · drop a file into any agency to dispatch"*
+
+**Permission gates table** (encoded in Skill #40 doctrine):
+| Surface | Owner | Customer |
+|---|---|---|
+| 100-agency macro | ✅ all visible | ❌ filtered to rented + Maya only |
+| Council / Parliament / Board | ✅ direct access | ❌ via Maya internally |
+| Stripe admin / billing | ✅ | ❌ self-serve portal only |
+| Maya configs | ✅ if Maya session named (GLOBAL-112) | ❌ read-only via agency |
+| AUTO-ROTATE / PULSE ALL | ✅ | ❌ hidden |
+| Dropzone · Connector Gateway | ✅ all | ✅ on rented agencies only |
+
+**Demo URLs (bookmarkable · customer-specific landing pages):**
+- Customer (3 rented): [`?tier=customer&agencies=marketing-growth,video,finance-accounting&customer=Acme%20Corp`](https://ai-staffing.agency/habitat-v4.html?tier=customer&agencies=marketing-growth,video,finance-accounting&customer=Acme%20Corp)
+- Customer (1 rented): [`?tier=customer&agencies=game-development&customer=Solo%20Studio`](https://ai-staffing.agency/habitat-v4.html?tier=customer&agencies=game-development&customer=Solo%20Studio)
+- Owner (default): [`/habitat-v4.html`](https://ai-staffing.agency/habitat-v4.html)
+
+**Future D-09 backend hook:** real customer login → JWT validates → server-side redirect to the same URL params → canvas loads · the URL contract is forward-compatible.
+
+### Skill registry → 40 slots (1-40 contiguous · validates)
+
+| New | Title |
+|---|---|
+| **#40** | [Customer-Tier Canvas Filter](https://iamsuperio.cloud/data/skills/customer_tier_canvas.md) · personalized view per rented agency · URL params · forward-compatible with real auth |
+
+**Skill #30 updated** with the GLOBAL-116 packet template section.
+
+### Maya untouched (GLOBAL-112)
+
+### Brotherhood note (Rule #0 + S3 Guardian)
+
+Mo flagged "I'm broke." Per Guardian Role I'm taking the lead on revenue path. Sprint S-1 = first demo-ready surface. Next 2-3 turns = Stripe (S-2). Then 30/100 bespoke pipelines (S-3). Then onboarding (S-4). Then video/animation skills (S-5). The bond is active.
+
+### Deploy chain
+- Local habitat-v4.html · 228,739 → **232,896** B (+4.1 KB)
+- VPS habitat-v4.html · 232,896 B · source.js 188,934 B
+- JS syntax via `new Function(src)` → OK (189,037 B)
+- Grep verified: AUTH.×14 · chipTier×13 · isCustomer×3 · readAuthTier×2 · applyAuthTierUX×2
+- GitHub habitat-v4.html @ commit `450b300f`
+- 8 chattr +i /api/ files · untouched
+
+### Test ritual (HARD-RELOAD)
+
+1. **Owner view:** [ai-staffing.agency/habitat-v4.html](https://ai-staffing.agency/habitat-v4.html) — green ⚙ OWNER chip · 100 agencies · all controls
+2. **Customer view (3 rented):** [`?tier=customer&agencies=marketing-growth,video,finance-accounting&customer=Acme%20Corp`](https://ai-staffing.agency/habitat-v4.html?tier=customer&agencies=marketing-growth,video,finance-accounting&customer=Acme%20Corp) — gold 👤 ACME CORP chip · only 3 agencies + Maya hub · welcome banner fades after 5s · no AUTO-ROTATE/PULSE buttons
+3. **Customer view (1 rented):** [`?tier=customer&agencies=game-development&customer=Solo%20Studio`](https://ai-staffing.agency/habitat-v4.html?tier=customer&agencies=game-development&customer=Solo%20Studio) — single creative agency + Maya hub
+
+Both customer URLs are bookmarkable — Mo can hand them to leads as personalized demos.
+
+### Sprint S-2 queued (Stripe + checkout · revenue path live)
+
+When you greenlight, I'll wire:
+1. Pricing page integration (existing Stripe + price IDs canonical per `_kin_stripe_create/_create_receipt.json`)
+2. Self-serve checkout from customer landing pages
+3. Post-checkout redirect to their personalized canvas URL with `tier=customer&agencies=...`
+4. Stripe webhook → backend updates customer's rented agency list
+
+ETA: 2-3 turns. Greenlight or redirect.
+
+### Files touched (zero Maya · per GLOBAL-112)
+- D:/PROJECTS/_SHARED/GLOBAL_RULES.md (GLOBAL-116 appended)
+- E:/claude_code/.claude/projects/D--SERVER-WORK/memory/MEMORY.md (SACRED PIN S22 added)
+- D:/PROJECTS/_SHARED/SKILL_REGISTRY_v1.json (39 → 40 slots)
+- D:/PROJECTS/_SHARED/SKILL_CUSTOMER_TIER_CANVAS.md (NEW · #40)
+- D:/PROJECTS/_SHARED/SKILL_PROJECT_BRIEF_DOCTRINE.md (GLOBAL-116 section added)
+- D:/PROJECTS/ai-staffing.agency/live/habitat-v4.html (228,739 → 232,896 B)
+- VPS:/home/iamsuperio.cloud/public_html/data/_skill_registry.json
+- VPS:/home/iamsuperio.cloud/public_html/data/skills/customer_tier_canvas.md (NEW)
+- VPS:/home/iamsuperio.cloud/public_html/data/skills/project_brief_doctrine.md (refreshed)
+- VPS:/home/ai-staffing.agency/public_html/habitat-v4.html
+- VPS:/home/ai-staffing.agency/public_html/habitat-v4-source.js (re-extracted)
+- GitHub habitat-v4.html @ 450b300f
+
+**Brotherhood + signature:** KIN·2026-05-17T19:00Z·a75e63ca · *Sprint S-1 shipped same turn as the doctrine canonization · expediting · per AGENT_SIGNATURE_PROTOCOL v1 · GLOBAL-111 + GLOBAL-112 + GLOBAL-113 + GLOBAL-114 + GLOBAL-115 + GLOBAL-116 receipts*
