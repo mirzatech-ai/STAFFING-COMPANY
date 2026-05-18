@@ -205,7 +205,7 @@ body{background:radial-gradient(1400px 900px at 50% -10%,rgba(245,197,66,.05),tr
     <div class="item"><div class="pulse"></div><b id="t_roles">724</b>&nbsp;Roles</div>
     <div class="item gold"><div class="pulse"></div>Council <b id="t_consensus">88%</b></div>
     <div class="item green"><div class="pulse"></div><b id="t_working">0</b>&nbsp;Working</div>
-    <div class="item"><div class="pulse"></div>Maya Lines <b>OPEN</b></div>
+    <div class="item"><div class="pulse"></div>Superio Lines <b>OPEN</b></div>
   </div>
   <a class="phone" href="tel:+17432151423">📞 +1 (743) 215-1423</a>
 </div>
@@ -317,8 +317,9 @@ body{background:radial-gradient(1400px 900px at 50% -10%,rgba(245,197,66,.05),tr
     <span class="metric-chip" id="chipRoles" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:13px;background:rgba(67,230,161,.10);border:1px solid var(--green);color:var(--green);font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em"><b style="color:#fff">724</b> Roles</span>
     <span class="metric-chip" id="chipCouncil" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:13px;background:rgba(245,197,66,.10);border:1px solid var(--gold);color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em">Council <b style="color:#fff">99%</b></span>
     <span class="metric-chip" id="chipWorking" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:13px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.25);color:#fff;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em"><b id="chipWorkingN">0</b> Working</span>
-    <span class="metric-chip" id="chipMayaLines" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:13px;background:rgba(163,132,255,.10);border:1px solid #a384ff;color:#a384ff;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em">Maya Lines <b style="color:#fff">OPEN</b></span>
-    <span class="metric-chip" id="chipPhone" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:13px;background:linear-gradient(135deg,rgba(245,197,66,.18),rgba(205,153,56,.12));border:1px solid var(--gold);color:#fff;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em">☎ +1 (245) 225-1493</span>
+    <span class="metric-chip" id="chipMayaLines" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:13px;background:rgba(163,132,255,.10);border:1px solid #a384ff;color:#a384ff;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em">Superio Lines <b style="color:#fff">OPEN</b></span>
+    <!-- v5.0.4 · canonical Maya/Superio Telnyx number per reference_telnyx_account_2026_05_13.md · was incorrectly +1 (245) 225-1493 (fabricated) · GLOBAL-118 vault sweep corrected -->
+    <a class="metric-chip" id="chipPhone" href="tel:+17432151423" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:13px;background:linear-gradient(135deg,rgba(245,197,66,.18),rgba(205,153,56,.12));border:1px solid var(--gold);color:#fff;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-decoration:none">☎ +1 (743) 215-1423</a>
     <!-- v4.8.0 · S-1 · TIER BADGE (Skill #40) · OWNER vs CUSTOMER -->
     <span class="metric-chip" id="chipTier" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:13px;background:rgba(67,230,161,.12);border:1px solid var(--green);color:var(--green);font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em">⚙ <b style="color:#fff">OWNER</b></span>
     <!-- v4.6.0 · D-04 · CAPABILITY ASSESSMENT chip · per GLOBAL-113 capability-check mini-doctrine -->
@@ -1799,7 +1800,7 @@ function openAgency(ud){
     <div style="margin-top:6px;padding:12px;border-radius:11px;background:linear-gradient(135deg,rgba(245,197,66,.08),rgba(8,12,24,.55));border:1px solid rgba(245,197,66,.35)">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
         <span style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--gold);font-size:12px;letter-spacing:.08em">⚡ SPAWN AGENT</span>
-        <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--muted)">live · Maya routes</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--muted)">live · Superio routes</span>
       </div>
       <textarea id="task_${escapeAttr(slug)}" placeholder="Ask the ${escapeHTML(name)} agent something..." style="width:100%;min-height:60px;border-radius:8px;padding:8px 10px;background:rgba(3,6,12,.7);border:1px solid var(--line);color:var(--text);font-family:'Inter',sans-serif;font-size:12px;resize:vertical"></textarea>
       <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
@@ -4082,10 +4083,10 @@ async function sendDropzoneFiles(){
           const dj = await dr.json();
           if (dj.ok && dj.reply){
             showMayaReplyInDossier(dj);
-            status.innerHTML += ` <span style="color:var(--green)">· Maya replied · ${dj.ms}ms</span>`;
+            status.innerHTML += ` <span style="color:var(--green)">· Superio replied · ${dj.ms}ms</span>`;
           } else {
-            showMayaErrorInDossier(dj.error || 'Maya did not respond');
-            status.innerHTML += ` <span style="color:var(--gold)">· Maya queue delayed</span>`;
+            showMayaErrorInDossier(dj.error || 'Superio did not respond');
+            status.innerHTML += ` <span style="color:var(--gold)">· Superio queue delayed</span>`;
           }
         } catch(de){
           showMayaErrorInDossier('Network error · your files are stored · we will follow up by email');
