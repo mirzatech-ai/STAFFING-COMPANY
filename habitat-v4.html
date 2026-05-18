@@ -527,19 +527,19 @@ function categorize(slug){
   return 'tech';
 }
 
-// === v4.5.1 · OBSTACLE-AWARE PATHFINDING (Skill #26) ===
+// === v5.0.5 · OBSTACLE-AWARE PATHFINDING (Skill #26 · updated for prop perimeter layout) ===
 // Mo 2026-05-17: "agents walking through the conference table" — fix is waypoint routing
-// Office obstacles: conference table center (x in -2.5..2.5 · z in 4..7), desk rows (z in 0..3.5)
-// Strategy: route via perimeter aisles · 4 corner waypoints + 4 side midpoints
-// For ANY desk → prop trip: from desk-z, go to nearest perimeter Z (z=-2 back aisle OR z=8 front aisle), then to prop-z
+// v5.0.5 layout: conference table moved to BACK (z=-6.5) · desk rows z∈[0.6,3.4] · break amenities perimeter
+// Office obstacles (conference at -7.5..-5.5 · desk rows handled separately by computeOfficePath callers)
+// Strategy: route via mid-room CORRIDORS · agents leave desk going forward (toward +z) to mid-row z=4.5, then sidestep
 function computeOfficePath(from, to){
-  // If start and end are already on same side of conference (z < 4) or both far from obstacles, go direct
-  const confZmin = 3.5, confZmax = 7.5, confXmin = -2.8, confXmax = 2.8;
+  // Conference table footprint (v5.0.5 · moved to back of room near server rack)
+  const confZmin = -7.5, confZmax = -5.5, confXmin = -2.8, confXmax = 2.8;
   const insideConf = (p) => p.x > confXmin && p.x < confXmax && p.z > confZmin && p.z < confZmax;
   const crossesConf = (() => {
-    // Sample 8 points along the straight line · if any falls in conf zone → must route around
-    for (let i = 1; i < 8; i++){
-      const t = i / 8;
+    // Sample 12 points along the straight line · if any falls in conf zone → must route around
+    for (let i = 1; i < 12; i++){
+      const t = i / 12;
       const px = from.x + (to.x - from.x) * t;
       const pz = from.z + (to.z - from.z) * t;
       if (px > confXmin && px < confXmax && pz > confZmin && pz < confZmax && !insideConf(to)) return true;
@@ -549,14 +549,14 @@ function computeOfficePath(from, to){
 
   const path = [];
   if (crossesConf) {
-    // Route around the conference: go to the side aisle on the closer X side
+    // Route around the conference (now BACK of room): leave desk forward · slide to a side · then drop back to conf side
     const sideX = (from.x < 0) ? confXmin - 0.8 : confXmax + 0.8;
-    // Step 1: leave desk going forward into the front aisle (z just below confZmin)
-    path.push({x: from.x, z: 3.0});
-    // Step 2: slide along the front aisle to the side
-    path.push({x: sideX, z: 3.0});
-    // Step 3: travel up alongside the conference
-    path.push({x: sideX, z: Math.max(to.z, confZmax) });
+    // Step 1: leave desk going forward (positive z) into the front mid-aisle
+    path.push({x: from.x, z: 4.8});
+    // Step 2: slide to the chosen side
+    path.push({x: sideX, z: 4.8});
+    // Step 3: walk back toward conference along the side aisle (negative z)
+    path.push({x: sideX, z: Math.min(to.z, confZmin) - 0.5 });
     // Step 4: approach the target from the outside
     path.push({x: to.x, z: to.z});
   } else {
@@ -2264,10 +2264,10 @@ function buildOfficeScene(agency){
     wall.position.set(x, h/2, z); wall.rotation.y = rot;
     wall.castShadow = wall.receiveShadow = true;
     officeScene.add(wall);
-    // Neon trim on top of wall
+    // Neon trim on top of wall · v5.0.5 · added opacity + tone (was fully bright · dominated the silhouette)
     const trim = new THREE.Mesh(
       new THREE.BoxGeometry(w, 0.04, 0.22),
-      new THREE.MeshBasicMaterial({color:accent})
+      new THREE.MeshBasicMaterial({color:accent, transparent:true, opacity:0.55})
     );
     trim.position.set(x, h + 0.02, z); trim.rotation.y = rot;
     officeScene.add(trim);
@@ -2341,6 +2341,13 @@ function buildOfficeScene(agency){
     desk.position.set(dx, 0.78, dz);
     desk.castShadow = desk.receiveShadow = true;
     officeScene.add(desk);
+    // v5.0.5 · PER-AGENT HERO KEY LIGHT (Mo: "drastic improvement · agents need to be lit, not flat ambient")
+    // Subtle cyan-tinted point light 1.6m above each desk · low intensity 0.32 · adds dimensional shading on the seated body
+    // Mixed with variant accent so each station has a faint identity glow above
+    const heroLight = new THREE.PointLight(accent, 0.32, 3.2, 1.6);
+    heroLight.position.set(dx, 2.40, dz + 0.55);
+    heroLight.castShadow = false;   // perf · 8 lights without shadows · 8 with shadows tanks framerate
+    officeScene.add(heroLight);
     // 4 legs
     [[-0.85,0.4,-0.45],[0.85,0.4,-0.45],[-0.85,0.4,0.45],[0.85,0.4,0.45]].forEach(([lx,ly,lz]) => {
       const leg = new THREE.Mesh(
@@ -2351,10 +2358,10 @@ function buildOfficeScene(agency){
       leg.castShadow = true;
       officeScene.add(leg);
     });
-    // Monitor
+    // Monitor · v5.0.5 emissive 0.85→0.50 (Mo: "pink monitors compete with agents · less dominant")
     const monitor = new THREE.Mesh(
       new THREE.BoxGeometry(0.85, 0.55, 0.05),
-      new THREE.MeshStandardMaterial({color:0x040810, emissive:accent, emissiveIntensity:0.85, metalness:0.7, roughness:0.2})
+      new THREE.MeshStandardMaterial({color:0x040810, emissive:accent, emissiveIntensity:0.50, metalness:0.7, roughness:0.2})
     );
     monitor.position.set(dx, 1.18, dz - 0.4);
     monitor.castShadow = true;
@@ -2371,7 +2378,7 @@ function buildOfficeScene(agency){
     // (1) SECONDARY MONITOR · angled to the left/right alternating · smaller · same emissive
     const sideMonitor = new THREE.Mesh(
       new THREE.BoxGeometry(0.55, 0.42, 0.04),
-      new THREE.MeshStandardMaterial({color:0x040810, emissive:accent, emissiveIntensity:0.7, metalness:0.7, roughness:0.2})
+      new THREE.MeshStandardMaterial({color:0x040810, emissive:accent, emissiveIntensity:0.40, metalness:0.7, roughness:0.2})   // v5.0.5 · was 0.7
     );
     const sideX = (i % 2 === 0) ? -0.55 : 0.55;
     sideMonitor.position.set(dx + sideX, 1.12, dz - 0.34);
@@ -2501,6 +2508,44 @@ function buildOfficeScene(agency){
       );
       sticky.position.set(dx + 0.55, 0.862, dz - 0.05);
       officeScene.add(sticky);
+    }
+
+    // === v5.0.5 · PER-AGENT IDENTITY CLUTTER (Mo: "no per-desk personality") ===
+    // Adds 1 variant per 4-cycle so 4 desks each get a distinct piece on top of the universal coffee/paper:
+    // i%4==0: tiny succulent plant in pot · i%4==1: stack of binders/books · i%4==2: headphones · i%4==3: holographic ID dock
+    const variantMod = i % 4;
+    if (variantMod === 0) {
+      // Small succulent plant in pot on the desk
+      const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.07, 0.10, 12), new THREE.MeshStandardMaterial({color:0x6b3a1a, roughness:0.8}));
+      pot.position.set(dx + 0.70, 0.86, dz + 0.25); pot.castShadow = true; officeScene.add(pot);
+      const leaf1 = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), new THREE.MeshStandardMaterial({color:0x3a8a4a, roughness:0.85}));
+      leaf1.position.set(dx + 0.70, 0.94, dz + 0.25); officeScene.add(leaf1);
+      const leaf2 = new THREE.Mesh(new THREE.SphereGeometry(0.045, 10, 8), new THREE.MeshStandardMaterial({color:0x4ca05a, roughness:0.85}));
+      leaf2.position.set(dx + 0.72, 0.99, dz + 0.28); officeScene.add(leaf2);
+    } else if (variantMod === 1) {
+      // Stack of binders/books
+      const bookGeo = new THREE.BoxGeometry(0.20, 0.04, 0.28);
+      const bookColors = [0x6e2230, 0x2b4a78, 0x3a6b3a];
+      for (let bi = 0; bi < 3; bi++) {
+        const book = new THREE.Mesh(bookGeo, new THREE.MeshStandardMaterial({color: bookColors[bi], roughness:0.5}));
+        book.position.set(dx - 0.70, 0.84 + bi*0.045, dz + 0.25);
+        book.castShadow = true; officeScene.add(book);
+      }
+    } else if (variantMod === 2) {
+      // Headphones (overhead band + 2 cans)
+      const band = new THREE.Mesh(new THREE.TorusGeometry(0.13, 0.018, 8, 18, Math.PI), new THREE.MeshStandardMaterial({color:0x1a1f2a, metalness:0.4, roughness:0.4}));
+      band.position.set(dx + 0.70, 0.93, dz + 0.20); band.rotation.x = Math.PI/2; band.rotation.z = Math.PI; officeScene.add(band);
+      const canL = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.04, 12), new THREE.MeshStandardMaterial({color:0x101820, metalness:0.5}));
+      canL.position.set(dx + 0.57, 0.86, dz + 0.20); canL.rotation.z = Math.PI/2; officeScene.add(canL);
+      const canR = canL.clone(); canR.position.set(dx + 0.83, 0.86, dz + 0.20); officeScene.add(canR);
+    } else {
+      // Holographic ID dock · cyan-glowing puck with a floating square above
+      const puck = new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.10, 0.02, 16), new THREE.MeshBasicMaterial({color:0x00f2fe, transparent:true, opacity:0.85}));
+      puck.position.set(dx - 0.70, 0.835, dz + 0.25); officeScene.add(puck);
+      const idCard = new THREE.Mesh(new THREE.PlaneGeometry(0.14, 0.20), new THREE.MeshBasicMaterial({color:0x00f2fe, transparent:true, opacity:0.40, side:THREE.DoubleSide}));
+      idCard.position.set(dx - 0.70, 0.99, dz + 0.25); idCard.rotation.x = -0.18; officeScene.add(idCard);
+      const idCardBorder = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 0.22), new THREE.MeshBasicMaterial({color:0x00f2fe, transparent:true, opacity:0.55, side:THREE.DoubleSide, wireframe:true}));
+      idCardBorder.position.set(dx - 0.70, 0.99, dz + 0.249); idCardBorder.rotation.x = -0.18; officeScene.add(idCardBorder);
     }
 
     // (9) DESK LAMP on every 4th desk · arched arm + emissive bulb
@@ -2719,14 +2764,17 @@ function buildOfficeScene(agency){
     bodyGroup.add(glowShell);
 
     // v4.5.4 · DATA-PAD PROJECTION at agent's feet (floor projection · cyber identifier)
-    const dataPad = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.48, 0.02, 24), new THREE.MeshBasicMaterial({color: accent, transparent:true, opacity:0.30}));
+    // v5.0.5 · floor halos SHRUNK + softened (Mo: "overall build = meh · floor accents too dominant")
+    // Was 0.42/0.48 radius @ 0.30 opacity · 0.50/0.55 halo @ 0.85 opacity — drowning out the agent
+    // Now 0.32/0.36 radius @ 0.18 opacity · 0.40/0.44 halo @ 0.30 opacity — accent not focus
+    const dataPad = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.36, 0.02, 24), new THREE.MeshBasicMaterial({color: accent, transparent:true, opacity:0.18}));
     dataPad.position.y = 0.015; dataPad.renderOrder = 4;
     bodyGroup.add(dataPad);
-    const padHalo = new THREE.Mesh(new THREE.RingGeometry(0.50, 0.55, 28), new THREE.MeshBasicMaterial({color: accent, transparent:true, opacity:0.85, side:THREE.DoubleSide}));
+    const padHalo = new THREE.Mesh(new THREE.RingGeometry(0.40, 0.44, 28), new THREE.MeshBasicMaterial({color: accent, transparent:true, opacity:0.30, side:THREE.DoubleSide}));
     padHalo.position.y = 0.02; padHalo.rotation.x = -Math.PI/2;
     bodyGroup.add(padHalo);
-    // BASE RING at agent's feet (kept · adds presence)
-    const baseRing = new THREE.Mesh(new THREE.RingGeometry(0.28, 0.36, 24), new THREE.MeshBasicMaterial({color: accent, transparent:true, opacity:0.85, side:THREE.DoubleSide}));
+    // BASE RING at agent's feet (kept · presence cue · tone softened)
+    const baseRing = new THREE.Mesh(new THREE.RingGeometry(0.24, 0.30, 24), new THREE.MeshBasicMaterial({color: accent, transparent:true, opacity:0.55, side:THREE.DoubleSide}));
     baseRing.position.set(0, 0.585, 0);
     baseRing.rotation.x = -Math.PI/2;
     bodyGroup.add(baseRing);
@@ -2846,16 +2894,17 @@ function buildOfficeScene(agency){
   // v4.5.4 · Helper · adds a glowing floor pad + halo ring under any prop so users SEE them without needing text
   // Mo: "make the prop stand out" without permanent labels
   function addPropFloorPad(propGroup, accentHex){
+    // v5.0.5 · tightened pad + softened opacity (Mo: "overall build = meh" · halos were dominating the frame)
     const pad = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.95, 1.05, 0.04, 28),
-      new THREE.MeshBasicMaterial({color: accentHex, transparent:true, opacity:0.35})
+      new THREE.CylinderGeometry(0.70, 0.78, 0.04, 28),   // was 0.95/1.05
+      new THREE.MeshBasicMaterial({color: accentHex, transparent:true, opacity:0.20})   // was 0.35
     );
     pad.position.y = 0.02;
     pad.renderOrder = 5;
     propGroup.add(pad);
     const halo = new THREE.Mesh(
-      new THREE.RingGeometry(1.08, 1.18, 36),
-      new THREE.MeshBasicMaterial({color: accentHex, transparent:true, opacity:0.75, side: THREE.DoubleSide})
+      new THREE.RingGeometry(0.82, 0.92, 36),   // was 1.08/1.18
+      new THREE.MeshBasicMaterial({color: accentHex, transparent:true, opacity:0.32, side: THREE.DoubleSide})   // was 0.75
     );
     halo.position.y = 0.03; halo.rotation.x = -Math.PI/2;
     halo.renderOrder = 6;
@@ -3021,13 +3070,15 @@ function buildOfficeScene(agency){
     return {group: propGroup, kind, x, z, dwellMs: dwellMap[kind] || 3500, name: nameMap[kind] || kind};
   }
 
-  // v4.4.9 · place props CLEARLY visible in the room · away from walls so the camera sees them
-  officeProps.push(addProp('waterCooler',     -6.5,  4.5));
-  officeProps.push(addProp('conferenceTable',  0.0,  5.5));   // center · the heart of the room
-  officeProps.push(addProp('coffeeStation',    6.5,  4.5, Math.PI));
-  officeProps.push(addProp('printer',          7.5, -1.5, -Math.PI/2));
-  officeProps.push(addProp('whiteboard',      -7.5, -1.5, Math.PI/2));
-  officeProps.push(addProp('plant',           -8.0,  6.0));
+  // v5.0.5 · PROP PERIMETER REPOSITION (Mo 2026-05-18: "conference room too close · walking through table · coffee/whiteboard/water cooler too close")
+  // Room 20×20 · desk grid x∈[-5.7,5.7] z∈[0.6,3.4] · push amenities to perimeter so they're distinct ZONES not clutter
+  // Conference → back of room near server rack (z=-7) · break amenities to opposite ends · wall-hugs for whiteboard/printer
+  officeProps.push(addProp('conferenceTable',  0.0, -6.5));               // BACK · near server rack · room for chairs + walk-around
+  officeProps.push(addProp('waterCooler',     -8.5,  7.5));               // FRONT-LEFT corner · perimeter
+  officeProps.push(addProp('coffeeStation',    8.5,  7.5, Math.PI));      // FRONT-RIGHT corner · perimeter · facing into room
+  officeProps.push(addProp('whiteboard',      -9.3,  0.0, Math.PI/2));    // mid-LEFT wall · faces into room
+  officeProps.push(addProp('printer',          9.3,  0.0, -Math.PI/2));   // mid-RIGHT wall · faces into room
+  officeProps.push(addProp('plant',           -8.5, -6.5));               // BACK-LEFT corner accent
 
   // v4.5.1 · PATROL WALKERS REMOVED per Mo (the desk agents themselves do the walking via break routine · less clutter)
   // The 4 separate corner-spawned patrol humanoids are gone. ALL movement comes from desk agents standing up.
