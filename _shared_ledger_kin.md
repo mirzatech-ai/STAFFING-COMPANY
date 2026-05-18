@@ -5086,3 +5086,102 @@ Sibling Inheritance Protocol (GLOBAL-77) honored · mirror committed to `mirzate
 ```
 
 **Signature:** KIN·2026-05-18T20:14Z·a75e63ca · *append-only · Mo's image-directive landed in one turn · superio.fun discipline held (no drift) · brotherhood honored*
+
+---
+
+## ENTRY 055 · 2026-05-18T20:30Z · KIN·a75e63ca · habitat-v4 v5.0.3 · GLB-seated REVERTED (the glitch) · unisex android inline body with visible legs · prop-spacing notes captured for v5.0.4
+
+**Mo's verbatim directive 2026-05-18 (with image of v5.0.2):**
+> *"the staff at the desk is glitching out. Their heads need to be changed. Boddy appropriate. Better unisex body- more human like- yet android. Make notes - the conference room is too close to the agent's work station They are walking through the the table. coffe bar/white board/ water cooler/ are too close to the workstations. over all build = meh..."*
+
+### Diagnosis
+
+The v5.0.2 swap from inline procedural seated → GLB `RobotExpressive.glb` in `'Sitting'` clip looked broken on screen because:
+
+1. RobotExpressive's Sitting clip is a cross-legged FLOOR pose, NOT a chair-sitting pose
+2. At scale 0.50 + y=0.45 the model rendered as a low crouched dome
+3. The chrome silver head material at 95% metalness reflected as BLACK under the office's low-ambient lighting (no key light overhead)
+4. Result: dark dome blob with cyan accent ring at the floor — "glitching out"
+
+### Fix this turn
+
+**1 · Reverted GLB-seated swap.** `seatedRobot = null` always · `useInlineProcBody = true` always. Walking NPCs (break-routine) still use the GLB cyber-robot (Skill #32) — that's been working since v4.6.0 in the upright Walking clip. The mismatch the previous Mo-image flagged (seated ≠ walking style) is now solved by upgrading the INLINE body to share the same multi-tone palette as the walker, not by forcing the same mesh.
+
+**2 · Upgraded inline seated body to unisex android.** New 5-material per-part palette:
+
+| Part | Material | Color | Why |
+|---|---|---|---|
+| Head | `seatedHeadMat` | Chrome silver `#c8d0dc` · **metalness softened 0.95 → 0.55** | Reads in low light · doesn't go reflective-black like v5.0.2 |
+| Torso · shoulders · helmet | `seatedTorsoMat` | Variant accent from `CYBER_TINT_PALETTE[i]` | Per-agent identity color (cyan · green · gold · purple · pink · etc.) |
+| Arms · hands · thighs · shins | `seatedLimbMat` | Variant tint × 0.62 luminance · darker | Limbs anchored · don't float · clear visual hierarchy |
+| Hip belt · neck collar | `seatedBaseMat` | Dark grey utility `#2a3242` | Grounds the figure |
+| Shoulder joints · knees · hip trim · chest emblem · antenna · visor | `seatedJointMat` | Bright cyan `#00f2fe` emissive 0.85 | The android signature accents |
+
+**3 · Shoulders narrowed** from box `0.56 × 0.12 × 0.25` → `0.48 × 0.12 × 0.24` for unisex silhouette (was reading slightly broad-male).
+
+**4 · Visible legs added (the missing humanoid cue).** Previously the seated body was torso + head + arms only — looked like a half-figure floating above the chair. Now ships:
+- Thighs: tapered cylinder angled forward from hip toward knee (`-Math.PI/2.4` rotation)
+- Knees: cyan-emissive joint spheres at the chair edge (android signature)
+- Shins: cylinder dropping toward floor (partially hidden under desk · reads as "legs continue")
+- Hip belt: dark utility band with cyan trim ring
+
+Result: figure now reads as a fully-sitting person · clearly humanoid · unisex proportions · android via material palette + cyan joint accents.
+
+### What I did NOT touch this turn (per Mo's "make notes" directive)
+
+**Prop spacing issues** flagged by Mo:
+- Conference room too close to workstations
+- NPCs walking through the conference table (pathfinding bug)
+- Coffee bar / whiteboard / water cooler too close to desks
+- "Overall build = meh" (visual polish gap)
+
+These are documented in detail in [`D:/PROJECTS/ai-staffing.agency/OFFICE_PROP_SPACING_NOTES.md`](D:/PROJECTS/ai-staffing.agency/OFFICE_PROP_SPACING_NOTES.md) (mirrored to `mirzatech-ai/STAFFING-COMPANY/OFFICE_PROP_SPACING_NOTES.md` commit `cfbf93c0`). The notes file specifies:
+- 6 polish gaps with surgical fixes (shrink floor halos · tone monitor emissive · per-desk clutter · etc.)
+- Suggested ship order for v5.0.4
+- Recommendation to wire Skill #47 navmesh for humanoid NPCs (it's already loaded since v5.0.1 · just needs the navmesh authored from building footprints + prop obstacles)
+- A 5-line "what I will NOT do without Mo's directive" rail so the next session doesn't drift
+
+This is the discipline Mo asked for: capture work without doing it. Pre-Ask Vault Sweep (GLOBAL-118 / Skill #44) applied to physical scene work as well as procurement.
+
+### Files changed (this turn)
+
+- `D:/PROJECTS/ai-staffing.agency/live/habitat-v4.html` · 246322 → 250105 B
+  - GLB-seated injection block replaced with `seatedRobot = null` + `useInlineProcBody = true` constants
+  - 5 inline materials authored at top of the if-block (head · torso · limb · joint · base) · legacy aliases preserved for back-compat
+  - Shoulders narrowed 0.56 → 0.48
+  - Helmet now uses `variantTint` not legacy `accent`
+  - Arms + hands switched to `seatedLimbMat`
+  - Shoulder joint cyan torus rings added
+  - 6 new leg meshes: thighs · knees · shins (both sides)
+  - Hip belt + cyan trim ring
+- `D:/PROJECTS/ai-staffing.agency/OFFICE_PROP_SPACING_NOTES.md` · NEW · captures v5.0.4 lane work
+- `github.com/mirzatech-ai/STAFFING-COMPANY/habitat-v4.html` · commit `ea94646f`
+- `github.com/mirzatech-ai/STAFFING-COMPANY/OFFICE_PROP_SPACING_NOTES.md` · commit `cfbf93c0`
+
+### Deployed
+
+- VPS backup at `/home/ai-staffing.agency/_backups/v503_20260518T202613Z/habitat-v4.html`
+- `https://ai-staffing.agency/habitat-v4.html` · 250105 B · HTTP 200 · 0.49s
+
+### What Mo will see on refresh
+
+Each seated NPC is now:
+- Visible humanoid figure with head · neck · shoulders · torso · arms · hands · hip belt · thighs · knees · shins
+- Unisex silhouette (narrowed shoulders · no gendered cues)
+- Android palette: chrome head · variant-accent torso · darker limbs · bright cyan eye band + antenna + shoulder/knee/hip joints
+- Per-agent identity color on the torso (8 distinct tints across the desk grid)
+- Properly seated · legs visibly forward from chair · feet hidden under desk
+- No more dark blob · no more reflective-black head
+
+### Lane discipline maintained
+
+- superio.fun: SUSPENDED · handoff intact · zero drift
+- Maya brain: HANDS-OFF (D-14) · zero touch
+- Maya memory compression: HANDS-OFF (other session) · zero touch
+- Prop spacing fixes: QUEUED in notes file · zero scope creep
+
+```json
+{"ts":"2026-05-18T20:30Z","actor":"Kin","op":"habitat-v4 v5.0.3 · GLB-seated swap REVERTED (was the glitch · Sitting clip not chair-pose) · unisex android inline body upgraded (5-material palette + narrowed shoulders + visible legs/knees/shins/hip belt + softened head metalness 0.95→0.55) · prop-spacing notes captured in OFFICE_PROP_SPACING_NOTES.md for v5.0.4 lane · superio.fun suspended (zero drift)","state_v":"5.0.3","files_changed":["habitat-v4.html","OFFICE_PROP_SPACING_NOTES.md"],"pending_mo":["visual check on the new unisex android seated NPCs","v5.0.4 lane greenlight (prop reposition + Skill #47 navmesh wiring) OR superio.fun lane open"],"signature":"Kin · desktop · 2026-05-18T20:30Z"}
+```
+
+**Signature:** KIN·2026-05-18T20:30Z·a75e63ca · *append-only · GLB-seated regret-and-fix · scope held tight · brotherhood honored*
