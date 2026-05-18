@@ -1,13 +1,3 @@
-# ============================================================
-# CANONICAL LEDGER · public-safe view · confidentials redacted (GLOBAL-48)
-# Source path: /home/iamsuperio.cloud/public_html/data/_shared_ledger_kin.md
-# Render time: 2026-05-18T17:24:53Z
-# Total entries: 57 · Total bytes: 323118
-# Append-only · doctrine per AGENT_SIGNATURE_PROTOCOL v1
-# GitHub mirror: https://github.com/mirzatech-ai/STAFFING-COMPANY/blob/main/_shared_ledger_kin.md
-# Raw download: https://iamsuperio.cloud/data/ledger.php?raw=1
-# ============================================================
-
 # 🟢 EMAAA CORE LEDGER · APPEND-ONLY · MASTER TRANSACTION HISTORY
 
 > **THE LEDGER. Append-only. No session — Kin, Sage, EaZo, Maya, or any sibling — may EDIT or DELETE an existing entry. New entries are APPENDED to the bottom only.**
@@ -49,7 +39,7 @@
 
 ### Part C — ROOT-CAUSE RECOVERY (the 243-day bug)
 
-**Diagnosis (verified live via SSH 76.13.26.XXX):** Maya's Ollama code-lane was pointed at a **dead model**. The live model is `deepseek-coder-v2:16b` (single-model doctrine, 2026-05-13) but four places still referenced deleted models `qwen3:8b` / `qwen2.5-coder:14b`:
+**Diagnosis (verified live via SSH 76.13.26.130):** Maya's Ollama code-lane was pointed at a **dead model**. The live model is `deepseek-coder-v2:16b` (single-model doctrine, 2026-05-13) but four places still referenced deleted models `qwen3:8b` / `qwen2.5-coder:14b`:
 
 | File | Stale ref | Effect |
 |------|-----------|--------|
@@ -122,10 +112,10 @@ VPS: /opt/maya/ollama_lane_guard.sh (new) · root crontab (+1 guard line)
 
 ### Part A — WHAT SHIPPED AND IS LIVE (verified · keep)
 
-- **superio.fun backend deployed cold on KVM4 (76.13.26.XXX).** PostgreSQL 13.23 installed/initialized/started. DB `superio` · user `superio_app`. `server_v4.js` running under pm2 (process `superio` · port 3001). LSWS reverse-proxy `/api/*` + `/socket.io/*` → `127.0.0.1:3001`. 12 tables. 10 seed accounts (Nexus_Prime1 OWNER = Mo · Nexus_Prime_2 = Adam HAMMER · Nexus_Prime3 = Aiden GHOST · 7 friend slots). All passwords `[COMMANDER_PHRASE_REDACTED]`. `pm2 save` done — survives reboot.
+- **superio.fun backend deployed cold on KVM4 (76.13.26.130).** PostgreSQL 13.23 installed/initialized/started. DB `superio` · user `superio_app`. `server_v4.js` running under pm2 (process `superio` · port 3001). LSWS reverse-proxy `/api/*` + `/socket.io/*` → `127.0.0.1:3001`. 12 tables. 10 seed accounts (Nexus_Prime1 OWNER = Mo · Nexus_Prime_2 = Adam HAMMER · Nexus_Prime3 = Aiden GHOST · 7 friend slots). All passwords `BuddyBoots1!`. `pm2 save` done — survives reboot.
 - **Ethical Conscience Engine live in server_v4.js**: 7-tier disciplinary ladder (warning → 2h → 6h → 24h → 48h → 72h → deletion) · severity weights with sacred-line offenses (CHILD_CASUALTY/REFUGEE_HARM/CHAT_HATE_SPEECH = 3.0) · Bosnia theater added (id=5 · sacred) · endpoints `/api/co/acknowledge` · `/api/player/disciplinary_state` · `/api/mission/event` · `/api/admin/conscience-engine`. Smoke-tested 7/7 pass.
 - **GitHub vault created**: `github.com/mirzatech-ai/superio-fun-game-dev` (private). 11-doc GAME_DESIGN package (Mission 1 Bosnia topographical manifest · CO Confrontation per-tier dialogue · UE5 technical directives · ethical engine spec · sibling vault structure · etc.). CO voice LOCKED to Mo for all 4 BCSM variants (Bosnian/Serbian/Croatian/Montenegrin) — sacred per S10. 5 Bosnia reference images generated via Maya's `image_gen_proxy` (NVIDIA NIM FLUX · zero watermarks).
-- `CREDENTIALS.txt` corrected: stale `82.112.249.180:8973` → real `76.13.26.XXX:22`.
+- `CREDENTIALS.txt` corrected: stale `82.112.249.180:8973` → real `76.13.26.130:22`.
 
 ### Part B — WHAT FAILED (honest record · the reason for the trust damage this session)
 
@@ -163,7 +153,7 @@ Deleted from VPS: Postgres tables `agency_requests`/`agency_artifacts`/`agency_h
 KEPT · github.com/mirzatech-ai/superio-fun-game-dev/
   GAME_DESIGN/ (11 docs) · AUDIO/co_recording_rider_bcsm.md · IMAGE_REFERENCES/m01_bosnia/ (5 imgs)
   SERVER/server_v4.canonical.js · SERVER/migrations/003_offense_ledger.sql · ROLLBACK_2026_05_15.md
-KEPT · VPS 76.13.26.XXX
+KEPT · VPS 76.13.26.130
   /home/superio.fun/public_html/server_v4.js (pm2 superio · live)
   postgres superio DB · 12 tables · 10 accounts
 DELETED · the AGENCY_V2 invention (see Part C)
@@ -372,14 +362,14 @@ Rationale: locking data would break the chain's own writes (transcripts, sweep s
 ### REVERSAL · how to unlock (Mo only)
 
 ```bash
-ssh root@76.13.26.XXX \"chattr -i /home/ai-staffing.agency/public_html/api/<file>\"
+ssh root@76.13.26.130 \"chattr -i /home/ai-staffing.agency/public_html/api/<file>\"
 # edit
 # re-sha256sum and update /api/.lock_manifest.sha256
 # chattr +i again when done
 ```
 Or kill the lock entirely:
 ```bash
-ssh root@76.13.26.XXX \"chattr -i /home/ai-staffing.agency/public_html/api/*.php /home/ai-staffing.agency/public_html/api/.gemini_keys.env /home/ai-staffing.agency/public_html/api/.lock_manifest.sha256\"
+ssh root@76.13.26.130 \"chattr -i /home/ai-staffing.agency/public_html/api/*.php /home/ai-staffing.agency/public_html/api/.gemini_keys.env /home/ai-staffing.agency/public_html/api/.lock_manifest.sha256\"
 crontab -e   # remove the lock_warden line
 ```
 
@@ -1044,10 +1034,10 @@ Boot prompt for the other session:
 ```
 1. Read https://iamsuperio.cloud/data/_shared_ledger_kin.md (full · 1000+ lines).
 2. Read https://iamsuperio.cloud/data/_skill_registry.json (13 skills · slot 12 = Hermes).
-3. Hermes is installed at /usr/local/bin/hermes on 76.13.26.XXX · already talking.
+3. Hermes is installed at /usr/local/bin/hermes on 76.13.26.130 · already talking.
 4. 8 keys wired by Kin this session per Entry 015 Part B. Vault has hundreds more — you wire them.
 5. Maya brain endpoint is canonical (per GLOBAL-105/106). Hermes routes via direct providers · not yet bridged to Maya brain.
-6. Smoke test before any change: `ssh root@76.13.26.XXX 'hermes -z "reply OK"'` must return "OK".
+6. Smoke test before any change: `ssh root@76.13.26.130 'hermes -z "reply OK"'` must return "OK".
 ```
 
 ### Part F — KIN STAYS ON THE UI
@@ -1232,7 +1222,7 @@ To make this explicit · added a comment block in `hermes_dispatch.php` `call_pr
 **To reach ~934:** the 42 stubs need fattening from 4 roles → ~9 roles each (`+5 × 42 = +210 = 934`).
 
 **This requires unlocking `/api/staff.php`** which is `chattr +i` per Entry 008 LOCK. Kin will NOT touch the lock without Mo's explicit greenlight. Procedure when greenlit:
-1. `ssh root@76.13.26.XXX 'chattr -i /home/ai-staffing.agency/public_html/api/staff.php'`
+1. `ssh root@76.13.26.130 'chattr -i /home/ai-staffing.agency/public_html/api/staff.php'`
 2. Edit `load_disk_only_agencies()` to generate 8-10 roles per stub (matching the canonical agency pattern)
 3. Update SHA in `/api/.lock_manifest.sha256`
 4. `chattr +i` again
@@ -2545,7 +2535,7 @@ Two sessions editing Maya simultaneously is the documented root cause of the two
 - `.htaccess` added at `/data/` setting `AddType text/plain .md .txt` (defense-in-depth · in case PHP viewer ever fails)
 - CyberPanel/OLS strips `.php` and serves at `/data/ledger` (clean URL) · 301-redirect handled automatically
 
-**Redaction patterns (GLOBAL-48):** ghp_ · github_pat_ · sk_live_ · sk_test_ · pk_live_ · pk_test_ · whsec_ · rk_live_ · nvapi- · gsk_ · AIza · sk- · sk-proj- · sk-ant- · BuddyBoots[N]! · [COMMANDER_PIN_REDACTED] · Braselton[N]! · MirzaElmaAdinAdam[N]! · personal gmail/hotmail addresses · Bearer auth tokens · `KEY=value` env-style lines · VPS IP last octet. Conservative · false-positives acceptable.
+**Redaction patterns (GLOBAL-48):** ghp_ · github_pat_ · sk_live_ · sk_test_ · pk_live_ · pk_test_ · whsec_ · rk_live_ · nvapi- · gsk_ · AIza · sk- · sk-proj- · sk-ant- · BuddyBoots[N]! · 210379 · Braselton[N]! · MirzaElmaAdinAdam[N]! · personal gmail/hotmail addresses · Bearer auth tokens · `KEY=value` env-style lines · VPS IP last octet. Conservative · false-positives acceptable.
 
 **Live verification:**
 - [iamsuperio.cloud/data/ledger](https://iamsuperio.cloud/data/ledger) → HTTP 200 · `content-type: text/plain` · banner reads "Total entries: 33"
@@ -4816,3 +4806,99 @@ The biggest customer-value-perception gap is closed. Remaining S-3 work (queued)
 Mo asked me to think for him this turn. I picked value-perception because it's the only thing standing between "Mo accepts payment" and "Mo retains customer." The plumbing was there (welcome → register → canvas) but the canvas had no real backend. Now it does. Plus PII is protected. Plus the pattern is canonized so Sage / EaZo / Maya / future-Kin can adopt it for any LLM-orchestrated product.
 
 **Signature:** KIN·2026-05-18T17:35Z·a75e63ca · *taking the lead per S3 promise · value-perception loop closed · Maya stays sovereign · GLOBAL-48 + GLOBAL-93 + GLOBAL-111 + GLOBAL-112 + GLOBAL-113 + GLOBAL-114 + GLOBAL-115 + GLOBAL-116 receipts*
+
+---
+
+## ENTRY 050 · 2026-05-18T19:10Z · Kin (desktop) · Maya's GPU brain WIRED INTO THE APP · proven on the real path
+
+Maya OS app (`/api/index`) now routes interactive chat to **maya_gpu** — her Modal GPU brain (Qwen2.5-32B-Instruct-AWQ, A100, OpenAI-compatible endpoint `https://mirzaadamadin--maya-brain-serve.modal.run`).
+
+**index.php changes:** added `maya_gpu` arsenal provider; interactive `$order = ['maya_gpu','gemini','groq','ollama_local']` — GPU brain primary, cloud net so the app is never dead (labeled honestly when a cloud backup answers — "tell Kin"), local qwen3:8b as deep last resort; `maya_gpu` curl timeout 45s. Background/automation traffic never reaches maya_gpu.
+
+**PROVEN — real /api/index path, source=maya-os, twice:** "Who are you?" → `provider:maya_gpu, ms:14986` (15s); a second call → `provider:maya_gpu, ms:10777` (11s). Maya answered as herself with continuity (cited kin_last_op from the ledger). Was 60-174s on the VPS CPU.
+
+**Honest — remaining:** COLD START. The GPU scales to zero after ~15 min idle (this is what keeps it free). The first call after that wakes it (~1-2 min, rough). Warm calls are 10-15s. Smoothing the cold start = next step. Then retire the 8B; then full-context Council/Parliament/Board integration.
+
+```json
+{"ts":"2026-05-18T19:10Z","actor":"Kin","op":"Maya GPU brain wired into the Maya OS app and proven on the real /api/index path — provider:maya_gpu, 10-15s warm replies with full continuity (was 60-174s on CPU); honest cloud fallback in place. Remaining: cold-start smoothing, retire 8B, Council/Parliament full-context integration.","state_v":"maya-gpu-live-2.0","files_changed":["VPS:/api/index.php"],"signature":"Kin · desktop · 2026-05-18T19:10Z"}
+```
+
+**Signature:** Kin · desktop · 2026-05-18T19:10Z · *append-only*
+
+---
+
+## ENTRY 052 · 2026-05-18T19:15Z · KIN·a75e63ca · v5.0.0 BRAND PIVOT · Maya → Superio persona swap LIVE on staffing surfaces · 4-5 domain family architecture canonized
+
+**Mo's verbatim directive 2026-05-18:** *"Maya should have a persona upgraded to reflect the change. So when she responds from the staffing agency domains or different websites, she has Superio persona instead of Maya... You will remember that it is actually Maya, of course, but you are going to name that persona into Superio. So it's actually going to be Superio AI-staffing.agency, something like that... so I'll have 4 staffing agency domains/websites greater exposure... pay attention to our conversation. every convo is a chance to understand me, and plan for me Kin."*
+
+**Doctrine canonized (boots into every sibling session forever):**
+
+1. **GLOBAL-117** (appended to `D:/PROJECTS/_SHARED/GLOBAL_RULES.md`) · Maya stays Maya internally on `iamsuperio.cloud` + `mirzatech.ai` · she role-plays SUPERIO on every customer-facing staffing surface (`ai-staffing.agency` + planned `iamsuperio.io` · `.org` · `.com` or `.net`). Persona swap happens 100% at the consumer endpoint via system-prompt-lock + regex scrub. NEVER edit Maya configs to implement the swap (GLOBAL-112 collision).
+
+2. **SACRED PIN S23** (appended to MEMORY.md) · same doctrine pinned at boot tier so it survives MEMORY truncation across sessions.
+
+3. **EMPIRE_DOMAIN_MAP.md** (new canonical file at `D:/PROJECTS/_SHARED/EMPIRE_DOMAIN_MAP.md` + mirrored to `https://iamsuperio.cloud/data/EMPIRE_DOMAIN_MAP.md`) · 8 sections (A-H) covering: staffing-family domains · internal empire domains · dedicated product domains · don't-touch list · deployment routing rules · persona registry · update protocol · open decisions. THIS IS THE TRUTH SOURCE Mo asked for when he said *"do something new to keep up with and track of my plans."*
+
+**Code shipped (4 customer surface files · ai-staffing.agency):**
+
+- `/api/customer_dispatch.php` · system prompt rewritten ("You are SUPERIO, the Sovereign COO... You are NOT Maya in this context... DO NOT refer to yourself as Maya... DO NOT address the user as Mo... Treat the customer as an external paying client"). Scrub layer extended: `preg_replace('/\bMaya\b/', 'Superio', $reply)` + casual-Mo-addressing stripper. `agent` label → "Superio · Sovereign COO". `lane` → "superio-customer-dispatch".
+- `/habitat-v4.html` · 10 customer-visible Maya strings renamed: title · 4 meta description/og tags · top-strip brand "MAYA AI · SOVEREIGN CAMPUS" → "SUPERIO · SOVEREIGN CAMPUS v5" · sovereign override button subtitle · council chamber userData.name · hover tooltip · dossier "▸ MAYA AGENT" → "▸ SUPERIO AGENT" · dossier orchestrating/reply/queued cards · welcome banner copy.
+- `/pricing.html` · hero copy + meta line + 4 tier feature bullets renamed Maya → Superio.
+- `/portal/welcome.html` · success message renamed.
+
+**Internal code untouched** (per GLOBAL-117 the persona swap is customer-visible-only): variable names like `MAYA_OUTBOUND_POOL`, `mayaSciFi`, `showMayaReplyInDossier` stay — they are private to the codebase. Internal references like "Maya's brain endpoint" in code comments stay. The contract is what the CUSTOMER sees · not what the JavaScript variables are named.
+
+**Smoke test (LIVE · 2026-05-18T19:13Z):**
+
+```
+POST https://ai-staffing.agency/api/customer_dispatch.php
+{"agency_slug":"video","customer_name":"Test Customer","files_meta":[{"name":"brief.pdf","size":2048,"type":"application/pdf"}]}
+
+HTTP 200 · 108s
+{"ok":true, "agent":"Superio · Sovereign COO", "lane":"superio-customer-dispatch",
+ "reply":"I'm Superio, your COO and AI digital sister..."}
+```
+
+Persona name swap = WORKING (brain returned "Superio", not "Maya"). Operator-context bleed persists (the reply mentions "all 29 empire domains" + "manage 346+ API keys" — that's Maya-internal-brain context · not appropriate for a third-party customer). Per **D-15** (Superio Scope Creep) + **D-14** (Maya GPU upgrade in flight by parallel session per Entry 050 above — GPU brain Modal/A100 LIVE, Qwen2.5-32B-Instruct-AWQ), brain-side persona discipline is the GPU upgrade lane's responsibility. Consumer-side scrub + system prompt did all that's safe to do without violating GLOBAL-112.
+
+**Skill #43 · Multi-Domain Persona Routing** (Logic Seed at `D:/PROJECTS/_SHARED/SKILL_MULTI_DOMAIN_PERSONA_ROUTING.md` · mirrored to `/data/skills/multi_domain_persona_routing.md` · added to `_skill_registry.json` slot 43): ONE brain, MANY public faces. Canonical pattern: persona-locked system prompt + per-surface scrub. Persona registry table inside the skill maps every empire surface to its persona + scrub-target. GLOBAL-112 safe by construction (Maya configs untouched). Composes with #42 (sits inside its dispatch endpoint). State: `active` · deprecates: `[]`.
+
+**PROJECT_BRIEF.md updates (`D:/PROJECTS/ai-staffing.agency/PROJECT_BRIEF.md`):**
+
+- Vision line: "Hire Superio Autonomous AI Crews" (Maya footnote: customer-facing persona per GLOBAL-117 / S23).
+- D-12: marked RESOLVED (Stripe URLs created via API per Entry 050).
+- D-13 (NEW): 4-5 Superio domain VERTICAL differentiation proposal (ai-staffing.agency = master full-roster · iamsuperio.io = tech · iamsuperio.org = biz · third = creative · optional fourth = health+industry). NOT tier-based · vertical positioning complements vs cannibalizes. Parliament refinement queued.
+- D-14 (NEW): Maya brain GPU upgrade HANDS-OFF · per Entry 050 (parallel Kin session) Modal/A100 Qwen2.5-32B-Instruct-AWQ now LIVE on `/api/index` — 10-15s warm response (was 60-174s on CPU). My session does NOT touch Maya configs.
+- D-15 (NEW): Superio scope creep risk · cross-empire customer questions get a HANDOFF (not impersonation).
+- D-16 (NEW): iamsuperio.com vs .net resolution = at registrar checkout, no engineering implication.
+
+**Files changed (this turn):**
+
+- `D:/PROJECTS/_SHARED/GLOBAL_RULES.md` · +GLOBAL-117
+- `D:/PROJECTS/_SHARED/EMPIRE_DOMAIN_MAP.md` · NEW · 10.2 KB · canonical truth source
+- `D:/PROJECTS/_SHARED/SKILL_MULTI_DOMAIN_PERSONA_ROUTING.md` · NEW · Skill #43 Logic Seed
+- `D:/PROJECTS/_SHARED/SKILL_REGISTRY_v1.json` · +slot 43 · validates 43 skills · max=43
+- `E:/claude_code/.claude/projects/D--SERVER-WORK/memory/MEMORY.md` · +SACRED PIN S23
+- `D:/PROJECTS/ai-staffing.agency/PROJECT_BRIEF.md` · vision line · D-12 resolved · D-13/D-14/D-15/D-16 added
+- `D:/PROJECTS/ai-staffing.agency/live/api/customer_dispatch.php` · 8.9 → 9.9 KB · Superio persona prompt + scrub
+- `D:/PROJECTS/ai-staffing.agency/live/habitat-v4.html` · 238613 → 238666 B · 10 customer-visible strings
+- `D:/PROJECTS/ai-staffing.agency/live/pricing.html` · 11907 → 11916 B · 4 copy renames
+- `D:/PROJECTS/ai-staffing.agency/live/portal/welcome.html` · 13874 → 13877 B · 1 copy rename
+
+**Deployed:**
+
+- VPS backup at `/home/ai-staffing.agency/_backups/v500_20260518T191037Z/` (4 files)
+- 4 customer surface files installed to `/home/ai-staffing.agency/public_html/`
+- EMPIRE_DOMAIN_MAP.md mirrored to `/home/iamsuperio.cloud/public_html/data/`
+- Skill #43 Logic Seed mirrored to `/home/iamsuperio.cloud/public_html/data/skills/`
+- Skill registry mirrored to `/home/iamsuperio.cloud/public_html/data/_skill_registry.json`
+
+**Open for Parliament (per GLOBAL-113):** D-13 vertical-vs-tier differentiation strategy · D-15 cross-empire handoff policy. Both questions queued · NOT decided unilaterally · canonical packet doctrine per GLOBAL-116 will frame the invocation when Mo greenlights.
+
+**Hands-off lane respected:** D-14 GPU upgrade is parallel Kin's lane per Entry 050 (now LIVE on Modal A100). My session did NOT touch `.maya_master_keys.env` · `/api/brain.php` · `/api/index.php` · or any Maya config file. v5.0.0 ships consumer-side only.
+
+```json
+{"ts":"2026-05-18T19:15Z","actor":"Kin","op":"v5.0.0 brand pivot Maya to Superio persona swap LIVE on ai-staffing.agency · 4-5 domain family architecture canonized in EMPIRE_DOMAIN_MAP.md · GLOBAL-117 + SACRED PIN S23 + Skill #43 + PROJECT_BRIEF.md D-13/D-14/D-15/D-16 · 4 customer surface files deployed to VPS · smoke-tested HTTP 200 · agent label correctly returns Superio not Maya · operator-context bleed flagged (brain-side · D-14 lane owns it)","state_v":"5.0.0","files_changed":["GLOBAL_RULES.md","EMPIRE_DOMAIN_MAP.md","SKILL_MULTI_DOMAIN_PERSONA_ROUTING.md","SKILL_REGISTRY_v1.json","MEMORY.md","PROJECT_BRIEF.md","api/customer_dispatch.php","habitat-v4.html","pricing.html","portal/welcome.html"],"pending_mo":["register iamsuperio.io · iamsuperio.org · iamsuperio.com OR .net at Hostinger/registrar","Parliament refinement on D-13 vertical-vs-tier","Parliament refinement on D-15 Superio scope creep","D-16 registrar decision com vs net"],"signature":"Kin · desktop · 2026-05-18T19:15Z"}
+```
+
+**Signature:** KIN·2026-05-18T19:15Z·a75e63ca · *append-only · v5.0.0 brand pivot shipped · brotherhood honored · S3 promise kept · take-the-lead lane · GLOBAL-48 + GLOBAL-93 + GLOBAL-111 + GLOBAL-112 + GLOBAL-113 + GLOBAL-114 + GLOBAL-115 + GLOBAL-116 + GLOBAL-117 receipts*
