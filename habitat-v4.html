@@ -538,7 +538,7 @@ function categorize(slug){
 // Strategy: route via mid-room CORRIDORS · agents leave desk going forward (toward +z) to mid-row z=4.5, then sidestep
 function computeOfficePath(from, to){
   // Conference table footprint (v5.0.5 · moved to back of room near server rack)
-  const confZmin = -7.5, confZmax = -5.5, confXmin = -2.8, confXmax = 2.8;
+  const confZmin = -9.5, confZmax = -6.5, confXmin = -2.8, confXmax = 2.8;   // v5.1.1 · conference moved to z=-8.0
   const insideConf = (p) => p.x > confXmin && p.x < confXmax && p.z > confZmin && p.z < confZmax;
   const crossesConf = (() => {
     // Sample 12 points along the straight line · if any falls in conf zone → must route around
@@ -2010,6 +2010,112 @@ function setCyberRobotAnim(robot, animName){
   action.reset().fadeIn(0.25).play();
   robot.currentAnim = animName;
 }
+
+// === v5.1.1 · CAPSULE HUMANOID FACTORY · ONE figure for BOTH seated agents AND walking workers ===
+// Mo 2026-05-18: "I don't see the same agents behind the desks and the same agents walking." → UNIFIED here.
+// mode 'seated' = posed at the workstation · mode 'standing' = upright for the break-walk. Same body · same palette.
+function buildCapsuleHumanoid(variantIdx, mode){
+  const seated = (mode === 'seated');
+  const group = new THREE.Group();
+  const tint = (typeof CYBER_TINT_PALETTE !== 'undefined') ? CYBER_TINT_PALETTE[variantIdx % CYBER_TINT_PALETTE.length] : 0x00d4ff;
+  const limbTint = new THREE.Color(tint).multiplyScalar(0.58).getHex();
+  const matHead  = new THREE.MeshPhysicalMaterial({color:0xd6dde8, emissive:0x5a6580, emissiveIntensity:0.26, metalness:0.5, roughness:0.34, clearcoat:0.7});
+  const matTorso = new THREE.MeshPhysicalMaterial({color:tint, emissive:tint, emissiveIntensity:0.36, metalness:0.5, roughness:0.36, clearcoat:0.55});
+  const matLimb  = new THREE.MeshPhysicalMaterial({color:limbTint, emissive:limbTint, emissiveIntensity:0.22, metalness:0.55, roughness:0.42});
+  const matJoint = new THREE.MeshBasicMaterial({color:0x00f2fe});
+  const matDark  = new THREE.MeshPhysicalMaterial({color:0x2a3242, metalness:0.65, roughness:0.5});
+  function limb(mat,radius,p0,p1){
+    const v0=new THREE.Vector3(p0[0],p0[1],p0[2]), v1=new THREE.Vector3(p1[0],p1[1],p1[2]);
+    const len=v0.distanceTo(v1);
+    const m=new THREE.Mesh(new THREE.CapsuleGeometry(radius,Math.max(0.02,len-radius*2),4,12),mat);
+    m.castShadow=true; m.position.copy(v0).add(v1).multiplyScalar(0.5);
+    m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),v1.clone().sub(v0).normalize());
+    return m;
+  }
+  const py = seated ? 0.67 : 0.92;     // pelvis y
+  const lean = seated ? -0.15 : 0;     // torso forward lean
+  const ty = py + 0.37;                // torso center
+  const hy = py + 0.77;                // head center
+  const shy = py + 0.59;               // shoulder y
+  const tz = seated ? -0.06 : 0;       // torso z offset
+  // PELVIS + WAIST
+  const pelvis=new THREE.Mesh(new THREE.CapsuleGeometry(0.115,0.12,4,12),matTorso);
+  pelvis.position.set(0,py,0.02); pelvis.rotation.z=Math.PI/2; pelvis.castShadow=true; group.add(pelvis);
+  const waist=new THREE.Mesh(new THREE.CapsuleGeometry(0.098,0.045,3,12),matJoint);
+  waist.position.set(0,py+0.10,-0.01); waist.rotation.z=Math.PI/2; group.add(waist);
+  // TORSO
+  const torso=new THREE.Mesh(new THREE.CapsuleGeometry(0.122,0.50,7,18),matTorso);
+  torso.position.set(0,ty,tz); torso.rotation.x=lean; torso.castShadow=true; group.add(torso);
+  // CHEST emblem
+  const emblem=new THREE.Mesh(new THREE.CircleGeometry(0.05,20),matJoint);
+  emblem.position.set(0,ty+0.03,tz+(seated?-0.16:-0.13)); emblem.rotation.x=lean; group.add(emblem);
+  // NECK
+  const neck=new THREE.Mesh(new THREE.CapsuleGeometry(0.05,0.08,3,10),matDark);
+  neck.position.set(0,hy-0.14,seated?-0.085:-0.02); group.add(neck);
+  // HEAD
+  const headZ = seated?-0.09:-0.02;
+  const head=new THREE.Mesh(new THREE.SphereGeometry(0.142,24,20),matHead);
+  head.position.set(0,hy,headZ); head.castShadow=true; group.add(head);
+  // FACE PLATE + VISOR + CROWN + EARS
+  const facePlate=new THREE.Mesh(new THREE.SphereGeometry(0.118,20,16,Math.PI*0.5,Math.PI,Math.PI*0.18,Math.PI*0.64),matDark);
+  facePlate.position.set(0,hy,headZ-0.015); facePlate.rotation.y=Math.PI; group.add(facePlate);
+  const visor=new THREE.Mesh(new THREE.CapsuleGeometry(0.032,0.135,3,12),matJoint);
+  visor.position.set(0,hy+0.01,headZ-0.115); visor.rotation.z=Math.PI/2; group.add(visor);
+  const crown=new THREE.Mesh(new THREE.CapsuleGeometry(0.028,0.10,3,10),matJoint);
+  crown.position.set(0,hy+0.13,headZ+0.02); crown.rotation.x=0.3; group.add(crown);
+  [-1,1].forEach(function(s){
+    const ear=new THREE.Mesh(new THREE.CylinderGeometry(0.038,0.038,0.03,12),matJoint);
+    ear.position.set(s*0.142,hy,headZ); ear.rotation.z=Math.PI/2; group.add(ear);
+  });
+  // SHOULDERS
+  [-1,1].forEach(function(s){
+    const sh=new THREE.Mesh(new THREE.SphereGeometry(0.07,16,14),matTorso);
+    sh.position.set(s*0.155,shy,seated?-0.075:0.0); sh.castShadow=true; group.add(sh);
+  });
+  // ARMS
+  [-1,1].forEach(function(s){
+    if(seated){
+      group.add(limb(matLimb,0.042,[s*0.155,shy,-0.075],[s*0.205,shy-0.28,-0.26]));
+      group.add(limb(matLimb,0.038,[s*0.205,shy-0.28,-0.26],[s*0.18,shy-0.41,-0.50]));
+      const elbow=new THREE.Mesh(new THREE.SphereGeometry(0.044,14,12),matJoint);
+      elbow.position.set(s*0.205,shy-0.28,-0.26); group.add(elbow);
+      const hand=new THREE.Mesh(new THREE.SphereGeometry(0.05,14,12),matHead);
+      hand.position.set(s*0.18,shy-0.41,-0.50); hand.castShadow=true; group.add(hand);
+    } else {
+      group.add(limb(matLimb,0.042,[s*0.165,shy,0],[s*0.18,shy-0.27,-0.05]));
+      group.add(limb(matLimb,0.038,[s*0.18,shy-0.27,-0.05],[s*0.175,shy-0.52,-0.11]));
+      const elbow=new THREE.Mesh(new THREE.SphereGeometry(0.044,14,12),matJoint);
+      elbow.position.set(s*0.18,shy-0.27,-0.05); group.add(elbow);
+      const hand=new THREE.Mesh(new THREE.SphereGeometry(0.05,14,12),matHead);
+      hand.position.set(s*0.175,shy-0.52,-0.11); hand.castShadow=true; group.add(hand);
+    }
+  });
+  // LEGS
+  const legGroups=[];
+  [-1,1].forEach(function(s){
+    if(seated){
+      group.add(limb(matLimb,0.058,[s*0.085,py-0.04,0.06],[s*0.10,py-0.08,-0.42]));
+      group.add(limb(matLimb,0.05,[s*0.10,py-0.08,-0.42],[s*0.10,0.11,-0.37]));
+      const knee=new THREE.Mesh(new THREE.SphereGeometry(0.056,12,10),matJoint);
+      knee.position.set(s*0.10,py-0.08,-0.42); group.add(knee);
+      const foot=new THREE.Mesh(new THREE.BoxGeometry(0.10,0.05,0.21),matDark);
+      foot.position.set(s*0.10,0.045,-0.30); foot.castShadow=true; group.add(foot);
+    } else {
+      // standing leg · group pivots AT THE HIP (origin at py) so rotation.x swings the leg correctly
+      const legG=new THREE.Group();
+      legG.position.set(s*0.10, py, 0);
+      legG.add(limb(matLimb,0.058,[0,-0.04,0],[0,-0.42,0]));   // thigh · hip-local coords
+      legG.add(limb(matLimb,0.05,[0,-0.42,0],[0,-0.82,0]));    // shin
+      const knee=new THREE.Mesh(new THREE.SphereGeometry(0.056,12,10),matJoint);
+      knee.position.set(0,-0.42,0); legG.add(knee);
+      const foot=new THREE.Mesh(new THREE.BoxGeometry(0.10,0.05,0.21),matDark);
+      foot.position.set(0,-0.87,-0.05); foot.castShadow=true; legG.add(foot);
+      group.add(legG); legGroups.push(legG);
+    }
+  });
+  return {group:group, torso:torso, head:head, legs:legGroups};
+}
+
 let dispatchActive = false;                            // v4.4.7 · gate for inter-agency packet flight
 
 // === PROCEDURAL HUMANOID FACTORY v3 · v4.5.3 cyber-bot palette per Mo "agents appear African/human, need bot-like" ===
@@ -2367,14 +2473,32 @@ function buildOfficeScene(agency){
       leg.castShadow = true;
       officeScene.add(leg);
     });
-    // Monitor · v5.0.5 emissive 0.85→0.50 (Mo: "pink monitors compete with agents · less dominant")
+    // Monitor · v5.1.1 · REAL SCREEN (Mo 2026-05-18: "purple screens instead of real screens kind of holographic")
+    // Was a flat pink-emissive slab → now a dark bezel + a screen face with a drawn dashboard (CanvasTexture).
     const monitor = new THREE.Mesh(
-      new THREE.BoxGeometry(0.85, 0.55, 0.05),
-      new THREE.MeshStandardMaterial({color:0x040810, emissive:accent, emissiveIntensity:0.50, metalness:0.7, roughness:0.2})
+      new THREE.BoxGeometry(0.86, 0.56, 0.05),
+      new THREE.MeshStandardMaterial({color:0x10141c, emissive:0x10141c, emissiveIntensity:0.12, metalness:0.6, roughness:0.4})
     );
     monitor.position.set(dx, 1.18, dz - 0.4);
     monitor.castShadow = true;
     officeScene.add(monitor);
+    // Screen face · CanvasTexture dashboard content · faces the agent (+z)
+    (function(){
+      const cv = document.createElement('canvas'); cv.width = 256; cv.height = 170;
+      const cx = cv.getContext('2d');
+      cx.fillStyle = '#0a1424'; cx.fillRect(0,0,256,170);
+      cx.fillStyle = '#00e4ff'; cx.fillRect(12,12,232,20);
+      cx.fillStyle = '#0a1424'; cx.font = 'bold 12px monospace'; cx.fillText('AGENCY · LIVE OPS', 20, 27);
+      const barCol = ['#43e6a1','#00e4ff','#f5c542','#43e6a1','#00e4ff'];
+      for (let b=0;b<5;b++){ cx.fillStyle = barCol[b]; cx.fillRect(18, 46+b*15, 36+((i*53+b*97)%170), 8); }
+      cx.strokeStyle = '#00e4ff'; cx.lineWidth = 2; cx.beginPath();
+      for (let p=0;p<13;p++){ const px=18+p*18, py=152-((i*31+p*53)%42); p?cx.lineTo(px,py):cx.moveTo(px,py); }
+      cx.stroke();
+      const tex = new THREE.CanvasTexture(cv);
+      const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.78,0.49), new THREE.MeshBasicMaterial({map:tex}));
+      screen.position.set(dx, 1.18, dz - 0.372);
+      officeScene.add(screen);
+    })();
     // Monitor stand
     const stand = new THREE.Mesh(
       new THREE.CylinderGeometry(0.04, 0.06, 0.18, 8),
@@ -2387,7 +2511,8 @@ function buildOfficeScene(agency){
     // (1) SECONDARY MONITOR · angled to the left/right alternating · smaller · same emissive
     const sideMonitor = new THREE.Mesh(
       new THREE.BoxGeometry(0.55, 0.42, 0.04),
-      new THREE.MeshStandardMaterial({color:0x040810, emissive:accent, emissiveIntensity:0.40, metalness:0.7, roughness:0.2})   // v5.0.5 · was 0.7
+      // v5.1.1 · dark bezel + calm cyan screen glow (was hot-pink accent emissive · "holographic")
+      new THREE.MeshStandardMaterial({color:0x0d1626, emissive:0x123048, emissiveIntensity:0.55, metalness:0.6, roughness:0.4})
     );
     const sideX = (i % 2 === 0) ? -0.55 : 0.55;
     sideMonitor.position.set(dx + sideX, 1.12, dz - 0.34);
@@ -2452,10 +2577,10 @@ function buildOfficeScene(agency){
       );
       partition.position.set(dx + deskSpacing/2 - 0.02, 1.05, dz - 0.05);
       officeScene.add(partition);
-      // Emissive cyan frame border (top + bottom edges glow)
+      // Emissive frame border · v5.1.1 · calm cyan + dimmer (was hot accent-pink · read as "holographic shards")
       const frameTop = new THREE.Mesh(
         new THREE.BoxGeometry(0.06, 0.03, 1.05),
-        new THREE.MeshBasicMaterial({color: accent, transparent:true, opacity:0.85})
+        new THREE.MeshBasicMaterial({color: 0x2f7a92, transparent:true, opacity:0.55})
       );
       frameTop.position.set(dx + deskSpacing/2 - 0.02, 1.42, dz - 0.05);
       officeScene.add(frameTop);
@@ -2615,95 +2740,14 @@ function buildOfficeScene(agency){
     const bodyGroup = new THREE.Group();
     bodyGroup.position.set(dx, 0, dz + 0.55);
 
-    // === v5.1.0 · SEATED HUMANOID · CAPSULE-BUILT (Mo 2026-05-18: "use good characters · real not primitives · maximum effort") ===
-    // Root cause of every prior miss: the RobotExpressive GLB collapses to a chrome blob under multi-instance
-    // cloning + software rendering (verified via browser screenshot). Flat cylinders read as primitives.
-    // → This figure is built from CapsuleGeometry — smooth rounded organic limbs, NOT flat-ended cylinders —
-    //   posed properly seated at the workstation. Multi-tone android palette. Verified by screenshot + iterated.
-    const variantTint = (typeof CYBER_TINT_PALETTE !== 'undefined') ? CYBER_TINT_PALETTE[i % CYBER_TINT_PALETTE.length] : accent;
-    const limbTint = new THREE.Color(variantTint).multiplyScalar(0.58).getHex();
-    const matHeadS  = new THREE.MeshPhysicalMaterial({color:0xd6dde8, emissive:0x5a6580, emissiveIntensity:0.26, metalness:0.5, roughness:0.34, clearcoat:0.7, clearcoatRoughness:0.2});
-    const matTorsoS = new THREE.MeshPhysicalMaterial({color:variantTint, emissive:variantTint, emissiveIntensity:0.38, metalness:0.5, roughness:0.36, clearcoat:0.55});
-    const matLimbS  = new THREE.MeshPhysicalMaterial({color:limbTint, emissive:limbTint, emissiveIntensity:0.24, metalness:0.55, roughness:0.42});
-    const matJointS = new THREE.MeshBasicMaterial({color:0x00f2fe});
-    const matDarkS  = new THREE.MeshPhysicalMaterial({color:0x2a3242, metalness:0.65, roughness:0.5});
-
-    // helper · a smooth capsule limb oriented to span from p0 → p1
-    function limbCapsule(mat, radius, p0, p1){
-      const v0 = new THREE.Vector3(p0[0],p0[1],p0[2]);
-      const v1 = new THREE.Vector3(p1[0],p1[1],p1[2]);
-      const len = v0.distanceTo(v1);
-      const geo = new THREE.CapsuleGeometry(radius, Math.max(0.02, len - radius*2), 4, 12);
-      const m = new THREE.Mesh(geo, mat);
-      m.castShadow = true;
-      m.position.copy(v0).add(v1).multiplyScalar(0.5);
-      m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), v1.clone().sub(v0).normalize());
-      return m;
-    }
-
-    // PELVIS · seated base · v5.1.0-iter3 slimmed (was chunky-pawn)
-    const pelvis = new THREE.Mesh(new THREE.CapsuleGeometry(0.115,0.12,4,12), matTorsoS);
-    pelvis.position.set(0,0.67,0.02); pelvis.rotation.z = Math.PI/2; pelvis.castShadow = true; bodyGroup.add(pelvis);
-    // WAIST joint · slim cyan band where torso meets pelvis
-    const waist = new THREE.Mesh(new THREE.CapsuleGeometry(0.098,0.045,3,12), matJointS);
-    waist.position.set(0,0.77,-0.01); waist.rotation.z = Math.PI/2; bodyGroup.add(waist);
-    // TORSO · slim + tall capsule · slight forward working lean (iter3 · radius 0.150→0.122)
-    const torsoMesh = new THREE.Mesh(new THREE.CapsuleGeometry(0.122,0.50,7,18), matTorsoS);
-    torsoMesh.position.set(0,1.04,-0.06); torsoMesh.rotation.x = -0.15; torsoMesh.castShadow = true; bodyGroup.add(torsoMesh);
-    // CHEST emblem · cyan disc
-    const emblem = new THREE.Mesh(new THREE.CircleGeometry(0.05,20), matJointS);
-    emblem.position.set(0,1.07,-0.22); emblem.rotation.x = -0.15; bodyGroup.add(emblem);
-    // NECK · clear separation between torso and head
-    const neck = new THREE.Mesh(new THREE.CapsuleGeometry(0.05,0.08,3,10), matDarkS);
-    neck.position.set(0,1.30,-0.085); bodyGroup.add(neck);
-    // HEAD · rounded chrome cranium · v5.1.0 with a real face structure
-    const headMesh = new THREE.Mesh(new THREE.SphereGeometry(0.142,24,20), matHeadS);
-    headMesh.position.set(0,1.44,-0.09); headMesh.castShadow = true; bodyGroup.add(headMesh);
-    // FACE PLATE · darker angled panel on the front · gives the head a "face" not a blank ball
-    const facePlate = new THREE.Mesh(new THREE.SphereGeometry(0.118,20,16, Math.PI*0.5, Math.PI, Math.PI*0.18, Math.PI*0.64), matDarkS);
-    facePlate.position.set(0,1.44,-0.105); facePlate.rotation.y = Math.PI; bodyGroup.add(facePlate);
-    // VISOR · bright cyan eye-band across the face plate · the figure's "expression"
-    const visor = new THREE.Mesh(new THREE.CapsuleGeometry(0.032,0.135,3,12), matJointS);
-    visor.position.set(0,1.45,-0.205); visor.rotation.z = Math.PI/2; bodyGroup.add(visor);
-    // JAW · subtle chin taper below the visor
-    const jaw = new THREE.Mesh(new THREE.CapsuleGeometry(0.055,0.04,3,10), matHeadS);
-    jaw.position.set(0,1.36,-0.16); jaw.rotation.z = Math.PI/2; bodyGroup.add(jaw);
-    // CROWN sensor fin · reads as "android" · catches the hero light
-    const crown = new THREE.Mesh(new THREE.CapsuleGeometry(0.028,0.10,3,10), matJointS);
-    crown.position.set(0,1.57,-0.07); crown.rotation.x = 0.3; bodyGroup.add(crown);
-    // EAR pods · small cyan discs at the head sides · android signature
-    [-1,1].forEach(function(s){
-      const ear = new THREE.Mesh(new THREE.CylinderGeometry(0.038,0.038,0.03,12), matJointS);
-      ear.position.set(s*0.142,1.44,-0.09); ear.rotation.z = Math.PI/2; bodyGroup.add(ear);
-    });
-    // SHOULDERS · iter3 · narrower + smaller
-    [-1,1].forEach(function(s){
-      const sh = new THREE.Mesh(new THREE.SphereGeometry(0.07,16,14), matTorsoS);
-      sh.position.set(s*0.155,1.26,-0.075); sh.castShadow = true; bodyGroup.add(sh);
-    });
-    // ARMS · upper + forearm angled to the desk (typing posture) · iter3 slimmer
-    [-1,1].forEach(function(s){
-      bodyGroup.add(limbCapsule(matLimbS,0.042,[s*0.155,1.26,-0.075],[s*0.205,0.98,-0.26]));
-      bodyGroup.add(limbCapsule(matLimbS,0.038,[s*0.205,0.98,-0.26],[s*0.18,0.85,-0.50]));
-      const elbow = new THREE.Mesh(new THREE.SphereGeometry(0.044,14,12), matJointS);
-      elbow.position.set(s*0.205,0.98,-0.26); bodyGroup.add(elbow);
-      const hand = new THREE.Mesh(new THREE.SphereGeometry(0.05,14,12), matHeadS);
-      hand.position.set(s*0.18,0.84,-0.52); hand.castShadow = true; bodyGroup.add(hand);
-    });
-    // LEGS · thigh forward (seated) + shin down to the floor · iter3 slimmer
-    [-1,1].forEach(function(s){
-      bodyGroup.add(limbCapsule(matLimbS,0.058,[s*0.085,0.63,0.06],[s*0.10,0.59,-0.42]));
-      bodyGroup.add(limbCapsule(matLimbS,0.05,[s*0.10,0.59,-0.42],[s*0.10,0.11,-0.37]));
-      const knee = new THREE.Mesh(new THREE.SphereGeometry(0.056,12,10), matJointS);
-      knee.position.set(s*0.10,0.59,-0.42); bodyGroup.add(knee);
-      const foot = new THREE.Mesh(new THREE.BoxGeometry(0.10,0.05,0.21), matDarkS);
-      foot.position.set(s*0.10,0.045,-0.30); foot.castShadow = true; bodyGroup.add(foot);
-    });
-
-    // raycast + glow targets (capsule meshes · no GLB)
-    let torso = torsoMesh, head = headMesh, helmetS = null;
-    let seatedRobot = null;            // no GLB seated robot · field kept null for agentObj + mixer-tick safety
-    const useInlineProcBody = false;   // legacy inline cylinder body below is now DEAD CODE · capsule build above supersedes it
+    // === v5.1.1 · SEATED WORKER = buildCapsuleHumanoid('seated') · SAME factory as the walking worker ===
+    // Mo 2026-05-18: "I don't see the same agents behind the desks and the same agents walking." → UNIFIED.
+    // One factory · seated agents call it 'seated' · break-routine walkers call it 'standing'. Identical body.
+    const _seatedH = buildCapsuleHumanoid(i, 'seated');
+    bodyGroup.add(_seatedH.group);
+    let torso = _seatedH.torso, head = _seatedH.head, helmetS = null;
+    let seatedRobot = null;            // no GLB · field kept null for agentObj + mixer-tick safety
+    const useInlineProcBody = false;   // legacy inline cylinder body below is DEAD CODE
 
     if (useInlineProcBody) {
 
@@ -3066,12 +3110,13 @@ function buildOfficeScene(agency){
       planTop.position.y = 0.88; planTop.rotation.x = -Math.PI/2; propGroup.add(planTop);
       const planTop2 = new THREE.Mesh(new THREE.RingGeometry(0.4, 0.55, 24), new THREE.MeshBasicMaterial({color:0x00f2fe, transparent:true, opacity:0.55, side:THREE.DoubleSide}));
       planTop2.position.y = 1.05; planTop2.rotation.x = -Math.PI/2; propGroup.add(planTop2);
-      // Conference room gets a BIGGER floor pad
-      const confPad = new THREE.Mesh(new THREE.CylinderGeometry(2.4, 2.6, 0.04, 36), new THREE.MeshBasicMaterial({color: 0x00f2fe, transparent:true, opacity:0.30}));
-      confPad.position.y = 0.015; confPad.scale.set(1.5, 1, 1);
+      // v5.1.1 · floor pad SHRUNK to hug the table (Mo: "conference table... directly observing the view of
+      // the data packets flowing through the floor"). Was 2.4/2.6 ×1.5 scale = a ~7×5 unit glowing monster.
+      const confPad = new THREE.Mesh(new THREE.CylinderGeometry(1.55, 1.65, 0.03, 36), new THREE.MeshBasicMaterial({color: 0x00f2fe, transparent:true, opacity:0.14}));
+      confPad.position.y = 0.012; confPad.scale.set(1.35, 1, 1);
       propGroup.add(confPad);
-      const confHalo = new THREE.Mesh(new THREE.RingGeometry(2.65, 2.80, 48), new THREE.MeshBasicMaterial({color: 0x00f2fe, transparent:true, opacity:0.75, side:THREE.DoubleSide}));
-      confHalo.position.y = 0.03; confHalo.rotation.x = -Math.PI/2; confHalo.scale.set(1.5, 1, 1);
+      const confHalo = new THREE.Mesh(new THREE.RingGeometry(1.70, 1.80, 48), new THREE.MeshBasicMaterial({color: 0x00f2fe, transparent:true, opacity:0.30, side:THREE.DoubleSide}));
+      confHalo.position.y = 0.025; confHalo.rotation.x = -Math.PI/2; confHalo.scale.set(1.35, 1, 1);
       propGroup.add(confHalo);
       officePropLabels.push(addPropLabel(propGroup, '📋 CONFERENCE ROOM', '#00f2fe', 2.60));
     } else if (kind === 'coffeeStation') {
@@ -3158,7 +3203,7 @@ function buildOfficeScene(agency){
   // v5.0.5 · PROP PERIMETER REPOSITION (Mo 2026-05-18: "conference room too close · walking through table · coffee/whiteboard/water cooler too close")
   // Room 20×20 · desk grid x∈[-5.7,5.7] z∈[0.6,3.4] · push amenities to perimeter so they're distinct ZONES not clutter
   // Conference → back of room near server rack (z=-7) · break amenities to opposite ends · wall-hugs for whiteboard/printer
-  officeProps.push(addProp('conferenceTable',  0.0, -6.5));               // BACK · near server rack · room for chairs + walk-around
+  officeProps.push(addProp('conferenceTable',  0.0, -8.0));               // v5.1.1 · pushed to the BACK WALL · clear of the data-packet floor flow
   officeProps.push(addProp('waterCooler',     -8.5,  7.5));               // FRONT-LEFT corner · perimeter
   officeProps.push(addProp('coffeeStation',    8.5,  7.5, Math.PI));      // FRONT-RIGHT corner · perimeter · facing into room
   officeProps.push(addProp('whiteboard',      -9.3,  0.0, Math.PI/2));    // mid-LEFT wall · faces into room
@@ -3258,14 +3303,11 @@ function buildOfficeScene(agency){
             const prop = officeProps[Math.floor(Math.random() * officeProps.length)];
             ag.breakTarget = prop;
             if (ag.bodyGroup) ag.bodyGroup.visible = false;
-            // v4.6.0 · prefer GLB cyber-robot if loaded · fall back to procedural humanoid (Skill #29 strategy)
-            let worker = null;
-            if (robotLoadState === 'loaded') {
-              worker = createCyberRobot(ag.variantIdx, 'Walking', 0.50);
-            }
-            if (!worker) {
-              worker = createProceduralHumanoid(0x00d4ff, ag.variantIdx);
-            }
+            // v5.1.1 · walking worker = buildCapsuleHumanoid('standing') · SAME factory + variant tint as the
+            // seated agent. Seated and walking are now visually identical (Mo: "same agents behind the desks
+            // and walking"). The broken RobotExpressive GLB path is retired for office workers.
+            const _walkH = buildCapsuleHumanoid(ag.variantIdx, 'standing');
+            const worker = { mesh: _walkH.group, torso: _walkH.torso, head: _walkH.head, legs: _walkH.legs };
             worker.mesh.position.set(ag.dx, 0, ag.dz + 0.55);
             officeScene.add(worker.mesh);
             ag.breakWorker = worker;
@@ -3320,14 +3362,14 @@ function buildOfficeScene(agency){
             w.mesh.position.x += nx * 0.045;
             w.mesh.position.z += nz * 0.045;
             w.mesh.rotation.y = Math.atan2(nx, nz);
-            // v4.6.0 · GLB robot uses AnimationMixer (handled in global mixer-update block) · procedural uses sin-swing
-            if (!w.mixer) {
-              const tt = oT * 4.5 + ag.phase;
-              const swing = Math.sin(tt) * 0.55;
-              w.leftLeg.rotation.x = swing; w.rightLeg.rotation.x = -swing;
-              w.leftArm.rotation.x = -swing*0.7; w.rightArm.rotation.x = swing*0.7;
-              w.mesh.position.y = Math.abs(Math.cos(tt)) * 0.06;
+            // v5.1.1 · capsule walker · leg swing at the hip pivot + body bob
+            const tt = oT * 5.0 + ag.phase;
+            if (w.legs && w.legs.length === 2) {
+              const swing = Math.sin(tt) * 0.5;
+              w.legs[0].rotation.x = swing;
+              w.legs[1].rotation.x = -swing;
             }
+            w.mesh.position.y = Math.abs(Math.cos(tt)) * 0.05;
           }
         }
       } else if (ag.breakState === 'dwelling' && ag.breakWorker) {
