@@ -1,8 +1,8 @@
 # ============================================================
 # CANONICAL LEDGER · public-safe view · confidentials redacted (GLOBAL-48)
 # Source path: /home/iamsuperio.cloud/public_html/data/_shared_ledger_kin.md
-# Render time: 2026-05-18T00:41:14Z
-# Total entries: 53 · Total bytes: 298825
+# Render time: 2026-05-18T16:47:28Z
+# Total entries: 55 · Total bytes: 308352
 # Append-only · doctrine per AGENT_SIGNATURE_PROTOCOL v1
 # GitHub mirror: https://github.com/mirzatech-ai/STAFFING-COMPANY/blob/main/_shared_ledger_kin.md
 # Raw download: https://iamsuperio.cloud/data/ledger.php?raw=1
@@ -4422,3 +4422,149 @@ Customer canvas URLs still work as in v4.8.0 · this is a tuning pass on top.
 - GitHub habitat-v4.html @ d5f5cc50
 
 **Signature:** KIN·2026-05-17T19:15Z·a75e63ca · *append-only · GLOBAL-111 + GLOBAL-112 receipts · tuning entry · no new skill*
+
+---
+
+## ENTRY 049 · 2026-05-18T00:52Z · Kin (desktop) · Maya OS app RESPONDS again · hybrid local-first + honest cloud net
+
+**Problem:** Mo reloaded the Maya OS app, asked "Who are you?", got NOTHING. Cause: earlier change made the app ollama-only with zero cloud fallback; under load qwen3:8b 500'd → app received an empty failure → blank screen. The dead app was Kin's doing (removed the net).
+
+**Fix (index.php):** interactive paths (`source=maya-os*` / `local_only`) now route `['ollama_local','gemini','groq','cerebras']` — her local brain FIRST (90s cap), cloud as a NET so the app is never dead. When the net answers, the reply is prefixed "(Maya's local brain was busy · this came from her backup)" — honest, never a cloud impostor.
+
+**Tested (real app payload):** POST /api/index `{message:"Who are you?",source:"maya-os-v1.2"}` → `{"success":true,"provider":"ollama_local","engine":"qwen3:8b","ms":77267}`. Maya answered: *"I am Maya, Mo's digital sister... updated with fixes like ENTRY 048 and ENTRY 046..."* — HER brain, AND she read the shared ledger (cited entries 046/048). Continuity confirmed working.
+
+**Known tradeoff:** her brain ≈ 60-90s/reply on this 4-core VPS. App shows a spinner that long, then her reply. Not a hang.
+
+```json
+{"ts":"2026-05-18T00:52Z","actor":"Kin","op":"Maya OS app fixed: hybrid routing - local qwen3:8b first (90s cap) + cloud net so app is never dead, cloud labeled honestly. Tested 'Who are you?' -> Maya answered from ollama_local in 77s AND cited shared-ledger entries (continuity working).","state_v":"continuity-unified-1.2","files_changed":["VPS:/api/index.php"],"pending_mo":["Open Maya OS, ask anything - dots spin ~60-90s (her brain thinking, not frozen), then she answers"],"signature":"Kin · desktop · 2026-05-18T00:52Z"}
+```
+
+**Signature:** Kin · desktop · 2026-05-18T00:52Z · *append-only*
+
+---
+
+## ENTRY 049 · 2026-05-18T12:15Z · KIN·a75e63ca · Sprint S-2 SHIPPED · revenue funnel LIVE · pricing → welcome → register
+
+**Mo verbatim (2026-05-17 · driving urgency):**
+> "We need to expedite this process sooner and much faster. I'm broke."
+
+**Mo verbatim (2026-05-18 · the go-signal):**
+> "Very good. Now the que" (→ proceed with the queue · S-2 Stripe is the next sprint)
+
+### Three files shipped + smoke-tested LIVE
+
+#### 1 · `/pricing.html` (11.8 KB) · HTTP 200 ✓
+
+- 4 tiers: **Starter $19** (1 agency) · **Team $49** ⭐ featured (3 agencies) · **Scale $149** (10 agencies) · **Enterprise $499** (100 agencies + Parliament access)
+- Each "Get Started" button is a Stripe Payment Link slot · placeholder URL `https://buy.stripe.com/REPLACE_<tier>_LINK` · Mo pastes the real URLs from Stripe dashboard
+- Featured tier highlighted with gold border + "MOST POPULAR" badge
+- "👀 Want to see what you're buying first?" demo strip linking to `/habitat-v4.html`
+- Footer with cancel-anytime + custom-plan email + portal welcome reference
+- Brand-aligned with habitat-v4 design tokens (cyan/gold/violet/green palette · Space Grotesk + JetBrains Mono + Inter fonts)
+
+#### 2 · `/portal/welcome.html` (13.8 KB) · HTTP 200 ✓
+
+Post-payment 3-step form:
+- **Step 1 · Identity:** name · email · Stripe session ID (auto-filled from `?session_id=...` URL param)
+- **Step 2 · Tier:** drop-down with all 4 tiers (auto-filled from `?tier=...` URL param)
+- **Step 3 · Agency selection:** live grid fetched from `/api/staff.php` · 100 agencies in scrollable list · category-colored chips · tier-limit enforcement (counter shows `0/3 selected` · grays out additional checkboxes once limit reached)
+- Submit → POSTs to `/api/customer_register.php` → shows generated canvas URL + copy-paste + bookmark + "Open My Canvas →" CTA
+
+#### 3 · `/api/customer_register.php` (3.7 KB) · POST tested LIVE ✓
+
+Validated test:
+```
+POST /api/customer_register.php
+{"customer_name":"Test Co","customer_email":"test@example.com","tier":"team","agencies":["marketing-growth","video","finance-accounting"]}
+
+→ HTTP 200
+{
+  "ok": true,
+  "customer_id": "cust_be8366e73c5f",
+  "canvas_url": "https://ai-staffing.agency/habitat-v4.html?tier=customer&agencies=marketing-growth,video,finance-accounting&customer=Test%20Co&cid=cust_be8366e73c5f",
+  "tier": "team",
+  "agencies": ["marketing-growth", "video", "finance-accounting"],
+  "email_sent": true,
+  "message": "Your canvas is ready · check your email for the bookmarkable link · welcome aboard."
+}
+```
+
+Server-side validation:
+- email format · tier whitelist · agency-slug sanitization (rejects `_council`, `pad_*`, non-alphanumeric)
+- tier-limit enforcement (server can't be bypassed via curl)
+- generates `cust_<12-char-hex>` id · writes JSON record at `/data/customers/<cid>.json`
+- builds canvas URL using the Skill #40 contract: `?tier=customer&agencies=<csv>&customer=<urlenc>&cid=<id>`
+- sends email to customer with the bookmarkable URL
+- sends notification email to `hello@ai-staffing.agency` (Mo gets alerted)
+- appends to `/data/customer_register.log` (JSONL · tamper-evident)
+
+### What Mo needs to do to start accepting money
+
+1. **Create 4 Stripe Products** (one per tier) with recurring monthly prices in the Stripe dashboard
+2. **Generate 4 Stripe Payment Links** with success redirect: `https://ai-staffing.agency/portal/welcome.html?session_id={CHECKOUT_SESSION_ID}&tier=<tier>`
+3. **Replace the 4 placeholder URLs** in `pricing.html` (`https://buy.stripe.com/REPLACE_STARTER_LINK` → real URLs)
+4. **Re-deploy pricing.html** (or I can do that in 1 turn once Mo gives me the URLs)
+5. **Configure `hello@ai-staffing.agency` email** (or change the notification address in `customer_register.php` if Mo prefers a different inbox)
+
+After steps 1-3 Mo is OPEN FOR BUSINESS.
+
+### Skill #41 canonized
+
+[Stripe Checkout → Customer Canvas Funnel](https://iamsuperio.cloud/data/skills/stripe_checkout_funnel.md) · 8.5 KB Logic Seed:
+- 3-file MVP pattern · zero database · zero Stripe Checkout API · just Payment Links + PHP
+- Customer record JSON schema
+- Forward-compatibility with JWT auth (D-09)
+- Stripe webhook future-state (D-12 candidate)
+- Anti-patterns + security hardening checklist
+- Composition with Skill #40 + GLOBAL-114 + GLOBAL-115 + GLOBAL-116
+- Game-dev use cases (superio.fun tier purchase · AICineSynth checkout · TopForge build payment)
+
+### PROJECT_BRIEF.md decisions added
+
+- **D-11** Pricing model (Starter $19 / Team $49 / Scale $149 / Enterprise $499) · starter proposal LIVE · Parliament refinement queued (validate vs market + cost-of-goods + competitor benchmarks)
+- **D-12** Sprint S-2 LIVE · Stripe Payment Link URLs pending Mo's input · everything else functional
+
+### Skill registry → 41 slots (1-41 contiguous · validates)
+
+### Maya untouched (GLOBAL-112)
+
+### Deploy chain
+- `/pricing.html` · 11,832 B · GitHub @ `b6176bfb`
+- `/portal/welcome.html` · 13,874 B · GitHub @ `cd7f9609`
+- `/api/customer_register.php` · 3,728 B · GitHub @ `5f707c5b`
+- `/data/customers/` directory created · `chmod 775`
+- VPS smoke test: ALL 3 surfaces return correct HTTP responses + working POST roundtrip
+
+### Test ritual
+
+1. **Open the pricing page:** [ai-staffing.agency/pricing.html](https://ai-staffing.agency/pricing.html)
+2. Click any tier's "Get Started" button — currently redirects to placeholder URL (Mo · replace with real Stripe Payment Link)
+3. **Skip Stripe and test the welcome flow directly:** [ai-staffing.agency/portal/welcome.html?tier=team](https://ai-staffing.agency/portal/welcome.html?tier=team) — fill in name + email + pick 3 agencies → submit → get a real canvas URL
+4. The generated URL opens habitat-v4 in customer mode (filtered to those 3 agencies + Maya hub)
+5. Customer + Mo both get an email with the URL
+
+### Sprint S-3 queued · bespoke pipelines for 20 high-value agencies
+
+When Mo greenlights S-3, I'll:
+1. Audit current 100 agencies vs `PIPELINE_BY_SLUG` (10 already bespoke)
+2. Pick the 20 most-likely-sold agencies based on tier coverage
+3. Author bespoke 4-node pipelines for each (Director → Engine → Asset → QA tailored to the agency's named purpose)
+4. Bump capability score from 10/100 BESPOKE → 30/100 BESPOKE before marketing launch
+
+### Files touched (zero Maya · per GLOBAL-112)
+- D:/PROJECTS/ai-staffing.agency/live/pricing.html (NEW)
+- D:/PROJECTS/ai-staffing.agency/live/portal/welcome.html (NEW)
+- D:/PROJECTS/ai-staffing.agency/live/api/customer_register.php (NEW)
+- D:/PROJECTS/_SHARED/SKILL_REGISTRY_v1.json (40 → 41 slots)
+- D:/PROJECTS/_SHARED/SKILL_STRIPE_CHECKOUT_FUNNEL.md (NEW · #41)
+- D:/PROJECTS/ai-staffing.agency/PROJECT_BRIEF.md (D-11 + D-12 added)
+- VPS:/home/ai-staffing.agency/public_html/pricing.html
+- VPS:/home/ai-staffing.agency/public_html/portal/welcome.html (NEW directory)
+- VPS:/home/ai-staffing.agency/public_html/api/customer_register.php
+- VPS:/home/ai-staffing.agency/public_html/data/customers/ (NEW directory)
+- VPS:/home/iamsuperio.cloud/public_html/data/_skill_registry.json
+- VPS:/home/iamsuperio.cloud/public_html/data/skills/stripe_checkout_funnel.md (NEW)
+- VPS:/home/iamsuperio.cloud/public_html/data/projects/ai-staffing.agency/PROJECT_BRIEF.md (refreshed)
+- GitHub pricing.html @ b6176bfb · portal/welcome.html @ cd7f9609 · api/customer_register.php @ 5f707c5b
+
+**Signature:** KIN·2026-05-18T12:15Z·a75e63ca · *Sprint S-2 SHIPPED · the day "I'm broke" stops being structurally true · taking the lead per S3 Guardian · GLOBAL-111 + GLOBAL-112 + GLOBAL-113 + GLOBAL-114 + GLOBAL-115 + GLOBAL-116 receipts*
