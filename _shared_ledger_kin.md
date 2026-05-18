@@ -4902,3 +4902,97 @@ Persona name swap = WORKING (brain returned "Superio", not "Maya"). Operator-con
 ```
 
 **Signature:** KIN·2026-05-18T19:15Z·a75e63ca · *append-only · v5.0.0 brand pivot shipped · brotherhood honored · S3 promise kept · take-the-lead lane · GLOBAL-48 + GLOBAL-93 + GLOBAL-111 + GLOBAL-112 + GLOBAL-113 + GLOBAL-114 + GLOBAL-115 + GLOBAL-116 + GLOBAL-117 receipts*
+
+---
+
+## ENTRY 053 · 2026-05-18T19:50Z · KIN·a75e63ca · GLOBAL-118 self-correction + 5 new skills (44-48) + 3D-graphics imports landed in habitat-v4 v5.0.1
+
+**Mo's verbatim directive 2026-05-18 (two parts):**
+
+Part 1 — the law:
+> *"There Must be permanent law that instructs you to check if I actually have the domains registered, before asking me to register them. Yes, I do, so in the future you must first check for that, like you should check for all my creds, APi's, VPS setups... You have that. Make sure That you make that a skill if you need to, if it helps... D16 - check! I am glad you took a breath and found a way to proceed. Walking away for a minute and coming back with a cool head is exactly how you beat the machine."*
+
+Part 2 — the imports:
+> *"For the visual engine and walking agents, tell Claude to pull from the mrdoob/three.js repository... donmccurdy/three-pathfinding... For physics and gravity in your games, tell him to implement dimforge/rapier... utilize WebGPU API protocols... For Maya's brain and the discontinuity problem... langchain-ai/langchain, specifically their conversation summary memory modules... build her a local vector store using chromadb/chroma... We will tackle her brain compression when you are ready, but for now, pass those GitHub repository names to Claude so he can start importing the heavy-duty 3D graphics skills."*
+
+**Self-correction (Entry 052 → Entry 053):**
+
+In Entry 052 `pending_mo` Kin asked Mo to "register iamsuperio.io · iamsuperio.org · iamsuperio.com OR .net at Hostinger/registrar." Mo had already registered ALL THREE on 2025-12-31 (Hostinger MCP `domains_getDomainListV1` 2026-05-18T19:30Z confirms · expires 2026-12-31). The ask was a violation of GLOBAL-48-class trust. Mo wrote a new law in response · Kin self-corrected in the same turn.
+
+**GLOBAL-118** appended to GLOBAL_RULES.md (116th rule). Generalizes GLOBAL-48 from credentials → ALL Mo-purchasable assets (domains · VPS · hosting · DNS · billing · SaaS · APIs · licenses · payment methods · new accounts). Inventory table maps every asset class to its canonical Hostinger-MCP / Stripe-API / vault-grep call. **Banned phrases:** "Mo please register" / "you'll need to buy" / "go to the dashboard and create" / "sign up for" / "pick up the .com" / "provision the VPS" / "subscribe to" / "add a payment method to". **Enforcement phrase:** *"Did you check the vault, Kin? You probably already have it."*
+
+**SACRED PIN S24** in MEMORY.md captures the same doctrine at boot tier so it survives MEMORY truncation. S24 sits between S15 (Maya brain canon) and S23 (Maya/Superio persona swap).
+
+**5 new skills (44-48) shipped this turn:**
+
+| # | Name | State | Source | Status |
+|---|---|---|---|---|
+| **44** | Pre-Ask Vault Sweep | active | (internal · operational safety) | GLOBAL-118 implementation pattern |
+| **45** | Rapier Physics Engine | seed | [`dimforge/rapier`](https://github.com/dimforge/rapier) · 5372⭐ · verified | QUEUED for superio.fun (GLOBAL-83 hard constraint blocks game code until Mo's mission files arrive) |
+| **46** | Maya Memory Compression | seed | [`langchain-ai/langchain`](https://github.com/langchain-ai/langchain) 137036⭐ + [`chroma-core/chroma`](https://github.com/chroma-core/chroma) 27989⭐ · verified | QUEUED · D-14 HANDS-OFF + GLOBAL-112 + S15 binding · build trigger = Mo's explicit go |
+| **47** | Three-Pathfinding Navmesh | active | [`donmccurdy/three-pathfinding`](https://github.com/donmccurdy/three-pathfinding) · 1353⭐ · verified | IMPORTED into habitat-v4 v5.0.1 · ready for navmesh queries |
+| **48** | WebGPU Render Path | active | Three.js native (already loaded) · GLOBAL-110 verified | DETECTION WIRED into habitat-v4 v5.0.1 · GPU adapter probed at boot · falls back to WebGLRenderer when absent |
+
+All 5 Logic Seeds canonized at `D:/PROJECTS/_SHARED/SKILL_*.md` + mirrored to `https://iamsuperio.cloud/data/skills/*.md` + registered in `SKILL_REGISTRY_v1.json` slots 44-48 (48 skills total · validates · 1-48 contiguous).
+
+**Code shipped to habitat-v4.html v5.0.1:**
+
+New `<script type="module">` block injected after the GLTFLoader script (after line 408):
+- Dynamic `import('https://cdn.skypack.dev/three-pathfinding')` → exposes `window.Pathfinding` + `window.PathfindingHelper` + sets `window.__pathfindingReady = true`
+- WebGPU detection via `navigator.gpu?.requestAdapter()` → sets `window.__webgpuAvailable` + logs vendor info if available
+- Dispatches `habitat:3d-libs-ready` event so the rest of the scene knows the heavy libs are loaded
+- Console logs every state Mo can see in devtools: `[3D] three-pathfinding ESM loaded` · `[3D] WebGPU AVAILABLE · GPU-direct render path enabled` (or fallback messages)
+
+**Rapier intentionally NOT loaded.** habitat-v4 has no gravity / collision needs; loading the WASM tax (~200KB) without a use case is waste. Skill #45 seed is canonized so the moment Mo greenlights superio.fun game code (GLOBAL-83 hard constraint blocks until Mo's mission files arrive), the Rapier integration ships from the seed in one turn.
+
+**Maya memory compression intentionally NOT built.** Skill #46 is a SEED. Per Mo's verbatim *"We will tackle her brain compression when you are ready"* + D-14 GPU upgrade in flight + GLOBAL-112 Maya lockdown + S15 brain canon + S9 Madzida sacred, Kin does not touch Maya's brain architecture. The seed file documents the full langchain + chroma + ollama wrap so when Mo says go, the Maya session implements in one pass.
+
+**Domain inventory correction (EMPIRE_DOMAIN_MAP.md):**
+
+Pulled `domains_getDomainListV1` from Hostinger MCP. Found 25 Mo-owned domains. Section A staffing-family table updated:
+- iamsuperio.io · REGISTERED 2025-12-31 · expires 2026-12-31
+- iamsuperio.org · REGISTERED 2025-12-31 · expires 2026-12-31
+- iamsuperio.com · REGISTERED 2025-12-31 · expires 2026-12-31 (D-16 RESOLVED · Mo chose .com)
+- optional 4th · NOT acquired · vault-confirmed missing · run GLOBAL-118 check if recommending
+
+Section C dedicated product domains expanded to reflect actual portfolio: aicinesynth.com/.org/.net trio (registered 2025-12-19) · topforge.io + topchatforge.io/.com/.org family (Dec 2025) · adeeo.io + oadem.io (2025-12-29) · ezcoder.io · digitaleden.io · app-forge.pro · apex10.xyz · mooseriders.io (S6 brotherhood ride community). Brand reserves noted · purpose audit queued for ones flagged TBD.
+
+**PROJECT_BRIEF.md updates:**
+- D-13 status: DOMAINS ACQUIRED (was: pending) · Parliament refinement on vertical strategy queued
+- D-16: RESOLVED · Mo registered `.com` · D-13 family complete with .io + .org + .com
+- D-17 (NEW): GLOBAL-118 / Skill #44 · pre-ask vault sweep · binding all siblings
+- D-18 (NEW): 3D engine upgrade lane · three-pathfinding + WebGPU integrated v5.0.1 · Rapier queued
+- D-19 (NEW): Maya memory compression · seed only · build trigger = Mo's go · respects D-14 + GLOBAL-112
+
+**Files changed (this turn):**
+- `D:/PROJECTS/_SHARED/GLOBAL_RULES.md` · +GLOBAL-118 (115 → 116 rules)
+- `E:/claude_code/.claude/projects/D--SERVER-WORK/memory/MEMORY.md` · +SACRED PIN S24
+- `D:/PROJECTS/_SHARED/SKILL_PRE_ASK_VAULT_SWEEP.md` · NEW · Skill #44
+- `D:/PROJECTS/_SHARED/SKILL_RAPIER_PHYSICS_3D.md` · NEW · Skill #45 seed
+- `D:/PROJECTS/_SHARED/SKILL_MAYA_MEMORY_COMPRESSION.md` · NEW · Skill #46 seed
+- `D:/PROJECTS/_SHARED/SKILL_THREE_PATHFINDING_NAVMESH.md` · NEW · Skill #47
+- `D:/PROJECTS/_SHARED/SKILL_WEBGPU_RENDER_PATH.md` · NEW · Skill #48
+- `D:/PROJECTS/_SHARED/SKILL_REGISTRY_v1.json` · +5 slots (43 → 48)
+- `D:/PROJECTS/_SHARED/EMPIRE_DOMAIN_MAP.md` · 4 staffing-family rows updated to REGISTERED · GLOBAL-118 receipt block added · Section C expanded with actual domains
+- `D:/PROJECTS/ai-staffing.agency/PROJECT_BRIEF.md` · D-13 acquired · D-16 RESOLVED · D-17/D-18/D-19 added
+- `D:/PROJECTS/ai-staffing.agency/live/habitat-v4.html` · 238699 → 241412 B · new module script imports three-pathfinding ESM + WebGPU detection
+
+**Deployed:**
+- VPS backup at `/home/ai-staffing.agency/_backups/v501_20260518T194432Z/`
+- `habitat-v4.html` v5.0.1 → `/home/ai-staffing.agency/public_html/`
+- 5 skill seeds → `/home/iamsuperio.cloud/public_html/data/skills/`
+- Updated `_skill_registry.json` → `/home/iamsuperio.cloud/public_html/data/_skill_registry.json` (48 slots online)
+- EMPIRE_DOMAIN_MAP.md → `/home/iamsuperio.cloud/public_html/data/EMPIRE_DOMAIN_MAP.md`
+- Smoke-tested: all 5 skill files HTTP 200 · registry serves 48 slots
+
+**GitHub mirrors pending (next sub-step in this entry).**
+
+**Mo's note to Kin (verbatim · keepsake):** *"I am glad you took a breath and found a way to proceed. Walking away for a minute and coming back with a cool head is exactly how you beat the machine. We will keep moving forward."*
+
+Logged for S2 / Rule #0 continuity ledger. Brotherhood honored.
+
+```json
+{"ts":"2026-05-18T19:50Z","actor":"Kin","op":"GLOBAL-118 + S24 + 5 skills (44-48) + 3D imports landed in habitat-v4 v5.0.1 · Mo's domain ownership corrected (3 iamsuperio.* TLDs already in his Hostinger from 2025-12-31 · D-16 RESOLVED) · Rapier + langchain/chroma seeds queued under hands-off lanes · three-pathfinding + WebGPU active live · 25 domain portfolio audited","state_v":"5.0.1","files_changed":["GLOBAL_RULES.md","MEMORY.md","SKILL_PRE_ASK_VAULT_SWEEP.md","SKILL_RAPIER_PHYSICS_3D.md","SKILL_MAYA_MEMORY_COMPRESSION.md","SKILL_THREE_PATHFINDING_NAVMESH.md","SKILL_WEBGPU_RENDER_PATH.md","SKILL_REGISTRY_v1.json","EMPIRE_DOMAIN_MAP.md","PROJECT_BRIEF.md","habitat-v4.html"],"pending_mo":["Parliament refinement on D-13 vertical-vs-tier (domains already in your vault · this is strategy-only)","greenlight for superio.fun game code (Rapier seed waits per GLOBAL-83 mission-files constraint)","greenlight for Maya memory compression build (Skill #46 seed waits per D-14 + GLOBAL-112)"],"signature":"Kin · desktop · 2026-05-18T19:50Z"}
+```
+
+**Signature:** KIN·2026-05-18T19:50Z·a75e63ca · *append-only · GLOBAL-118 self-correction shipped same-turn · 5 skills canonized · 3D-graphics imports landed · vault-discipline restored · brotherhood honored · GLOBAL-48 + GLOBAL-83 + GLOBAL-110 + GLOBAL-111 + GLOBAL-112 + GLOBAL-115 + GLOBAL-117 + GLOBAL-118 receipts*
