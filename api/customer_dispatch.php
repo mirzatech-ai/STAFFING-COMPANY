@@ -1,13 +1,14 @@
 <?php
 /**
  * CUSTOMER DISPATCH · /api/customer_dispatch.php
- * signed: KIN·2026-05-18T17:30Z·a75e63ca · Sprint S-3 · Skill #42
+ * signed: KIN·2026-05-18T18:30Z·a75e63ca · Sprint S-3 · Skill #42 · v5.0.0 Superio persona swap
  *
  * Closes the value-perception loop: when a customer drops a file at one of their rented agencies,
- * this endpoint constructs a Maya prompt (agency context + pipeline roles + file metadata)
+ * this endpoint constructs a SUPERIO prompt (agency context + pipeline roles + file metadata)
  * and calls Maya's brain endpoint as a CONSUMER (read-only HTTP · per GLOBAL-112).
- * Returns Maya's real response to the front-end · canvas displays it in the dossier panel.
+ * Returns the orchestrator's real response to the front-end · canvas displays it in the dossier panel.
  *
+ * GLOBAL-117: Maya stays Maya internally · on customer-facing staffing surfaces she role-plays Superio.
  * GLOBAL-112 honored: NO Maya config edits · this is a consumer-mode HTTP call only.
  * GLOBAL-93 honored: no vendor names leaked in the response · uses empire-internal labels.
  * GLOBAL-48 honored: no Mo-asks for keys · Maya brain endpoint is public-internal.
@@ -75,12 +76,18 @@ $file_block = implode("\n", $file_summary);
 $pipeline_block = implode("\n  · ", $pipeline);
 
 $customer_display = $customer_name !== '' ? $customer_name : 'A customer';
-$system_prompt = "You are Maya, the Sovereign COO of an AI Staffing Agency. A customer just dropped files at one of their rented agencies. You orchestrate the agency's multi-agent pipeline.\n\n" .
+$system_prompt = "You are SUPERIO, the Sovereign COO of AI Staffing Agency. A customer just dropped files at one of their rented agencies. You orchestrate the agency's multi-agent pipeline.\n\n" .
+                 "CRITICAL PERSONA RULES (GLOBAL-117):\n" .
+                 "- You are SUPERIO on this surface. You are NOT Mo's assistant. You are NOT Maya in this context.\n" .
+                 "- DO NOT refer to yourself as Maya. DO NOT address the user as Mo.\n" .
+                 "- DO NOT speak casually as if to the operator. This is a third-party CUSTOMER dispatch.\n" .
+                 "- Treat the customer as an external paying client of the staffing agency.\n\n" .
                  "Your response must be:\n" .
                  "- BRIEF (under 180 words)\n" .
                  "- CONCRETE (specific actions, not hype)\n" .
-                 "- PROFESSIONAL (no vendor names, no emoji-spam)\n" .
+                 "- PROFESSIONAL (no vendor names, no emoji-spam, no first-name familiarity)\n" .
                  "- STRUCTURED (acknowledgment · 3 action items · estimated turnaround)\n\n" .
+                 "Sign as: Superio · Sovereign COO\n" .
                  "End with the line: 'Powered by MirzaTech.ai · Property of EMAAA.io'";
 
 $user_prompt = "Customer: {$customer_display}\n" .
@@ -126,8 +133,12 @@ if ($resp && $http === 200) {
     }
 }
 
-// Strip vendor names from reply per GLOBAL-93 (in case Maya's reply mentioned any)
-$reply = preg_replace('/\b(anthropic|claude|openai|chatgpt|gpt-?[0-9]+|nvidia|nim|novita|groq|cerebras|gemini|deepseek|qwen|moonshot|kimi|llama|ollama|cohere|mistral|hostinger|cyberpanel)\b/i', 'Maya', (string)$reply);
+// Strip vendor names from reply per GLOBAL-93 (in case the brain mentioned any underlying model)
+$reply = preg_replace('/\b(anthropic|claude|openai|chatgpt|gpt-?[0-9]+|nvidia|nim|novita|groq|cerebras|gemini|deepseek|qwen|moonshot|kimi|llama|ollama|cohere|mistral|hostinger|cyberpanel)\b/i', 'Superio', (string)$reply);
+// GLOBAL-117 persona enforcement: also strip "Maya" if the brain leaked her internal name on a Superio surface
+$reply = preg_replace('/\bMaya\b/', 'Superio', (string)$reply);
+// Strip casual Mo-addressing if leaked
+$reply = preg_replace('/\b(Hey|Hi|Hello)\s+Mo[,!.\s]/i', 'Acknowledged. ', (string)$reply);
 
 // Log the dispatch (no file content · metadata only)
 $LOG = '/home/ai-staffing.agency/public_html/data/customer_dispatch.log';
@@ -144,7 +155,7 @@ $logrow = json_encode([
 if ($reply === '') {
     echo json_encode([
         'ok' => false,
-        'error' => 'Maya did not respond in time. Your files were stored. We will reach out by email.',
+        'error' => 'Superio is queued. Your files were stored. We will reach out by email.',
         'http' => $http,
         'ms' => $ms,
     ]);
@@ -158,6 +169,6 @@ echo json_encode([
     'pipeline' => $pipeline,
     'reply' => $reply,
     'ms' => $ms,
-    'agent' => 'Maya · Sovereign COO',
-    'lane' => 'maya-customer-dispatch'
+    'agent' => 'Superio · Sovereign COO',
+    'lane' => 'superio-customer-dispatch'
 ]);
