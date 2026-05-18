@@ -21,7 +21,7 @@
 <meta property="og:image" content="https://ai-staffing.agency/assets/sim-city/5.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Superio · Sovereign Campus · AI Staffing Agency">
-<meta name="twitter:description" content="Three.js · 100 agencies · isometric · kinetic data-packets · Click any tower to dispatch a Maya agent">
+<meta name="twitter:description" content="Three.js · 100 agencies · isometric · kinetic data-packets · Click any tower to dispatch a Superio agent">
 
 <!-- Source + context links Gemini can fetch for line-level review -->
 <link rel="alternate" type="text/html" href="https://raw.githubusercontent.com/mirzatech-ai/maya-sovereign-campus/main/habitat-v4.html" title="Habitat v4 source · GitHub raw">
@@ -36,7 +36,7 @@
   "review_target": "https://ai-staffing.agency/habitat-v4.html",
   "version": "v4.1",
   "session_signature": "KIN·2026-05-17·a75e63ca",
-  "purpose": "Maya AI Sovereign Campus · 100-agency 3D SimCity · built per Mo's Gemini-relayed directives in 5 iteration rounds (v1 mockup-as-backdrop · v2 100-agency-floor · v3 rolled back · v4 procedural Three.js · v4.1 metropolis overhaul per Gemini's 4-fix directive)",
+  "purpose": "Superio · Sovereign Campus · 100-agency 3D SimCity · built per Mo's Gemini-relayed directives in 5+ iteration rounds (v1 mockup-as-backdrop · v2 100-agency-floor · v3 rolled back · v4 procedural Three.js · v5 brand pivot Superio persona on staffing surfaces per GLOBAL-117)",
   "fetch_for_full_context": {
     "source_code_raw": "https://raw.githubusercontent.com/mirzatech-ai/maya-sovereign-campus/main/habitat-v4.html",
     "source_code_browse": "https://github.com/mirzatech-ai/maya-sovereign-campus/blob/main/habitat-v4.html",
@@ -217,7 +217,7 @@ body{background:radial-gradient(1400px 900px at 50% -10%,rgba(245,197,66,.05),tr
   <div role="alert" style="padding:40px;text-align:center">This page requires JavaScript to render the WebGL 3D campus. The full source + scene description is available at <a href="https://raw.githubusercontent.com/mirzatech-ai/maya-sovereign-campus/main/habitat-v4.html">GitHub</a>.</noscript>
 
 <div id="scene-narration" aria-live="polite" role="status" style="position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden">
-  Maya AI Sovereign Campus 3D scene · 100 staffing agencies as isometric buildings on a 10×10 grid · 5 category clusters (Technology, Business, Healthcare, Industry, Creative) · MirzaTech Council Chamber locked at front-center · 28 data packets continuously flowing from random buildings to Council Chamber via parabolic arcs · click any building to dispatch a Maya agent.
+  Superio · Sovereign Campus 3D scene · 100 staffing agencies as isometric buildings on a 10×10 grid · 5 category clusters (Technology, Business, Healthcare, Industry, Creative) · Superio's Sovereign Chamber locked at front-center · 28 data packets continuously flowing from random buildings to the Chamber via parabolic arcs · click any building to dispatch a Superio agent.
 </div>
 
 <!-- Crawlable scene-state JSON · updates on interaction so Gemini's next crawl sees current state -->
@@ -245,13 +245,13 @@ body{background:radial-gradient(1400px 900px at 50% -10%,rgba(245,197,66,.05),tr
     <li>RESET CAM button (bottom-right) resets camera angle to default (π/4, π/4) and zoom to 1.0</li>
     <li>AUTO-ROTATE button starts continuous rotation at 0.003 rad/frame</li>
     <li>PULSE ALL button triggers the 2.2-second campus-wide particle wave + state pulse on every building</li>
-    <li>Click any building tile to open the dispatch overlay (agency details + Maya agent dispatch form)</li>
+    <li>Click any building tile to open the dispatch overlay (agency details + Superio agent dispatch form)</li>
     <li>Click the Council Chamber to open the canonical 12-seat doctrine overlay</li>
   </ul>
 </div>
 
 <!-- 3D STAGE · canvas auto-mounted by Three.js -->
-<div id="stage3d" role="application" aria-label="Maya AI 3D Sovereign Campus · 100 interactive staffing agency buildings on isometric grid · drag to rotate · scroll to zoom · click any building to dispatch an agent"></div>
+<div id="stage3d" role="application" aria-label="Superio · Sovereign Campus · 3D · 100 interactive staffing agency buildings on isometric grid · drag to rotate · scroll to zoom · click any building to dispatch an agent"></div>
 
 <!-- Tooltip · floats with cursor on hover -->
 <div class="tooltip" id="tooltip">
