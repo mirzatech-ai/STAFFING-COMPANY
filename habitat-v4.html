@@ -312,7 +312,7 @@ body{background:radial-gradient(1400px 900px at 50% -10%,rgba(245,197,66,.05),tr
     </div>
     <div id="officeTitle" style="font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--white);font-size:14px;letter-spacing:.06em"></div>
     <!-- v4.5.0 · TOP STATUS BAR METRIC CHIPS (Skill #24 · matches Gemini blueprint) -->
-    <span class="metric-chip" id="chipVersion" style="display:inline-flex;align-items:center;padding:5px 11px;border-radius:13px;background:rgba(245,197,66,.12);border:1px solid var(--gold);color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;font-weight:600">v5.1.0</span>
+    <span class="metric-chip" id="chipVersion" style="display:inline-flex;align-items:center;padding:5px 11px;border-radius:13px;background:rgba(245,197,66,.12);border:1px solid var(--gold);color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;font-weight:600">v5.1.2</span>
     <span class="metric-chip" id="chipAgencies" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:13px;background:rgba(0,212,255,.10);border:1px solid var(--cyan);color:var(--cyan);font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em"><b style="color:#fff">100</b> Agencies</span>
     <span class="metric-chip" id="chipRoles" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:13px;background:rgba(67,230,161,.10);border:1px solid var(--green);color:var(--green);font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em"><b style="color:#fff">724</b> Roles</span>
     <span class="metric-chip" id="chipCouncil" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:13px;background:rgba(245,197,66,.10);border:1px solid var(--gold);color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em">Council <b style="color:#fff">99%</b></span>
@@ -538,7 +538,7 @@ function categorize(slug){
 // Strategy: route via mid-room CORRIDORS · agents leave desk going forward (toward +z) to mid-row z=4.5, then sidestep
 function computeOfficePath(from, to){
   // Conference table footprint (v5.0.5 · moved to back of room near server rack)
-  const confZmin = -9.5, confZmax = -6.5, confXmin = -2.8, confXmax = 2.8;   // v5.1.1 · conference moved to z=-8.0
+  const confZmin = -9.5, confZmax = -6.0, confXmin = -9.2, confXmax = -3.8;   // v5.1.2 · conference at back-left corner (-6.5,-8.0)
   const insideConf = (p) => p.x > confXmin && p.x < confXmax && p.z > confZmin && p.z < confZmax;
   const crossesConf = (() => {
     // Sample 12 points along the straight line · if any falls in conf zone → must route around
@@ -1888,6 +1888,7 @@ let officeScene = null, officeCamera = null, officeRenderer = null, officeAgents
 let officeServerLEDs = [];
 let officeComposer = null, officeBloomPass = null;   // v4.4.5 · cinematic post-processing
 let officeWalkers = [], officeOutboundConduit = null, officeProps = [], officePropLabels = [];  // v4.4.7/8/4.5.2 · walkers + dispatch conduit + props + DOM prop labels
+let officeScreens = [];   // v5.1.2 · live monitor dashboards · {canvas,ctx,tex,seed} · animated in the office loop
 
 // === v4.6.0 · CYBER-ROBOT GLB LOADER (Skill #32 · D-01 ship · per PROJECT_BRIEF) ===
 // Loads three.js RobotExpressive.glb once, caches scene + animation clips
@@ -1996,7 +1997,64 @@ function createCyberRobot(variantIdx, initialAnim, scale){
     // Fallback: use the first mesh as torso
     mesh.traverse(child => { if (!torso && (child.isMesh || child.isSkinnedMesh)) torso = child; });
   }
+  // v5.1.2 · HEAD SWAP (Mo 2026-05-18: "give me the old robots · just change the head") ·
+  // hide RobotExpressive's stock head meshes · attach a sleek chrome android head to the 'Head' node so it animates.
+  let headNode = null;
+  mesh.traverse(c => { if (!headNode && c.name === 'Head' && c.type === 'Group') headNode = c; });
+  mesh.traverse(c => { if ((c.isMesh || c.isSkinnedMesh) && /^Head_\d/.test(c.name||'')) c.visible = false; });
+  if (headNode) {
+    const sleek = buildSleekHead(tint);
+    sleek.scale.setScalar(0.01);   // compensate the Head node's ~100× world scale
+    headNode.add(sleek);
+  }
   return {mesh, mixer, currentAnim, clips: cachedRobotClips, head, torso, tint};
+}
+
+// v5.1.2 · LIVE monitor dashboard · animated bars + scrolling chart + blinking status dot
+function drawAgentScreen(cx, seed, t){
+  cx.fillStyle = '#0a1424'; cx.fillRect(0,0,256,170);
+  cx.fillStyle = '#00e4ff'; cx.fillRect(12,12,232,20);
+  cx.fillStyle = '#0a1424'; cx.font = 'bold 12px monospace'; cx.fillText('AGENCY · LIVE OPS', 20, 27);
+  const barCol = ['#43e6a1','#00e4ff','#f5c542','#43e6a1','#00e4ff'];
+  for (let b=0;b<5;b++){
+    const v = 0.5 + 0.5*Math.sin(t*1.6 + seed*1.3 + b*0.9);
+    cx.fillStyle = barCol[b];
+    cx.fillRect(18, 46+b*15, 28 + v*186, 8);
+  }
+  cx.strokeStyle = '#00e4ff'; cx.lineWidth = 2; cx.beginPath();
+  for (let p=0;p<13;p++){
+    const px = 18 + p*18;
+    const py = 150 - (22 + 17*Math.sin(t*2.2 + seed + p*0.55));
+    p ? cx.lineTo(px,py) : cx.moveTo(px,py);
+  }
+  cx.stroke();
+  // blinking live status dot
+  if (Math.sin(t*4) > 0){ cx.fillStyle = '#43e6a1'; cx.beginPath(); cx.arc(232,22,4,0,7); cx.fill(); }
+}
+
+// v5.1.2 · sleek android head · replaces RobotExpressive's stock head · built at ~0.34 reference radius
+function buildSleekHead(tint){
+  const g = new THREE.Group();
+  const matChrome = new THREE.MeshPhysicalMaterial({color:0xd6dde8, emissive:0x5a6580, emissiveIntensity:0.30, metalness:0.6, roughness:0.3, clearcoat:0.8});
+  const matCyan = new THREE.MeshBasicMaterial({color:0x00f2fe});
+  const matDark = new THREE.MeshPhysicalMaterial({color:0x222a38, metalness:0.6, roughness:0.45});
+  const skull = new THREE.Mesh(new THREE.SphereGeometry(0.34,24,20), matChrome);
+  skull.castShadow = true; g.add(skull);
+  // dark face plate (front)
+  const face = new THREE.Mesh(new THREE.SphereGeometry(0.288,20,16,Math.PI*0.5,Math.PI,Math.PI*0.2,Math.PI*0.6), matDark);
+  face.rotation.y = Math.PI; face.position.z = -0.05; g.add(face);
+  // cyan visor band (wraps so it reads from multiple angles)
+  const visor = new THREE.Mesh(new THREE.TorusGeometry(0.30,0.045,8,20,Math.PI*1.1), matCyan);
+  visor.rotation.y = Math.PI*0.95; visor.position.y = 0.03; g.add(visor);
+  // crown sensor fin
+  const crown = new THREE.Mesh(new THREE.CapsuleGeometry(0.055,0.22,3,10), matCyan);
+  crown.rotation.x = 0.3; crown.position.set(0,0.34,0.05); g.add(crown);
+  // ear pods
+  [-1,1].forEach(function(s){
+    const ear = new THREE.Mesh(new THREE.CylinderGeometry(0.085,0.085,0.07,12), matCyan);
+    ear.rotation.z = Math.PI/2; ear.position.set(s*0.335,0,0); g.add(ear);
+  });
+  return g;
 }
 
 function setCyberRobotAnim(robot, animName){
@@ -2289,6 +2347,7 @@ function buildOfficeScene(agency){
   officeWalkers = [];
   officeProps = [];
   officePropLabels = [];
+  officeScreens = [];   // v5.1.2 · reset live-screen registry per office build
   officeOutboundConduit = null;
   dispatchActive = false;
   // v4.5.1/4.5.2 · purge previous DOM labels (agents + props share the same layer)
@@ -2482,23 +2541,18 @@ function buildOfficeScene(agency){
     monitor.position.set(dx, 1.18, dz - 0.4);
     monitor.castShadow = true;
     officeScene.add(monitor);
-    // Screen face · CanvasTexture dashboard content · faces the agent (+z)
-    (function(){
+    // Screen face · LIVE CanvasTexture dashboard (Mo 2026-05-18: "make the screens act live") ·
+    // registered in officeScreens · redrawn each frame by the office loop with animated bars + scrolling chart.
+    {
       const cv = document.createElement('canvas'); cv.width = 256; cv.height = 170;
       const cx = cv.getContext('2d');
-      cx.fillStyle = '#0a1424'; cx.fillRect(0,0,256,170);
-      cx.fillStyle = '#00e4ff'; cx.fillRect(12,12,232,20);
-      cx.fillStyle = '#0a1424'; cx.font = 'bold 12px monospace'; cx.fillText('AGENCY · LIVE OPS', 20, 27);
-      const barCol = ['#43e6a1','#00e4ff','#f5c542','#43e6a1','#00e4ff'];
-      for (let b=0;b<5;b++){ cx.fillStyle = barCol[b]; cx.fillRect(18, 46+b*15, 36+((i*53+b*97)%170), 8); }
-      cx.strokeStyle = '#00e4ff'; cx.lineWidth = 2; cx.beginPath();
-      for (let p=0;p<13;p++){ const px=18+p*18, py=152-((i*31+p*53)%42); p?cx.lineTo(px,py):cx.moveTo(px,py); }
-      cx.stroke();
       const tex = new THREE.CanvasTexture(cv);
+      drawAgentScreen(cx, i, 0);
       const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.78,0.49), new THREE.MeshBasicMaterial({map:tex}));
       screen.position.set(dx, 1.18, dz - 0.372);
       officeScene.add(screen);
-    })();
+      officeScreens.push({ ctx: cx, tex: tex, seed: i });
+    }
     // Monitor stand
     const stand = new THREE.Mesh(
       new THREE.CylinderGeometry(0.04, 0.06, 0.18, 8),
@@ -2740,13 +2794,28 @@ function buildOfficeScene(agency){
     const bodyGroup = new THREE.Group();
     bodyGroup.position.set(dx, 0, dz + 0.55);
 
-    // === v5.1.1 · SEATED WORKER = buildCapsuleHumanoid('seated') · SAME factory as the walking worker ===
-    // Mo 2026-05-18: "I don't see the same agents behind the desks and the same agents walking." → UNIFIED.
-    // One factory · seated agents call it 'seated' · break-routine walkers call it 'standing'. Identical body.
-    const _seatedH = buildCapsuleHumanoid(i, 'seated');
-    bodyGroup.add(_seatedH.group);
-    let torso = _seatedH.torso, head = _seatedH.head, helmetS = null;
-    let seatedRobot = null;            // no GLB · field kept null for agentObj + mixer-tick safety
+    // === v5.1.2 · WORKER = GLB RobotExpressive (Mo 2026-05-18: "give me the old robots · the motion was better") ===
+    // HONEST CORRECTION: the GLB "blob" I saw earlier was a SOFTWARE-RENDER artifact in headless Chrome (SwiftShader) —
+    // on Mo's real GPU the GLB robot renders perfectly. Reverting to it. Seated agent = robot standing AT the desk
+    // ('Idle' clip · natural). Break-routine walker = same robot ('Walking'). One model · seated + walking identical.
+    let seatedRobot = null;
+    if (robotLoadState === 'loaded') {
+      seatedRobot = createCyberRobot(i, 'Idle', 0.50);
+      if (seatedRobot) {
+        seatedRobot.mesh.position.set(0, 0, -0.32);   // stand at the desk edge, in front of the chair
+        seatedRobot.mesh.rotation.y = Math.PI;        // face -z toward the monitor
+        bodyGroup.add(seatedRobot.mesh);
+      }
+    }
+    // capsule humanoid is now the FALLBACK only (if the GLB CDN fails)
+    if (!seatedRobot) {
+      const _fb = buildCapsuleHumanoid(i, 'seated');
+      bodyGroup.add(_fb.group);
+      seatedRobot = {mesh:_fb.group, torso:_fb.torso, head:_fb.head, _capsuleFallback:true};
+    }
+    let torso = seatedRobot.torso || seatedRobot.mesh;
+    let head = seatedRobot.head || seatedRobot.mesh;
+    let helmetS = null;
     const useInlineProcBody = false;   // legacy inline cylinder body below is DEAD CODE
 
     if (useInlineProcBody) {
@@ -3203,7 +3272,7 @@ function buildOfficeScene(agency){
   // v5.0.5 · PROP PERIMETER REPOSITION (Mo 2026-05-18: "conference room too close · walking through table · coffee/whiteboard/water cooler too close")
   // Room 20×20 · desk grid x∈[-5.7,5.7] z∈[0.6,3.4] · push amenities to perimeter so they're distinct ZONES not clutter
   // Conference → back of room near server rack (z=-7) · break amenities to opposite ends · wall-hugs for whiteboard/printer
-  officeProps.push(addProp('conferenceTable',  0.0, -8.0));               // v5.1.1 · pushed to the BACK WALL · clear of the data-packet floor flow
+  officeProps.push(addProp('conferenceTable', -6.5, -8.0));               // v5.1.2 · BACK-LEFT CORNER · Mo: "to the back where there is nothing in the whole office"
   officeProps.push(addProp('waterCooler',     -8.5,  7.5));               // FRONT-LEFT corner · perimeter
   officeProps.push(addProp('coffeeStation',    8.5,  7.5, Math.PI));      // FRONT-RIGHT corner · perimeter · facing into room
   officeProps.push(addProp('whiteboard',      -9.3,  0.0, Math.PI/2));    // mid-LEFT wall · faces into room
@@ -3303,11 +3372,16 @@ function buildOfficeScene(agency){
             const prop = officeProps[Math.floor(Math.random() * officeProps.length)];
             ag.breakTarget = prop;
             if (ag.bodyGroup) ag.bodyGroup.visible = false;
-            // v5.1.1 · walking worker = buildCapsuleHumanoid('standing') · SAME factory + variant tint as the
-            // seated agent. Seated and walking are now visually identical (Mo: "same agents behind the desks
-            // and walking"). The broken RobotExpressive GLB path is retired for office workers.
-            const _walkH = buildCapsuleHumanoid(ag.variantIdx, 'standing');
-            const worker = { mesh: _walkH.group, torso: _walkH.torso, head: _walkH.head, legs: _walkH.legs };
+            // v5.1.2 · walking worker = GLB RobotExpressive 'Walking' (Mo: "give me the old robots · motion was better")
+            // SAME model + variant index as the seated agent → seated and walking are now the identical robot.
+            let worker = null;
+            if (robotLoadState === 'loaded') {
+              worker = createCyberRobot(ag.variantIdx, 'Walking', 0.50);
+            }
+            if (!worker) {
+              const _fbw = buildCapsuleHumanoid(ag.variantIdx, 'standing');
+              worker = { mesh:_fbw.group, torso:_fbw.torso, head:_fbw.head, legs:_fbw.legs };
+            }
             worker.mesh.position.set(ag.dx, 0, ag.dz + 0.55);
             officeScene.add(worker.mesh);
             ag.breakWorker = worker;
@@ -3362,14 +3436,17 @@ function buildOfficeScene(agency){
             w.mesh.position.x += nx * 0.045;
             w.mesh.position.z += nz * 0.045;
             w.mesh.rotation.y = Math.atan2(nx, nz);
-            // v5.1.1 · capsule walker · leg swing at the hip pivot + body bob
-            const tt = oT * 5.0 + ag.phase;
-            if (w.legs && w.legs.length === 2) {
-              const swing = Math.sin(tt) * 0.5;
-              w.legs[0].rotation.x = swing;
-              w.legs[1].rotation.x = -swing;
+            // v5.1.2 · GLB walker = AnimationMixer 'Walking' clip drives the motion (mixer ticked globally) ·
+            // only the capsule FALLBACK (no mixer) needs the manual leg-swing + body bob.
+            if (!w.mixer) {
+              const tt = oT * 5.0 + ag.phase;
+              if (w.legs && w.legs.length === 2) {
+                const swing = Math.sin(tt) * 0.5;
+                w.legs[0].rotation.x = swing;
+                w.legs[1].rotation.x = -swing;
+              }
+              w.mesh.position.y = Math.abs(Math.cos(tt)) * 0.05;
             }
-            w.mesh.position.y = Math.abs(Math.cos(tt)) * 0.05;
           }
         }
       } else if (ag.breakState === 'dwelling' && ag.breakWorker) {
@@ -3404,9 +3481,20 @@ function buildOfficeScene(agency){
     const _delta = officeClock.getDelta();
     officeAgents.forEach(ag => {
       if (ag.breakWorker && ag.breakWorker.mixer) ag.breakWorker.mixer.update(_delta);
-      // v5.0.2 · also tick the SEATED cyber-robot's Sitting animation (subtle breath/idle motion)
+      // v5.0.2 · also tick the SEATED cyber-robot's idle animation (subtle breath/idle motion)
       if (ag.seatedRobot && ag.seatedRobot.mixer) ag.seatedRobot.mixer.update(_delta);
     });
+    // v5.1.2 · LIVE MONITOR DASHBOARDS · redraw the screen canvases (throttled to ~10fps · cheap)
+    if (officeScreens.length){
+      const _now = officeClock.elapsedTime;
+      if (_now - (officeScreens._lastDraw || 0) > 0.1){
+        officeScreens._lastDraw = _now;
+        for (let s=0;s<officeScreens.length;s++){
+          drawAgentScreen(officeScreens[s].ctx, officeScreens[s].seed, _now);
+          officeScreens[s].tex.needsUpdate = true;
+        }
+      }
+    }
     // CONSTANT BACKGROUND DATA PACKETS · flowing through the wire conduits
     if(officeBgPackets.length) animateOfficeBgPackets();
     // v4.5.1 · officeWalkers patrol-block REMOVED · desk agents are the only mover (break routine below)
